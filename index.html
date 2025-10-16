@@ -13,7 +13,7 @@
   <div id="particles"></div>
 
   <div class="container">
-    <h1>Welcome to My Profile</h1>
+    <h1 id="greeting">Welcome to My Profile</h1>
     
     <div style="text-align: center;">
       <div class="glitch-text">バンサス</div>
@@ -100,8 +100,14 @@
                 <div class="achievement-icon">⭐</div>
                 <span class="achievement-text">Simulated Universe</span>
               </div>
+              <div class="achievement-info">
+                <span class="achievement-number" id="hsr-exploration"></span>
+                <div class="achievement-icon">🗺️</div>
+                <span class="achievement-text">Exploration</span>
+              </div>
               <div class="uid-info">
                 <span class="uid-text">UID: <span id="player-uid"></span></span>
+                <button class="copy-uid-btn" id="copy-hsr-uid" onclick="copyHSRUID()">📋 Copy</button>
               </div>
             </div>
           </div>
@@ -142,8 +148,14 @@
                 <div class="achievement-icon">🛡️</div>
                 <span class="achievement-text">Shiyu Defense</span>
               </div>
+              <div class="achievement-info">
+                <span class="achievement-number" id="exploration-progress"></span>
+                <div class="achievement-icon">🗺️</div>
+                <span class="achievement-text">Exploration</span>
+              </div>
               <div class="uid-info">
                 <span class="uid-text">UID: <span id="zzz-player-uid"></span></span>
+                <button class="copy-uid-btn" id="copy-zzz-uid" onclick="copyZZZUID()">📋 Copy</button>
               </div>
             </div>
           </div>
@@ -187,5 +199,10 @@
   </div>
 
   <audio id="audio"></audio>
+
+  <img class="decorative-image image1" src="https://static.wikia.nocookie.net/houkai-star-rail/images/6/6e/Character_Evernight_Eidolon_3.png/revision/latest/scale-to-width-down/1000?cb=20250917130251" alt="Decorative 1">
+  <img class="decorative-image image2" src="https://static.wikia.nocookie.net/houkai-star-rail/images/9/9b/Character_Evernight_Eidolon_2.png/revision/latest/scale-to-width-down/1000?cb=20250917130240" alt="Decorative 2">
+  <img class="decorative-image image3" src="https://static.wikia.nocookie.net/houkai-star-rail/images/5/53/Character_Evernight_Eidolon_6.png/revision/latest/scale-to-width-down/1000?cb=20250917130324" alt="Decorative 3">
+  <img class="decorative-image image4" src="https://static.wikia.nocookie.net/houkai-star-rail/images/9/97/Character_Evernight_Eidolon_5.png/revision/latest/scale-to-width-down/1000?cb=20250917130313" alt="Decorative 4">
 </body>
 </html>
