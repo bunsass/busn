@@ -172,32 +172,13 @@ updateGreeting();
 // ========================================
 // 3D Card Tilt Effect & Staggered Animations
 // ========================================
+// ========================================
+// Staggered Animations for Cards
+// ========================================
 const cards = document.querySelectorAll('.card');
 cards.forEach((card, index) => {
   card.style.animationDelay = `${index * 0.1}s`;
-  
-  card.addEventListener('mousemove', (e) => {
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    
-    // Reduce tilt intensity for HSR and ZZZ cards (easier to read)
-    const intensity = (card.classList.contains('hsr-section') || card.classList.contains('zzz-section')) ? 40 : 20;
-    
-    const rotateX = (y - centerY) / intensity;
-    const rotateY = (centerX - x) / intensity;
-    
-    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-5px) scale(1.02)`;
-  });
-  
-  card.addEventListener('mouseleave', () => {
-    card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0) scale(1)';
-  });
 });
-
 // ========================================
 // Interactive Cursor Trail
 // ========================================
