@@ -170,34 +170,28 @@ function updateGreeting() {
 updateGreeting();
 
 // ========================================
-// 3D Card Tilt Effect & Staggered Animations
-// ========================================
-// ========================================
 // Staggered Animations for Cards
 // ========================================
 const cards = document.querySelectorAll('.card');
 cards.forEach((card, index) => {
   card.style.animationDelay = `${index * 0.1}s`;
 });
-// ========================================
-// Interactive Cursor Trail
-// ========================================
-document.addEventListener('mousemove', (e) => {
-  const trail = document.createElement('div');
-  trail.className = 'cursor-trail';
-  trail.style.left = e.clientX + 'px';
-  trail.style.top = e.clientY + 'px';
-  document.body.appendChild(trail);
-  
-  setTimeout(() => {
-    trail.remove();
-  }, 800);
-});
 
 // ========================================
-// Parallax Scrolling Effect - DISABLED
+// Interactive Cursor Trail - DISABLED
 // ========================================
-// Decorative images will stay fixed in place
+// Cursor trail disabled to prevent interaction issues
+// document.addEventListener('mousemove', (e) => {
+//   const trail = document.createElement('div');
+//   trail.className = 'cursor-trail';
+//   trail.style.left = e.clientX + 'px';
+//   trail.style.top = e.clientY + 'px';
+//   document.body.appendChild(trail);
+//   
+//   setTimeout(() => {
+//     trail.remove();
+//   }, 800);
+// });
 
 // ========================================
 // Honkai Star Rail API Integration
@@ -214,6 +208,23 @@ class HSREnkaAPI {
   init() {
     // Auto-fetch configured UID on page load
     this.fetchPlayerData(this.configuredUID);
+  }
+
+  getMockData() {
+    return {
+      uid: this.configuredUID,
+      detailInfo: {
+        nickname: "Trailblazer",
+        level: 70,
+        worldLevel: 6,
+        signature: "Demo data - API unavailable",
+        recordInfo: {
+          achievementCount: 583,
+          maxRogueChallengeScore: 9,
+          bookCount: 85
+        }
+      }
+    };
   }
 
   async fetchPlayerData(uid) {
@@ -250,6 +261,8 @@ class HSREnkaAPI {
     ];
 
     const apiUrl = `${this.baseURL}/${uid}`;
+    let apiData = null;
+    let lastError = null;
 
     try {
       console.log('Fetching HSR data for UID:', uid);
@@ -272,7 +285,7 @@ class HSREnkaAPI {
           }
           
           const data = await response.json();
-          const apiData = proxy.parse(data);
+          apiData = proxy.parse(data);
           
           // Validate HSR data structure
           if (!apiData || !apiData.detailInfo) {
@@ -288,17 +301,21 @@ class HSREnkaAPI {
           
         } catch (error) {
           console.warn(`${proxy.name} error:`, error.message);
+          lastError = error;
           continue;
         }
       }
       
-      // All proxies failed
-      console.error('All HSR proxies failed');
-      this.showError('Failed to fetch player data. All proxy services failed. Please try again later.');
+      // All proxies failed - use mock data
+      console.log('All HSR proxies failed, using mock data');
+      this.showError('Unable to fetch live data. Displaying demo data.');
+      apiData = this.getMockData();
+      this.displayPlayerData(apiData);
       
     } catch (error) {
       console.error('Error fetching HSR data:', error);
-      this.showError(`Failed to fetch player data: ${error.message}. Please refresh the page.`);
+      this.showError('Failed to fetch player data. Displaying demo data.');
+      this.displayPlayerData(this.getMockData());
     } finally {
       this.showLoading(false);
     }
@@ -339,7 +356,10 @@ class HSREnkaAPI {
       // Update achievement count
       const achievementEl = document.getElementById('achievement-count');
       if (achievementEl) {
-        achievementEl.textContent = player.recordInfo?.achievementCount || '0';
+        const achievementCount = player.recordInfo?.achievementCount || 
+                                 player.finishAchievementNum || 
+                                 player.achievementCount || '0';
+        achievementEl.textContent = achievementCount;
       }
       
       // Update UID
@@ -354,16 +374,16 @@ class HSREnkaAPI {
         // Hardcoded avatar URL
         const avatarUrl = `https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png`;
         
-        console.log('Loading hardcoded avatar from:', avatarUrl);
+        console.log('Loading hardcoded HSR avatar from:', avatarUrl);
         
         avatarEl.onerror = () => {
-          console.warn('Avatar URL failed. Using placeholder.');
+          console.warn('HSR Avatar URL failed. Using placeholder.');
           const initial = player.nickname?.charAt(0) || 'HSR';
           avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(initial)}&size=90&background=667eea&color=ffffff&bold=true`;
         };
         
         avatarEl.onload = () => {
-          console.log('Avatar loaded successfully');
+          console.log('HSR Avatar loaded successfully');
         };
         
         avatarEl.src = avatarUrl;
@@ -394,16 +414,13 @@ class HSREnkaAPI {
 
       // Simulated Universe stars
       const suStarsEl = document.getElementById('su-stars');
-      if (suStarsEl && recordInfo.maxRogueChallengeScore !== undefined) {
-        suStarsEl.textContent = recordInfo.maxRogueChallengeScore;
-      } else {
-        suStarsEl.textContent = '0';
+      if (suStarsEl) {
+        suStarsEl.textContent = recordInfo.maxRogueChallengeScore || '0';
       }
 
       // Exploration - calculate from book count (rough estimate)
       const explorationEl = document.getElementById('hsr-exploration');
       if (explorationEl && recordInfo.bookCount !== undefined) {
-        // Max books is around 120, so calculate percentage
         const explorationPercent = Math.min(Math.round((recordInfo.bookCount / 120) * 100), 100);
         explorationEl.textContent = explorationPercent + '%';
       } else {
@@ -487,6 +504,26 @@ class ZZZEnkaAPI {
     this.fetchPlayerData(this.configuredUID);
   }
 
+  getMockData() {
+    return {
+      uid: this.configuredUID,
+      PlayerInfo: {
+        SocialDetail: {
+          ProfileDetail: {
+            Nickname: "Proxy",
+            Level: 50,
+            Uid: this.configuredUID
+          },
+          Desc: "Demo data - API unavailable",
+          MedalList: [
+            { MedalType: 3, MedalScore: 0 },
+            { MedalType: 4, MedalScore: 0 }
+          ]
+        }
+      }
+    };
+  }
+
   async fetchPlayerData(uid) {
     this.showLoading(true);
     this.hideError();
@@ -521,56 +558,70 @@ class ZZZEnkaAPI {
     ];
 
     const apiUrl = `${this.baseURL}/${uid}`;
+    let apiData = null;
+    let lastError = null;
 
-    for (const proxy of proxies) {
-      try {
-        console.log(`Trying ZZZ with ${proxy.name}...`);
-        
-        const proxyUrl = proxy.url(apiUrl);
-        const response = await fetch(proxyUrl, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json'
+    try {
+      console.log('Fetching ZZZ data for UID:', uid);
+
+      for (const proxy of proxies) {
+        try {
+          console.log(`Trying ZZZ with ${proxy.name}...`);
+          
+          const proxyUrl = proxy.url(apiUrl);
+          const response = await fetch(proxyUrl, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
+          
+          if (!response.ok) {
+            console.warn(`${proxy.name} failed with status ${response.status}`);
+            continue;
           }
-        });
-        
-        if (!response.ok) {
-          console.warn(`${proxy.name} failed with status ${response.status}`);
+          
+          const data = await response.json();
+          apiData = proxy.parse(data);
+          
+          // Validate ZZZ data structure
+          if (!apiData || !apiData.PlayerInfo) {
+            console.warn(`${proxy.name} returned invalid data structure`);
+            continue;
+          }
+          
+          console.log(`✅ Successfully fetched ZZZ data using ${proxy.name}`);
+          console.log('ZZZ API Response:', apiData);
+          this.displayPlayerData(apiData);
+          this.showLoading(false);
+          return;
+          
+        } catch (error) {
+          console.warn(`${proxy.name} error:`, error.message);
+          lastError = error;
           continue;
         }
-        
-        const data = await response.json();
-        const apiData = proxy.parse(data);
-        
-        // Validate ZZZ data structure
-        if (!apiData || !apiData.PlayerInfo) {
-          console.warn(`${proxy.name} returned invalid data structure`);
-          continue;
-        }
-        
-        console.log(`✅ Successfully fetched ZZZ data using ${proxy.name}`);
-        console.log('ZZZ API Response:', apiData);
-        this.displayPlayerData(apiData);
-        this.showLoading(false);
-        return;
-        
-      } catch (error) {
-        console.warn(`${proxy.name} error:`, error.message);
-        continue;
       }
-    }
 
-    // All proxies failed
-    console.error('All ZZZ proxies failed');
-    this.showError('Failed to fetch player data. All proxy services failed. Please try again later.');
-    this.showLoading(false);
+      // All proxies failed - use mock data
+      console.log('All ZZZ proxies failed, using mock data');
+      this.showError('Unable to fetch live data. Displaying demo data.');
+      apiData = this.getMockData();
+      this.displayPlayerData(apiData);
+
+    } catch (error) {
+      console.error('Error fetching ZZZ data:', error);
+      this.showError('Failed to fetch player data. Displaying demo data.');
+      this.displayPlayerData(this.getMockData());
+    } finally {
+      this.showLoading(false);
+    }
   }
 
   displayPlayerData(data) {
     try {
       console.log('ZZZ Data Structure:', data);
       
-      // ZZZ API has structure: PlayerInfo.SocialDetail.ProfileDetail
       const playerInfo = data.PlayerInfo;
       if (!playerInfo || !playerInfo.SocialDetail || !playerInfo.SocialDetail.ProfileDetail) {
         console.error('Invalid ZZZ data structure:', data);
@@ -625,26 +676,23 @@ class ZZZEnkaAPI {
         avatarEl.src = avatarUrl;
       }
       
-      // Update ZZZ Challenge Stats - use medal data
+      // Update ZZZ Challenge Stats
       this.displayChallengeStats(playerInfo);
       
       this.showPlayerInfo();
       
     } catch (error) {
       console.error('Error displaying ZZZ player data:', error);
-      console.error('Full error:', error);
       this.showError(`Failed to display player data: ${error.message}`);
     }
   }
 
   displayChallengeStats(playerInfo) {
     try {
-      // Get medals from SocialDetail
       const medals = playerInfo.SocialDetail?.MedalList || [];
       
       console.log('ZZZ Medals:', medals);
       
-      // Medal types: 1=Battle, 3=Shiyu Defense, 4=Exploration
       let shiyuStars = 0;
       let exploration = 0;
       
@@ -656,22 +704,17 @@ class ZZZEnkaAPI {
         }
       });
 
-      // Shiyu Defense
       const shiyuEl = document.getElementById('shiyu-defense');
       if (shiyuEl) {
         shiyuEl.textContent = shiyuStars;
       }
 
-      // Exploration
       const explorationEl = document.getElementById('exploration-progress');
       if (explorationEl) {
         explorationEl.textContent = exploration + '%';
       }
 
-      console.log('ZZZ Challenge Stats:', {
-        shiyuDefense: shiyuStars,
-        exploration
-      });
+      console.log('ZZZ Challenge Stats:', { shiyuDefense: shiyuStars, exploration });
       
     } catch (error) {
       console.error('Error displaying ZZZ challenge data:', error);
