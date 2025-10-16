@@ -1,15 +1,26 @@
-// Background Particles
+// Background Particles (Purple/blue mystical orbs matching Evernight)
 const particlesContainer = document.getElementById('particles');
-for (let i = 0; i < 30; i++) {
+for (let i = 0; i < 60; i++) {
   const particle = document.createElement('div');
   particle.className = 'particle';
-  particle.style.width = Math.random() * 8 + 3 + 'px';
-  particle.style.height = particle.style.width;
+  const size = Math.random() * 6 + 2;
+  particle.style.width = size + 'px';
+  particle.style.height = size + 'px';
   particle.style.left = Math.random() * 100 + '%';
   particle.style.top = Math.random() * 100 + '%';
-  particle.style.background = `rgba(255, 255, 255, ${Math.random() * 0.5 + 0.2})`;
+  
+  // Purple/blue/pink mystical particles matching Evernight theme
+  const colors = [
+    'rgba(139, 92, 246, 0.6)',
+    'rgba(99, 102, 241, 0.5)',
+    'rgba(167, 139, 250, 0.4)',
+    'rgba(196, 181, 253, 0.5)',
+    'rgba(236, 72, 153, 0.4)'
+  ];
+  particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+  particle.style.boxShadow = `0 0 ${size * 3}px ${particle.style.background}`;
   particle.style.animationDelay = Math.random() * 8 + 's';
-  particle.style.animationDuration = Math.random() * 10 + 8 + 's';
+  particle.style.animationDuration = Math.random() * 8 + 6 + 's';
   particlesContainer.appendChild(particle);
 }
 
@@ -127,11 +138,85 @@ audio.addEventListener('ended', () => {
   playSong();
 });
 
-// Staggered card animations
+// ========================================
+// Dynamic Greeting Based on Time
+// ========================================
+function updateGreeting() {
+  const greetingEl = document.getElementById('greeting');
+  const hour = new Date().getHours();
+  
+  const greetings = {
+    morning: ['Good Morning, Traveler!', 'Rise and Shine, Wanderer!', 'Good Morning, Trailblazer!'],
+    afternoon: ['Good Afternoon, Traveler!', 'Hello There, Wanderer!', 'Good Afternoon, Trailblazer!'],
+    evening: ['Good Evening, Traveler!', 'Greetings, Night Wanderer!', 'Good Evening, Trailblazer!'],
+    night: ['Good Night, Stargazer!', 'Welcome, Night Owl!', 'Greetings, Moonlit Wanderer!']
+  };
+  
+  let timeOfDay;
+  if (hour >= 5 && hour < 12) timeOfDay = 'morning';
+  else if (hour >= 12 && hour < 17) timeOfDay = 'afternoon';
+  else if (hour >= 17 && hour < 21) timeOfDay = 'evening';
+  else timeOfDay = 'night';
+  
+  const greetingArray = greetings[timeOfDay];
+  const randomGreeting = greetingArray[Math.floor(Math.random() * greetingArray.length)];
+  
+  if (greetingEl) {
+    greetingEl.textContent = randomGreeting;
+  }
+}
+
+// Initialize greeting on load
+updateGreeting();
+
+// ========================================
+// 3D Card Tilt Effect & Staggered Animations
+// ========================================
 const cards = document.querySelectorAll('.card');
 cards.forEach((card, index) => {
   card.style.animationDelay = `${index * 0.1}s`;
+  
+  card.addEventListener('mousemove', (e) => {
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    // Reduce tilt intensity for HSR and ZZZ cards (easier to read)
+    const intensity = (card.classList.contains('hsr-section') || card.classList.contains('zzz-section')) ? 40 : 20;
+    
+    const rotateX = (y - centerY) / intensity;
+    const rotateY = (centerX - x) / intensity;
+    
+    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-5px) scale(1.02)`;
+  });
+  
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0) scale(1)';
+  });
 });
+
+// ========================================
+// Interactive Cursor Trail
+// ========================================
+document.addEventListener('mousemove', (e) => {
+  const trail = document.createElement('div');
+  trail.className = 'cursor-trail';
+  trail.style.left = e.clientX + 'px';
+  trail.style.top = e.clientY + 'px';
+  document.body.appendChild(trail);
+  
+  setTimeout(() => {
+    trail.remove();
+  }, 800);
+});
+
+// ========================================
+// Parallax Scrolling Effect - DISABLED
+// ========================================
+// Decorative images will stay fixed in place
 
 // ========================================
 // Honkai Star Rail API Integration
@@ -155,43 +240,80 @@ class HSREnkaAPI {
     this.hideError();
     this.hidePlayerInfo();
 
+    const proxies = [
+      {
+        name: 'AllOrigins',
+        url: (apiUrl) => `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`,
+        parse: (data) => JSON.parse(data.contents)
+      },
+      {
+        name: 'CodeTabs',
+        url: (apiUrl) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`,
+        parse: (data) => data
+      },
+      {
+        name: 'CORSProxy.io',
+        url: (apiUrl) => `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`,
+        parse: (data) => data
+      },
+      {
+        name: 'ThingProxy',
+        url: (apiUrl) => `https://thingproxy.freeboard.io/fetch/${apiUrl}`,
+        parse: (data) => data
+      },
+      {
+        name: 'JSONProxy',
+        url: (apiUrl) => `https://jsonp.afeld.me/?url=${encodeURIComponent(apiUrl)}`,
+        parse: (data) => data
+      }
+    ];
+
+    const apiUrl = `${this.baseURL}/${uid}`;
+
     try {
       console.log('Fetching HSR data for UID:', uid);
       
-      // Use AllOrigins proxy (most reliable)
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`${this.baseURL}/${uid}`)}`;
-      
-      console.log('Using AllOrigins proxy for HSR...');
-      
-      const response = await fetch(proxyUrl, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json'
+      for (const proxy of proxies) {
+        try {
+          console.log(`Trying HSR with ${proxy.name}...`);
+          
+          const proxyUrl = proxy.url(apiUrl);
+          const response = await fetch(proxyUrl, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
+          
+          if (!response.ok) {
+            console.warn(`${proxy.name} failed with status ${response.status}`);
+            continue;
+          }
+          
+          const data = await response.json();
+          const apiData = proxy.parse(data);
+          
+          // Validate HSR data structure
+          if (!apiData || !apiData.detailInfo) {
+            console.warn(`${proxy.name} returned invalid data structure`);
+            continue;
+          }
+          
+          console.log(`✅ Successfully fetched HSR data using ${proxy.name}`);
+          console.log('HSR API Response:', apiData);
+          this.displayPlayerData(apiData);
+          this.showLoading(false);
+          return;
+          
+        } catch (error) {
+          console.warn(`${proxy.name} error:`, error.message);
+          continue;
         }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
       }
       
-      const data = await response.json();
-      
-      // Parse AllOrigins wrapper
-      let apiData;
-      try {
-        apiData = JSON.parse(data.contents);
-      } catch (e) {
-        throw new Error('Failed to parse API response');
-      }
-      
-      // Validate HSR data structure
-      if (!apiData || !apiData.detailInfo) {
-        throw new Error('Invalid HSR API response structure');
-      }
-      
-      console.log('Successfully fetched HSR data');
-      console.log('HSR API Response:', apiData);
-      this.displayPlayerData(apiData);
+      // All proxies failed
+      console.error('All HSR proxies failed');
+      this.showError('Failed to fetch player data. All proxy services failed. Please try again later.');
       
     } catch (error) {
       console.error('Error fetching HSR data:', error);
@@ -279,16 +401,17 @@ class HSREnkaAPI {
 
   displaySimulatedUniverse(player) {
     try {
-      // Get Simulated Universe stars from recordInfo
+      // Get record info
       const recordInfo = player.recordInfo;
       
       if (!recordInfo) {
         console.warn('No record info available');
         document.getElementById('su-stars').textContent = '0';
+        document.getElementById('hsr-exploration').textContent = '0%';
         return;
       }
 
-      // The maxRogueChallengeScore is the total stars in Simulated Universe
+      // Simulated Universe stars
       const suStarsEl = document.getElementById('su-stars');
       if (suStarsEl && recordInfo.maxRogueChallengeScore !== undefined) {
         suStarsEl.textContent = recordInfo.maxRogueChallengeScore;
@@ -296,12 +419,27 @@ class HSREnkaAPI {
         suStarsEl.textContent = '0';
       }
 
-      console.log('Simulated Universe stars:', recordInfo.maxRogueChallengeScore || 0);
+      // Exploration - calculate from book count (rough estimate)
+      const explorationEl = document.getElementById('hsr-exploration');
+      if (explorationEl && recordInfo.bookCount !== undefined) {
+        // Max books is around 120, so calculate percentage
+        const explorationPercent = Math.min(Math.round((recordInfo.bookCount / 120) * 100), 100);
+        explorationEl.textContent = explorationPercent + '%';
+      } else {
+        explorationEl.textContent = '0%';
+      }
+
+      console.log('HSR Stats:', {
+        suStars: recordInfo.maxRogueChallengeScore || 0,
+        bookCount: recordInfo.bookCount || 0
+      });
       
     } catch (error) {
-      console.error('Error displaying Simulated Universe data:', error);
+      console.error('Error displaying HSR stats:', error);
       const suStarsEl = document.getElementById('su-stars');
       if (suStarsEl) suStarsEl.textContent = '0';
+      const explorationEl = document.getElementById('hsr-exploration');
+      if (explorationEl) explorationEl.textContent = '0%';
     }
   }
 
@@ -369,83 +507,83 @@ class ZZZEnkaAPI {
   }
 
   async fetchPlayerData(uid) {
-  this.showLoading(true);
-  this.hideError();
-  this.hidePlayerInfo();
+    this.showLoading(true);
+    this.hideError();
+    this.hidePlayerInfo();
 
-  const proxies = [
-    {
-      name: 'CodeTabs',
-      url: (apiUrl) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`,
-      parse: (data) => data
-    },
-    {
-      name: 'AllOrigins',
-      url: (apiUrl) => `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`,
-      parse: (data) => JSON.parse(data.contents)
-    },
-    {
-      name: 'CORSProxy.io',
-      url: (apiUrl) => `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`,
-      parse: (data) => data
-    },
-    {
-      name: 'ThingProxy',
-      url: (apiUrl) => `https://thingproxy.freeboard.io/fetch/${apiUrl}`,
-      parse: (data) => data
-    },
-    {
-      name: 'JSONProxy',
-      url: (apiUrl) => `https://jsonp.afeld.me/?url=${encodeURIComponent(apiUrl)}`,
-      parse: (data) => data
-    }
-  ];
+    const proxies = [
+      {
+        name: 'CodeTabs',
+        url: (apiUrl) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`,
+        parse: (data) => data
+      },
+      {
+        name: 'AllOrigins',
+        url: (apiUrl) => `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`,
+        parse: (data) => JSON.parse(data.contents)
+      },
+      {
+        name: 'CORSProxy.io',
+        url: (apiUrl) => `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`,
+        parse: (data) => data
+      },
+      {
+        name: 'ThingProxy',
+        url: (apiUrl) => `https://thingproxy.freeboard.io/fetch/${apiUrl}`,
+        parse: (data) => data
+      },
+      {
+        name: 'JSONProxy',
+        url: (apiUrl) => `https://jsonp.afeld.me/?url=${encodeURIComponent(apiUrl)}`,
+        parse: (data) => data
+      }
+    ];
 
-  const apiUrl = `${this.baseURL}/${uid}`;
+    const apiUrl = `${this.baseURL}/${uid}`;
 
-  for (const proxy of proxies) {
-    try {
-      console.log(`Trying ZZZ with ${proxy.name}...`);
-      
-      const proxyUrl = proxy.url(apiUrl);
-      const response = await fetch(proxyUrl, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json'
+    for (const proxy of proxies) {
+      try {
+        console.log(`Trying ZZZ with ${proxy.name}...`);
+        
+        const proxyUrl = proxy.url(apiUrl);
+        const response = await fetch(proxyUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          console.warn(`${proxy.name} failed with status ${response.status}`);
+          continue;
         }
-      });
-      
-      if (!response.ok) {
-        console.warn(`${proxy.name} failed with status ${response.status}`);
+        
+        const data = await response.json();
+        const apiData = proxy.parse(data);
+        
+        // Validate ZZZ data structure
+        if (!apiData || !apiData.PlayerInfo) {
+          console.warn(`${proxy.name} returned invalid data structure`);
+          continue;
+        }
+        
+        console.log(`✅ Successfully fetched ZZZ data using ${proxy.name}`);
+        console.log('ZZZ API Response:', apiData);
+        this.displayPlayerData(apiData);
+        this.showLoading(false);
+        return;
+        
+      } catch (error) {
+        console.warn(`${proxy.name} error:`, error.message);
         continue;
       }
-      
-      const data = await response.json();
-      const apiData = proxy.parse(data);
-      
-      // Validate ZZZ data structure
-      if (!apiData || !apiData.PlayerInfo) {
-        console.warn(`${proxy.name} returned invalid data structure`);
-        continue;
-      }
-      
-      console.log(`✅ Successfully fetched ZZZ data using ${proxy.name}`);
-      console.log('ZZZ API Response:', apiData);
-      this.displayPlayerData(apiData);
-      this.showLoading(false); // ← ADD THIS LINE
-      return;
-      
-    } catch (error) {
-      console.warn(`${proxy.name} error:`, error.message);
-      continue;
     }
-  }
 
-  // All proxies failed
-  console.error('All ZZZ proxies failed');
-  this.showError('Failed to fetch player data. All proxy services failed. Please try again later.');
-  this.showLoading(false);
-}
+    // All proxies failed
+    console.error('All ZZZ proxies failed');
+    this.showError('Failed to fetch player data. All proxy services failed. Please try again later.');
+    this.showLoading(false);
+  }
 
   displayPlayerData(data) {
     try {
@@ -526,13 +664,14 @@ class ZZZEnkaAPI {
       console.log('ZZZ Medals:', medals);
       
       // Medal types: 1=Battle, 3=Shiyu Defense, 4=Exploration
-      // Find the relevant medals
       let shiyuStars = 0;
+      let exploration = 0;
       
       medals.forEach(medal => {
         if (medal.MedalType === 3) {
-          // Shiyu Defense
           shiyuStars = medal.MedalScore || medal.Value || 0;
+        } else if (medal.MedalType === 4) {
+          exploration = medal.MedalScore || medal.Value || 0;
         }
       });
 
@@ -542,13 +681,21 @@ class ZZZEnkaAPI {
         shiyuEl.textContent = shiyuStars;
       }
 
+      // Exploration
+      const explorationEl = document.getElementById('exploration-progress');
+      if (explorationEl) {
+        explorationEl.textContent = exploration + '%';
+      }
+
       console.log('ZZZ Challenge Stats:', {
-        shiyuDefense: shiyuStars
+        shiyuDefense: shiyuStars,
+        exploration
       });
       
     } catch (error) {
       console.error('Error displaying ZZZ challenge data:', error);
       document.getElementById('shiyu-defense').textContent = '0';
+      document.getElementById('exploration-progress').textContent = '0%';
     }
   }
 
@@ -597,3 +744,33 @@ class ZZZEnkaAPI {
 
 // Initialize ZZZ API
 const zzzAPI = new ZZZEnkaAPI();
+
+// ========================================
+// Copy UID functionality
+// ========================================
+function copyUID(uidText, buttonId) {
+  navigator.clipboard.writeText(uidText).then(() => {
+    const btn = document.getElementById(buttonId);
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '✓ Copied!';
+    btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+    
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+      btn.style.background = '';
+    }, 2000);
+  }).catch(err => {
+    console.error('Failed to copy:', err);
+  });
+}
+
+// Attach copy functions to window for inline onclick
+window.copyHSRUID = function() {
+  const uidText = document.getElementById('player-uid').textContent;
+  copyUID(uidText, 'copy-hsr-uid');
+};
+
+window.copyZZZUID = function() {
+  const uidText = document.getElementById('zzz-player-uid').textContent;
+  copyUID(uidText, 'copy-zzz-uid');
+};
