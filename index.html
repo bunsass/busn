@@ -30,7 +30,8 @@
                 frameBorder="0" 
                 allowfullscreen="" 
                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                loading="lazy">
+                loading="lazy"
+                title="Spotify Featured Song">
         </iframe>
       </div>
     </div>
@@ -175,7 +176,8 @@
                 frameBorder="0" 
                 allowfullscreen="" 
                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                loading="lazy">
+                loading="lazy"
+                title="Spotify Featured Playlist">
         </iframe>
       </div>
     </div>
@@ -190,8 +192,8 @@
 
   <div id="music-controls">
     <div class="volume-control">
-      <span>🔊</span>
-      <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
+      <label for="volume">🔊</label>
+      <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5" aria-label="Volume control">
     </div>
     <button class="control-btn" id="prev">⏮ Previous</button>
     <button class="control-btn" id="play-pause">▶ Play</button>
