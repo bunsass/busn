@@ -602,25 +602,25 @@ h1 {
 .image1 {
   top: 5%;
   left: 2%;
-  width: 350px;
+  width: 400px;
 }
 
 .image2 {
   top: 5%;
   right: 2%;
-  width: 350px;
+  width: 400px;
 }
 
 .image3 {
   bottom: 5%;
   left: 2%;
-  width: 350px;
+  width: 400px;
 }
 
 .image4 {
   bottom: 5%;
   right: 2%;
-  width: 350px;
+  width: 400px;
 }
 
 /* Responsive */
