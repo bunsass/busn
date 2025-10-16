@@ -602,25 +602,25 @@ h1 {
 .image1 {
   top: 5%;
   left: 2%;
-  width: 400px;
+  width: 450px;
 }
 
 .image2 {
   top: 5%;
   right: 2%;
-  width: 400px;
+  width: 450px;
 }
 
 .image3 {
   bottom: 5%;
   left: 2%;
-  width: 400px;
+  width: 450px;
 }
 
 .image4 {
   bottom: 5%;
   right: 2%;
-  width: 400px;
+  width: 450px;
 }
 
 /* Responsive */
@@ -685,3 +685,4 @@ h1 {
     display: none;
   }
 }
+
