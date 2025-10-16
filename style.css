@@ -7,26 +7,40 @@
 
 body {
   font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: linear-gradient(135deg, #0a0a0f 0%, #1a1425 25%, #2d1b3d 50%, #3d2554 75%, #4a2d63 100%);
   color: #333;
   overflow-x: hidden;
   min-height: 100vh;
   position: relative;
 }
 
-/* Animated Background Particles */
+/* Animated Background Particles - Purple/blue mystical orbs */
 .particle {
   position: fixed;
   border-radius: 50%;
   pointer-events: none;
-  opacity: 0.6;
-  animation: float 8s infinite ease-in-out;
+  opacity: 0.7;
+  animation: floatGlow 8s infinite ease-in-out;
+  filter: blur(1px);
 }
 
-@keyframes float {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  33% { transform: translate(30px, -30px) rotate(120deg); }
-  66% { transform: translate(-20px, 20px) rotate(240deg); }
+@keyframes floatGlow {
+  0%, 100% { 
+    transform: translate(0, 0) scale(1);
+    opacity: 0.7;
+  }
+  25% { 
+    transform: translate(50px, -50px) scale(1.3);
+    opacity: 0.9;
+  }
+  50% { 
+    transform: translate(-30px, 30px) scale(0.8);
+    opacity: 0.5;
+  }
+  75% { 
+    transform: translate(40px, 20px) scale(1.2);
+    opacity: 0.8;
+  }
 }
 
 /* Header */
@@ -85,6 +99,25 @@ h1 {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   transition: all 0.4s ease;
   animation: fadeIn 0.8s ease-out;
+  transform-style: preserve-3d;
+  position: relative;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 20px;
+  padding: 2px;
+  background: linear-gradient(135deg, transparent, rgba(139, 92, 246, 0.4), transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
 
 @keyframes fadeIn {
@@ -94,8 +127,12 @@ h1 {
 
 .card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 12px 40px rgba(139, 92, 246, 0.3);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.card:hover::before {
+  opacity: 1;
 }
 
 .card h2 {
@@ -199,7 +236,7 @@ h1 {
 }
 
 .control-btn {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
   border: none;
   color: white;
   padding: 10px 15px;
@@ -211,7 +248,7 @@ h1 {
 
 .control-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
 }
 
 .volume-control {
@@ -261,26 +298,72 @@ h1 {
 
 /* HSR Section Styling */
 .hsr-section {
-  background: rgba(147, 129, 255, 0.15);
-  border: 1px solid rgba(147, 129, 255, 0.3);
-  box-shadow: 0 8px 32px rgba(132, 114, 255, 0.25);
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.2);
 }
 
 .hsr-section h2 {
   color: #ffffff;
-  text-shadow: 0 0 15px rgba(147, 129, 255, 0.6);
+  text-shadow: 0 0 20px rgba(139, 92, 246, 0.8);
 }
 
 /* ZZZ Section Styling */
 .zzz-section {
-  background: rgba(230, 57, 70, 0.15);
-  border: 1px solid rgba(230, 57, 70, 0.3);
-  box-shadow: 0 8px 32px rgba(230, 57, 70, 0.25);
+  background: rgba(236, 72, 153, 0.12);
+  border: 1px solid rgba(236, 72, 153, 0.3);
+  box-shadow: 0 8px 32px rgba(236, 72, 153, 0.2);
 }
 
 .zzz-section h2 {
   color: #ffffff;
-  text-shadow: 0 0 15px rgba(230, 57, 70, 0.6);
+  text-shadow: 0 0 20px rgba(236, 72, 153, 0.8);
+}
+
+/* ZZZ Showcase Characters - Simplified */
+.zzz-showcase-section {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.zzz-showcase-section h3 {
+  font-family: 'Playfair Display', serif;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.zzz-showcase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.zzz-character-card-simple {
+  background: rgba(236, 72, 153, 0.15);
+  border: 2px solid rgba(236, 72, 153, 0.4);
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+}
+
+.zzz-character-card-simple:hover {
+  transform: translateY(-5px) scale(1.05);
+  border-color: rgba(236, 72, 153, 0.7);
+  box-shadow: 0 8px 25px rgba(236, 72, 153, 0.5);
+}
+
+.zzz-mindscape-badge {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(236, 72, 153, 0.8);
 }
 
 /* Loading Indicator */
@@ -430,6 +513,9 @@ h1 {
 
 .uid-info {
   margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .uid-text {
@@ -442,12 +528,92 @@ h1 {
   font-weight: 600;
 }
 
+.copy-uid-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.copy-uid-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+}
+
 /* Hidden state */
 .hidden {
   display: none !important;
 }
 
+/* Cursor Trail */
+.cursor-trail {
+  position: fixed;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.8), rgba(236, 72, 153, 0.4));
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+  animation: cursorFade 0.8s ease-out forwards;
+}
+
+@keyframes cursorFade {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+/* Decorative Images */
+.decorative-image {
+  position: fixed;
+  z-index: -1;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.image1 {
+  top: 5%;
+  left: 2%;
+  width: 350px;
+}
+
+.image2 {
+  top: 5%;
+  right: 2%;
+  width: 350px;
+}
+
+.image3 {
+  bottom: 5%;
+  left: 2%;
+  width: 350px;
+}
+
+.image4 {
+  bottom: 5%;
+  right: 2%;
+  width: 350px;
+}
+
 /* Responsive */
+@media (max-width: 1100px) {
+  .decorative-image {
+    display: none;
+  }
+}
+
 @media (max-width: 768px) {
   h1 { font-size: 2.5rem; }
   .glitch-text { font-size: 1.8rem; }
@@ -498,4 +664,7 @@ h1 {
     width: 100%;
     justify-content: center;
   }
-}
+
+  .decorative-image {
+    display: none;
+  }
