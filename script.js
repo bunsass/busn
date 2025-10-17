@@ -27,16 +27,16 @@ for (let i = 0; i < 60; i++) {
 // Music Player
 const songs = [
   {
-    title: "Lofi Beats",
-    url: "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3"
+    title: "Had I Not Seen the Sun",
+    url: "https://spontaneous-indigo-cgcjbksra5.edgeone.app/Had%20I%20Not%20Seen%20the%20Sun.mp3"
   },
   {
-    title: "Chill Vibes",
-    url: "https://cdn.pixabay.com/audio/2022/03/10/audio_2c4e038c7b.mp3"
+    title: "If I Can Stop One Heart From Breaking",
+    url: "https://inquisitive-azure-jxdjgly1ow.edgeone.app/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3"
   },
   {
-    title: "Ambient Dreams",
-    url: "https://cdn.pixabay.com/audio/2022/01/18/audio_d1718ab41b.mp3"
+    title: "I Really Want to Stay at Your House",
+    url: "https://mysterious-silver-exswdmr1e1.edgeone.app/I%20Really%20Want%20to%20Stay%20at%20Your%20House.mp3"
   }
 ];
 
