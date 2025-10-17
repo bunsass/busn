@@ -186,7 +186,9 @@
 
   <!-- Music Player -->
   <div id="music-player">
-    <img id="album-art" src="https://cdn.discordapp.com/attachments/1416355899232223235/1428594030283067402/2229438d735a893d8f80cd69f4319678.png?ex=68f3115e&is=68f1bfde&hm=057e81965a0105dfcccc3332ed6256590129ffc2b7a1cf8387bed3f98d01c539&" alt="Album Art">
+    <div id="album-art-container">
+      <img id="album-art" src="https://cdn.discordapp.com/attachments/1416355899232223235/1428594030283067402/2229438d735a893d8f80cd69f4319678.png?ex=68f3115e&is=68f1bfde&hm=057e81965a0105dfcccc3332ed6256590129ffc2b7a1cf8387bed3f98d01c539&" alt="Album Art">
+    </div>
   </div>
 
   <div id="song-info"></div>
@@ -196,9 +198,9 @@
       <label for="volume">🔊</label>
       <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5" aria-label="Volume control">
     </div>
-    <button class="control-btn" id="prev">⏮ Previous</button>
+    <button class="control-btn" id="prev">⮜ Previous</button>
     <button class="control-btn" id="play-pause">▶ Play</button>
-    <button class="control-btn" id="next">⏭ Next</button>
+    <button class="control-btn" id="next">⮞ Next</button>
   </div>
 
   <audio id="audio"></audio>
