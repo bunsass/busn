@@ -84,6 +84,14 @@ function pauseSong() {
 // Track if menu is open
 let menuOpen = false;
 
+// Function to close menu
+function closeMenu() {
+  if (menuOpen) {
+    menuOpen = false;
+    musicControls.classList.remove('show');
+  }
+}
+
 albumArt.addEventListener('click', (e) => {
   e.stopPropagation();
   
@@ -137,45 +145,47 @@ if (!isMobile) {
 
 // Mobile: Close menu when clicking/touching outside
 if (isMobile) {
-  // Close on any interaction with the page
-  document.addEventListener('touchstart', (e) => {
-    if (menuOpen) {
-      const musicPlayer = document.getElementById('music-player');
-      const isClickInsidePlayer = musicPlayer.contains(e.target);
-      const isClickInsideControls = musicControls.contains(e.target);
-      
-      if (!isClickInsidePlayer && !isClickInsideControls) {
-        menuOpen = false;
-        musicControls.classList.remove('show');
-      }
+  // Universal close handler
+  const handleOutsideInteraction = (e) => {
+    if (!menuOpen) return;
+    
+    const musicPlayer = document.getElementById('music-player');
+    const isClickInsidePlayer = musicPlayer && musicPlayer.contains(e.target);
+    const isClickInsideControls = musicControls && musicControls.contains(e.target);
+    
+    if (!isClickInsidePlayer && !isClickInsideControls) {
+      closeMenu();
     }
-  }, { passive: true });
+  };
   
-  // Also handle regular clicks for desktop-like interactions
-  document.addEventListener('click', (e) => {
-    if (menuOpen) {
-      const musicPlayer = document.getElementById('music-player');
-      const isClickInsidePlayer = musicPlayer.contains(e.target);
-      const isClickInsideControls = musicControls.contains(e.target);
-      
-      if (!isClickInsidePlayer && !isClickInsideControls) {
-        menuOpen = false;
-        musicControls.classList.remove('show');
-      }
-    }
-  });
+  // Add listeners to document and body
+  document.addEventListener('touchstart', handleOutsideInteraction, true);
+  document.addEventListener('click', handleOutsideInteraction, true);
+  document.body.addEventListener('touchstart', handleOutsideInteraction, true);
+  document.body.addEventListener('click', handleOutsideInteraction, true);
   
   // Close on scroll
   let scrollTimeout;
   window.addEventListener('scroll', () => {
     if (menuOpen) {
       clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        menuOpen = false;
-        musicControls.classList.remove('show');
-      }, 150);
+      scrollTimeout = setTimeout(closeMenu, 100);
     }
   }, { passive: true });
+  
+  // Close when interacting with cards
+  const cards = document.querySelectorAll('.card');
+  cards.forEach(card => {
+    card.addEventListener('touchstart', (e) => {
+      if (menuOpen) {
+        const isControlElement = musicControls.contains(e.target) || 
+                                document.getElementById('music-player').contains(e.target);
+        if (!isControlElement) {
+          closeMenu();
+        }
+      }
+    }, { passive: true });
+  });
 }
 
 playPauseBtn.addEventListener('click', (e) => {
@@ -210,7 +220,6 @@ volumeSlider.addEventListener('input', (e) => {
 // ========================================
 // Dynamic Greeting Based on Time
 // ========================================
-
 function updateGreeting() {
   const greetingEl = document.getElementById('greeting');
   const hour = new Date().getHours();
