@@ -199,29 +199,36 @@ h1 {
   z-index: 1000;
 }
 
-#album-art {
+#album-art-container {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  border: 4px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.6);
   cursor: pointer;
-  transition: all 0.4s ease;
-  object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
-#album-art:hover {
+#album-art-container:hover {
   transform: scale(1.1);
-  box-shadow: 0 0 40px rgba(255, 255, 255, 0.9);
+}
+
+#album-art {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.6);
+  object-fit: cover;
+  display: block;
 }
 
 #album-art.playing {
   animation: spin 4s linear infinite;
+  will-change: transform;
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Music Controls */
