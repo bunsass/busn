@@ -36,18 +36,17 @@ body {
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
-  opacity: 0.7;
+  opacity: 0.5;
   animation: floatGlow 8s infinite ease-in-out;
-  filter: blur(1px);
 }
 
 @keyframes floatGlow {
   0%, 100% { 
-    transform: translate(0, 0) scale(1);
+    transform: translateY(0);
     opacity: 0.5;
   }
   50% { 
-    transform: translate(20px, 20px) scale(1.1);
+    transform: translateY(-20px);
     opacity: 0.7;
   }
 }
@@ -524,10 +523,9 @@ h1 {
 /* Decorative Images */
 .decorative-image {
   position: fixed;
-  z-index: 0;
-  opacity: 0.3;
+  z-index: -1;
+  opacity: 0.4;
   pointer-events: none;
-  transform: translateZ(0);
 }
 
 .image1 {
@@ -556,13 +554,14 @@ h1 {
 
 .image5 {
   position: fixed;
+  z-index: -2;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  max-height: 100%;
   width: 600px;
   max-width: 80vw;
-  opacity: 0.15;
-  z-index: 0;
+  opacity: 0.2;
   pointer-events: none;
 }
 
@@ -578,11 +577,12 @@ h1 {
     display: none !important;
   }
   
-  /* Keep image5 visible on mobile */
+  /* Keep image5 visible on tablets and mobile */
   .image5 {
+    display: block !important;
     width: 500px;
     max-width: 70vw;
-    opacity: 0.1;
+    opacity: 0.15;
   }
 }
 
@@ -594,18 +594,15 @@ h1 {
   h1 { 
     font-size: 2.5rem; 
     margin: 20px 0 15px;
-    animation: none;
   }
   
   .glitch-text { 
     font-size: 1.8rem;
-    animation: none;
   }
   
   .card { 
     padding: 20px; 
     margin: 15px 0;
-    animation: none;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
   }
@@ -681,31 +678,12 @@ h1 {
     justify-content: center;
   }
 
-  /* Disable all complex animations on mobile */
-  *, *::before, *::after {
-    animation-duration: 0s !important;
-    transition-duration: 0.2s !important;
-  }
-  
-  /* Keep only essential animations */
-  .loading-spinner {
-    animation: spinLoader 1s linear infinite !important;
-  }
-  
-  #album-art.playing {
-    animation: spin 4s linear infinite !important;
-  }
-
-  /* Simplify particle animations */
-  .particle {
-    animation: floatSimple 6s infinite ease-in-out !important;
-  }
-  
-  /* Keep image5 visible but static */
+  /* Keep image5 visible on mobile */
   .image5 {
+    display: block !important;
     width: 400px;
     max-width: 60vw;
-    opacity: 0.08;
+    opacity: 0.12;
   }
 }
 
@@ -745,10 +723,11 @@ h1 {
     font-size: 0.8rem;
   }
   
-  /* Further reduce image5 on very small screens */
+  /* Keep image5 visible on very small screens */
   .image5 {
+    display: block !important;
     width: 300px;
     max-width: 50vw;
-    opacity: 0.06;
+    opacity: 0.1;
   }
 }
