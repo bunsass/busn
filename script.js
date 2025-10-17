@@ -2,7 +2,7 @@
 // Mobile Detection & Performance Optimization
 // ========================================
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-const particleCount = isMobile ? 15 : 60; // Reduced from 25 to 15 for mobile
+const particleCount = isMobile ? 10 : 40; // Drastically reduced for performance
 
 // ========================================
 // Background Particles (Purple/blue mystical orbs)
@@ -11,7 +11,7 @@ const particlesContainer = document.getElementById('particles');
 for (let i = 0; i < particleCount; i++) {
   const particle = document.createElement('div');
   particle.className = 'particle';
-  const size = isMobile ? Math.random() * 4 + 2 : Math.random() * 6 + 2; // Smaller particles on mobile
+  const size = isMobile ? Math.random() * 3 + 2 : Math.random() * 5 + 2;
   particle.style.width = size + 'px';
   particle.style.height = size + 'px';
   particle.style.left = Math.random() * 100 + '%';
@@ -19,16 +19,16 @@ for (let i = 0; i < particleCount; i++) {
   
   // Purple/blue/pink mystical particles matching Evernight theme
   const colors = [
-    'rgba(139, 92, 246, 0.5)',
-    'rgba(99, 102, 241, 0.4)',
+    'rgba(139, 92, 246, 0.4)',
+    'rgba(99, 102, 241, 0.3)',
     'rgba(167, 139, 250, 0.3)',
-    'rgba(196, 181, 253, 0.4)',
+    'rgba(196, 181, 253, 0.3)',
     'rgba(236, 72, 153, 0.3)'
   ];
   particle.style.background = colors[Math.floor(Math.random() * colors.length)];
   particle.style.boxShadow = `0 0 ${size * 2}px ${particle.style.background}`;
-  particle.style.animationDelay = Math.random() * 6 + 's';
-  particle.style.animationDuration = (isMobile ? Math.random() * 4 + 6 : Math.random() * 8 + 6) + 's';
+  particle.style.animationDelay = Math.random() * 5 + 's';
+  particle.style.animationDuration = (Math.random() * 5 + 8) + 's';
   particlesContainer.appendChild(particle);
 }
 
