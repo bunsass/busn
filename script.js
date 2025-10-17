@@ -81,7 +81,9 @@ function pauseSong() {
   playPauseBtn.textContent = '▶ Play';
 }
 
-albumArt.addEventListener('click', () => {
+albumArt.addEventListener('click', (e) => {
+  e.stopPropagation(); // Prevent this click from triggering document click
+  
   if (audio.paused) {
     if (!audio.src) loadSong(currentSongIndex);
     playSong();
@@ -132,39 +134,42 @@ if (isMobile) {
     const isClickInsidePlayer = musicPlayer.contains(e.target);
     const isClickInsideControls = musicControls.contains(e.target);
     
-    if (!isClickInsidePlayer && !isClickInsideControls) {
+    if (!isClickInsidePlayer && !isClickInsideControls && musicControls.classList.contains('show')) {
       musicControls.classList.remove('show');
     }
   });
+  
+  // Prevent clicks inside controls from closing the menu
+  musicControls.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
 }
 
-playPauseBtn.addEventListener('click', () => {
+playPauseBtn.addEventListener('click', (e) => {
+  e.stopPropagation(); // Prevent triggering document click
+  
   if (audio.paused) {
     if (!audio.src) loadSong(currentSongIndex);
     playSong();
   } else {
     pauseSong();
   }
-  
-  // Keep menu open on mobile when using controls
-  if (isMobile) {
-    setTimeout(() => {
-      musicControls.classList.add('show');
-    }, 50);
-  }
 });
 
-prevBtn.addEventListener('click', () => {
+prevBtn.addEventListener('click', (e) => {
+  e.stopPropagation(); // Prevent triggering document click
+  
   currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
   loadSong(currentSongIndex);
   playSong();
+});
+
+nextBtn.addEventListener('click', (e) => {
+  e.stopPropagation(); // Prevent triggering document click
   
-  // Keep menu open on mobile when using controls
-  if (isMobile) {
-    setTimeout(() => {
-      musicControls.classList.add('show');
-    }, 50);
-  }
+  currentSongIndex = (currentSongIndex + 1) % songs.length;
+  loadSong(currentSongIndex);
+  playSong();
 });
 
 nextBtn.addEventListener('click', () => {
