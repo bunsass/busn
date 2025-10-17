@@ -580,8 +580,8 @@ h1 {
   /* Keep image5 visible on tablets and mobile */
   .image5 {
     display: block !important;
-    width: 500px;
-    max-width: 70vw;
+    width: 700px;
+    max-width: 85vw;
     opacity: 0.15;
   }
 }
@@ -681,8 +681,8 @@ h1 {
   /* Keep image5 visible on mobile */
   .image5 {
     display: block !important;
-    width: 400px;
-    max-width: 60vw;
+    width: 550px;
+    max-width: 75vw;
     opacity: 0.12;
   }
 }
@@ -726,8 +726,8 @@ h1 {
   /* Keep image5 visible on very small screens */
   .image5 {
     display: block !important;
-    width: 300px;
-    max-width: 50vw;
+    width: 450px;
+    max-width: 70vw;
     opacity: 0.1;
   }
 }
