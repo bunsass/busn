@@ -1,6 +1,14 @@
-// Background Particles (Purple/blue mystical orbs matching Evernight)
+// ========================================
+// Mobile Detection & Performance Optimization
+// ========================================
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+const particleCount = isMobile ? 25 : 60;
+
+// ========================================
+// Background Particles (Purple/blue mystical orbs)
+// ========================================
 const particlesContainer = document.getElementById('particles');
-for (let i = 0; i < 60; i++) {
+for (let i = 0; i < particleCount; i++) {
   const particle = document.createElement('div');
   particle.className = 'particle';
   const size = Math.random() * 6 + 2;
@@ -24,7 +32,9 @@ for (let i = 0; i < 60; i++) {
   particlesContainer.appendChild(particle);
 }
 
+// ========================================
 // Music Player
+// ========================================
 const songs = [
   {
     title: "Had I Not Seen the Sun",
@@ -178,25 +188,8 @@ cards.forEach((card, index) => {
 });
 
 // ========================================
-// Interactive Cursor Trail - DISABLED
-// ========================================
-// Cursor trail disabled to prevent interaction issues
-// document.addEventListener('mousemove', (e) => {
-//   const trail = document.createElement('div');
-//   trail.className = 'cursor-trail';
-//   trail.style.left = e.clientX + 'px';
-//   trail.style.top = e.clientY + 'px';
-//   document.body.appendChild(trail);
-//   
-//   setTimeout(() => {
-//     trail.remove();
-//   }, 800);
-// });
-
-// ========================================
 // Honkai Star Rail API Integration
 // ========================================
-
 class HSREnkaAPI {
   constructor() {
     this.baseURL = 'https://enka.network/api/hsr/uid';
@@ -262,7 +255,6 @@ class HSREnkaAPI {
 
     const apiUrl = `${this.baseURL}/${uid}`;
     let apiData = null;
-    let lastError = null;
 
     try {
       console.log('Fetching HSR data for UID:', uid);
@@ -301,7 +293,6 @@ class HSREnkaAPI {
           
         } catch (error) {
           console.warn(`${proxy.name} error:`, error.message);
-          lastError = error;
           continue;
         }
       }
@@ -490,7 +481,6 @@ const hsrAPI = new HSREnkaAPI();
 // ========================================
 // Zenless Zone Zero API Integration
 // ========================================
-
 class ZZZEnkaAPI {
   constructor() {
     this.baseURL = 'https://enka.network/api/zzz/uid';
@@ -559,7 +549,6 @@ class ZZZEnkaAPI {
 
     const apiUrl = `${this.baseURL}/${uid}`;
     let apiData = null;
-    let lastError = null;
 
     try {
       console.log('Fetching ZZZ data for UID:', uid);
@@ -598,7 +587,6 @@ class ZZZEnkaAPI {
           
         } catch (error) {
           console.warn(`${proxy.name} error:`, error.message);
-          lastError = error;
           continue;
         }
       }
@@ -788,13 +776,13 @@ function copyUID(uidText, buttonId) {
   });
 }
 
-// Attach copy functions to window for inline onclick
-window.copyHSRUID = function() {
+// Attach copy functions
+document.getElementById('copy-hsr-uid').addEventListener('click', function() {
   const uidText = document.getElementById('player-uid').textContent;
   copyUID(uidText, 'copy-hsr-uid');
-};
+});
 
-window.copyZZZUID = function() {
+document.getElementById('copy-zzz-uid').addEventListener('click', function() {
   const uidText = document.getElementById('zzz-player-uid').textContent;
   copyUID(uidText, 'copy-zzz-uid');
-};
+});
