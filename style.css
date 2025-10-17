@@ -30,7 +30,6 @@ body {
   height: 100%;
   pointer-events: none;
   z-index: 0;
-  will-change: transform;
 }
 
 .particle {
@@ -40,25 +39,16 @@ body {
   opacity: 0.7;
   animation: floatGlow 8s infinite ease-in-out;
   filter: blur(1px);
-  will-change: transform, opacity;
 }
 
 @keyframes floatGlow {
   0%, 100% { 
     transform: translate(0, 0) scale(1);
-    opacity: 0.7;
-  }
-  25% { 
-    transform: translate(50px, -50px) scale(1.3);
-    opacity: 0.9;
-  }
-  50% { 
-    transform: translate(-30px, 30px) scale(0.8);
     opacity: 0.5;
   }
-  75% { 
-    transform: translate(40px, 20px) scale(1.2);
-    opacity: 0.8;
+  50% { 
+    transform: translate(20px, 20px) scale(1.1);
+    opacity: 0.7;
   }
 }
 
@@ -121,9 +111,7 @@ h1 {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   transition: all 0.4s ease;
   animation: fadeIn 0.8s ease-out;
-  transform-style: preserve-3d;
   position: relative;
-  will-change: transform;
 }
 
 .card::before {
@@ -539,7 +527,6 @@ h1 {
   z-index: 0;
   opacity: 0.3;
   pointer-events: none;
-  will-change: opacity;
   transform: translateZ(0);
 }
 
@@ -587,8 +574,15 @@ h1 {
 }
 
 @media (max-width: 1100px) {
-  .decorative-image {
+  .image1, .image2, .image3, .image4 {
     display: none !important;
+  }
+  
+  /* Keep image5 visible on mobile */
+  .image5 {
+    width: 500px;
+    max-width: 70vw;
+    opacity: 0.1;
   }
 }
 
@@ -600,15 +594,20 @@ h1 {
   h1 { 
     font-size: 2.5rem; 
     margin: 20px 0 15px;
+    animation: none;
   }
   
   .glitch-text { 
-    font-size: 1.8rem; 
+    font-size: 1.8rem;
+    animation: none;
   }
   
   .card { 
     padding: 20px; 
     margin: 15px 0;
+    animation: none;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   .card h2 {
@@ -682,18 +681,42 @@ h1 {
     justify-content: center;
   }
 
-  /* Reduce particle animation complexity on mobile */
+  /* Disable all complex animations on mobile */
+  *, *::before, *::after {
+    animation-duration: 0s !important;
+    transition-duration: 0.2s !important;
+  }
+  
+  /* Keep only essential animations */
+  .loading-spinner {
+    animation: spinLoader 1s linear infinite !important;
+  }
+  
+  #album-art.playing {
+    animation: spin 4s linear infinite !important;
+  }
+
+  /* Simplify particle animations */
   .particle {
-    animation-duration: 10s;
+    animation: floatSimple 6s infinite ease-in-out !important;
   }
-
-  /* Disable complex hover effects on mobile */
-  .card:hover {
-    transform: none;
+  
+  /* Keep image5 visible but static */
+  .image5 {
+    width: 400px;
+    max-width: 60vw;
+    opacity: 0.08;
   }
+}
 
-  #album-art:hover {
-    transform: scale(1.05);
+@keyframes floatSimple {
+  0%, 100% { 
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  50% { 
+    transform: translateY(-10px);
+    opacity: 0.6;
   }
 }
 
@@ -720,5 +743,12 @@ h1 {
 
   .achievement-text {
     font-size: 0.8rem;
+  }
+  
+  /* Further reduce image5 on very small screens */
+  .image5 {
+    width: 300px;
+    max-width: 50vw;
+    opacity: 0.06;
   }
 }
