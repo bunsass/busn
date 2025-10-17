@@ -82,7 +82,7 @@ function pauseSong() {
 }
 
 albumArt.addEventListener('click', (e) => {
-  e.stopPropagation(); // Prevent this click from triggering document click
+  e.stopPropagation();
   
   if (audio.paused) {
     if (!audio.src) loadSong(currentSongIndex);
@@ -127,9 +127,9 @@ if (!isMobile) {
   });
 }
 
-// Mobile: Close menu when clicking outside
+// Mobile: Close menu when clicking/touching outside
 if (isMobile) {
-  document.addEventListener('click', (e) => {
+  const closeMenu = (e) => {
     const musicPlayer = document.getElementById('music-player');
     const isClickInsidePlayer = musicPlayer.contains(e.target);
     const isClickInsideControls = musicControls.contains(e.target);
@@ -137,17 +137,14 @@ if (isMobile) {
     if (!isClickInsidePlayer && !isClickInsideControls && musicControls.classList.contains('show')) {
       musicControls.classList.remove('show');
     }
-  });
+  };
   
-  // Prevent clicks inside controls from closing the menu
-  musicControls.addEventListener('click', (e) => {
-    e.stopPropagation();
-  });
+  // Listen to both click and touchstart for better mobile support
+  document.addEventListener('click', closeMenu);
+  document.addEventListener('touchstart', closeMenu);
 }
 
 playPauseBtn.addEventListener('click', (e) => {
-  e.stopPropagation(); // Prevent triggering document click
-  
   if (audio.paused) {
     if (!audio.src) loadSong(currentSongIndex);
     playSong();
@@ -157,32 +154,19 @@ playPauseBtn.addEventListener('click', (e) => {
 });
 
 prevBtn.addEventListener('click', (e) => {
-  e.stopPropagation(); // Prevent triggering document click
-  
   currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
   loadSong(currentSongIndex);
   playSong();
 });
 
 nextBtn.addEventListener('click', (e) => {
-  e.stopPropagation(); // Prevent triggering document click
-  
   currentSongIndex = (currentSongIndex + 1) % songs.length;
   loadSong(currentSongIndex);
   playSong();
 });
 
-nextBtn.addEventListener('click', () => {
-  currentSongIndex = (currentSongIndex + 1) % songs.length;
-  loadSong(currentSongIndex);
-  playSong();
-  
-  // Keep menu open on mobile when using controls
-  if (isMobile) {
-    setTimeout(() => {
-      musicControls.classList.add('show');
-    }, 50);
-  }
+volumeSlider.addEventListener('input', () => {
+  audio.volume = volumeSlider.value;
 });
 
 // ========================================
