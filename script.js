@@ -37,12 +37,12 @@ for (let i = 0; i < particleCount; i++) {
 // ========================================
 const songs = [
   {
-    title: "Had I Not Seen the Sun",
-    url: "https://spontaneous-indigo-cgcjbksra5.edgeone.app/Had%20I%20Not%20Seen%20the%20Sun.mp3"
-  },
-  {
     title: "Time To love",
     url: "https://select-red-x4xaymxkyg.edgeone.app/Time%20To%20Love.mp3"
+  },
+  {
+    title: "Had I Not Seen the Sun",
+    url: "https://spontaneous-indigo-cgcjbksra5.edgeone.app/Had%20I%20Not%20Seen%20the%20Sun.mp3"
   },
   {
     title: "if i can stop one heart from breaking",
