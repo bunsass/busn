@@ -143,37 +143,36 @@ if (!isMobile) {
   });
 }
 
-// Mobile: Close menu when tapping outside
+// Mobile: Close menu when clicking/touching outside
 if (isMobile) {
   const handleOutsideInteraction = (e) => {
     if (!menuOpen) return;
-
+    
     const musicPlayer = document.getElementById('music-player');
     const musicControls = document.getElementById('music-controls');
-
-    // Check if the tap is outside both music-player and music-controls
+    
     const isClickInsidePlayer = musicPlayer && musicPlayer.contains(e.target);
     const isClickInsideControls = musicControls && musicControls.contains(e.target);
-
+    
     if (!isClickInsidePlayer && !isClickInsideControls) {
-      console.log('Closing music controls: Tap outside detected');
       closeMenu();
     }
   };
-
-  // Use touchstart for mobile interactions
-  document.addEventListener('touchstart', handleOutsideInteraction, { passive: true });
-
+  
+  document.addEventListener('touchstart', handleOutsideInteraction, true);
+  document.addEventListener('click', handleOutsideInteraction, true);
+  document.body.addEventListener('touchstart', handleOutsideInteraction, true);
+  document.body.addEventListener('click', handleOutsideInteraction, true);
+  
   // Close on scroll
   let scrollTimeout;
   window.addEventListener('scroll', () => {
     if (menuOpen) {
-      console.log('Closing music controls: Scroll detected');
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(closeMenu, 100);
     }
   }, { passive: true });
-
+  
   // Close when interacting with cards
   const cards = document.querySelectorAll('.card');
   cards.forEach(card => {
@@ -182,7 +181,6 @@ if (isMobile) {
         const isControlElement = musicControls.contains(e.target) || 
                                 document.getElementById('music-player').contains(e.target);
         if (!isControlElement) {
-          console.log('Closing music controls: Card interaction detected');
           closeMenu();
         }
       }
@@ -217,6 +215,13 @@ nextBtn.addEventListener('click', (e) => {
 volumeSlider.addEventListener('input', (e) => {
   e.stopPropagation();
   audio.volume = volumeSlider.value;
+});
+
+// Close button for mobile
+document.getElementById('close-controls')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  console.log('Close button clicked');
+  closeMenu();
 });
 
 // ========================================
