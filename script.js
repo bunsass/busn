@@ -41,12 +41,12 @@ const songs = [
     url: "https://spontaneous-indigo-cgcjbksra5.edgeone.app/Had%20I%20Not%20Seen%20the%20Sun.mp3"
   },
   {
-    title: "If I Can Stop One Heart From Breaking",
-    url: "https://inquisitive-azure-jxdjgly1ow.edgeone.app/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3"
+    title: "Time To love",
+    url: "https://select-red-x4xaymxkyg.edgeone.app/Time%20To%20Love.mp3"
   },
   {
-    title: "I Really Want to Stay at Your House",
-    url: "https://mysterious-silver-exswdmr1e1.edgeone.app/I%20Really%20Want%20to%20Stay%20at%20Your%20House.mp3"
+    title: "if i can stop one heart from breaking",
+    url: "https://inquisitive-azure-jxdjgly1ow.edgeone.app/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3"
   }
 ];
 
@@ -88,6 +88,11 @@ albumArt.addEventListener('click', () => {
   } else {
     pauseSong();
   }
+  
+  // Toggle menu on mobile
+  if (isMobile) {
+    musicControls.classList.toggle('show');
+  }
 });
 
 albumArt.addEventListener('dblclick', (e) => {
@@ -97,25 +102,41 @@ albumArt.addEventListener('dblclick', (e) => {
   playSong();
 });
 
-let hoverTimeout;
-albumArt.addEventListener('mouseenter', () => {
-  hoverTimeout = setTimeout(() => {
-    musicControls.classList.add('show');
-  }, 300);
-});
+// Desktop hover behavior
+if (!isMobile) {
+  let hoverTimeout;
+  albumArt.addEventListener('mouseenter', () => {
+    hoverTimeout = setTimeout(() => {
+      musicControls.classList.add('show');
+    }, 300);
+  });
 
-albumArt.addEventListener('mouseleave', () => {
-  clearTimeout(hoverTimeout);
-  setTimeout(() => {
-    if (!musicControls.matches(':hover')) {
+  albumArt.addEventListener('mouseleave', () => {
+    clearTimeout(hoverTimeout);
+    setTimeout(() => {
+      if (!musicControls.matches(':hover')) {
+        musicControls.classList.remove('show');
+      }
+    }, 300);
+  });
+
+  musicControls.addEventListener('mouseleave', () => {
+    musicControls.classList.remove('show');
+  });
+}
+
+// Mobile: Close menu when clicking outside
+if (isMobile) {
+  document.addEventListener('click', (e) => {
+    const musicPlayer = document.getElementById('music-player');
+    const isClickInsidePlayer = musicPlayer.contains(e.target);
+    const isClickInsideControls = musicControls.contains(e.target);
+    
+    if (!isClickInsidePlayer && !isClickInsideControls) {
       musicControls.classList.remove('show');
     }
-  }, 300);
-});
-
-musicControls.addEventListener('mouseleave', () => {
-  musicControls.classList.remove('show');
-});
+  });
+}
 
 playPauseBtn.addEventListener('click', () => {
   if (audio.paused) {
@@ -124,28 +145,39 @@ playPauseBtn.addEventListener('click', () => {
   } else {
     pauseSong();
   }
+  
+  // Keep menu open on mobile when using controls
+  if (isMobile) {
+    setTimeout(() => {
+      musicControls.classList.add('show');
+    }, 50);
+  }
 });
 
 prevBtn.addEventListener('click', () => {
   currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
   loadSong(currentSongIndex);
   playSong();
+  
+  // Keep menu open on mobile when using controls
+  if (isMobile) {
+    setTimeout(() => {
+      musicControls.classList.add('show');
+    }, 50);
+  }
 });
 
 nextBtn.addEventListener('click', () => {
   currentSongIndex = (currentSongIndex + 1) % songs.length;
   loadSong(currentSongIndex);
   playSong();
-});
-
-volumeSlider.addEventListener('input', (e) => {
-  audio.volume = e.target.value;
-});
-
-audio.addEventListener('ended', () => {
-  currentSongIndex = (currentSongIndex + 1) % songs.length;
-  loadSong(currentSongIndex);
-  playSong();
+  
+  // Keep menu open on mobile when using controls
+  if (isMobile) {
+    setTimeout(() => {
+      musicControls.classList.add('show');
+    }, 50);
+  }
 });
 
 // ========================================
@@ -212,7 +244,7 @@ class HSREnkaAPI {
         worldLevel: 6,
         signature: "Demo data - API unavailable",
         recordInfo: {
-          achievementCount: 583,
+          achievementCount: 800,
           maxRogueChallengeScore: 9,
           bookCount: 85
         }
