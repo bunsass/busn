@@ -132,53 +132,22 @@ if (isMobile) {
     const isClickInsidePlayer = musicPlayer.contains(e.target);
     const isClickInsideControls = musicControls.contains(e.target);
     
-    if (!isClickInsidePlayer && !isClickInsideControls) {
+    if (!isClickInsidePlayer && !isClickInsideControls && musicControls.classList.contains('show')) {
+      musicControls.classList.remove('show');
+    }
+  });
+  
+  // Also close menu when touching/clicking on the page content
+  document.addEventListener('touchstart', (e) => {
+    const musicPlayer = document.getElementById('music-player');
+    const isClickInsidePlayer = musicPlayer.contains(e.target);
+    const isClickInsideControls = musicControls.contains(e.target);
+    
+    if (!isClickInsidePlayer && !isClickInsideControls && musicControls.classList.contains('show')) {
       musicControls.classList.remove('show');
     }
   });
 }
-
-playPauseBtn.addEventListener('click', () => {
-  if (audio.paused) {
-    if (!audio.src) loadSong(currentSongIndex);
-    playSong();
-  } else {
-    pauseSong();
-  }
-  
-  // Keep menu open on mobile when using controls
-  if (isMobile) {
-    setTimeout(() => {
-      musicControls.classList.add('show');
-    }, 50);
-  }
-});
-
-prevBtn.addEventListener('click', () => {
-  currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
-  loadSong(currentSongIndex);
-  playSong();
-  
-  // Keep menu open on mobile when using controls
-  if (isMobile) {
-    setTimeout(() => {
-      musicControls.classList.add('show');
-    }, 50);
-  }
-});
-
-nextBtn.addEventListener('click', () => {
-  currentSongIndex = (currentSongIndex + 1) % songs.length;
-  loadSong(currentSongIndex);
-  playSong();
-  
-  // Keep menu open on mobile when using controls
-  if (isMobile) {
-    setTimeout(() => {
-      musicControls.classList.add('show');
-    }, 50);
-  }
-});
 
 // ========================================
 // Dynamic Greeting Based on Time
@@ -188,10 +157,10 @@ function updateGreeting() {
   const hour = new Date().getHours();
   
   const greetings = {
-    morning: ['Good Morning, Traveler!', 'Rise and Shine, Wanderer!', 'Good Morning, Trailblazer!'],
-    afternoon: ['Good Afternoon, Traveler!', 'Hello There, Wanderer!', 'Good Afternoon, Trailblazer!'],
-    evening: ['Good Evening, Traveler!', 'Greetings, Night Wanderer!', 'Good Evening, Trailblazer!'],
-    night: ['Good Night, Stargazer!', 'Welcome, Night Owl!', 'Greetings, Moonlit Wanderer!']
+    morning: ['Good Morning, proxies!', 'Rise and Shine, Wanderer!', 'Good Morning, Trailblazer!'],
+    afternoon: ['Good Afternoon, Traveler!', 'Hello There, Wanderer!', 'Good Afternoon, Trailblazer!', 'Good Afternoon, proxies!'],
+    evening: ['Good Evening, Traveler!', 'Greetings, Night Wanderer!', 'Good Evening, Trailblazer!', 'Good Evening, proxies!'],
+    night: ['Good Night, Stargazer!', 'Welcome, Night Owl!', 'Greetings, Moonlit Wanderer!' , 'Good Night, proxies!']
   };
   
   let timeOfDay;
