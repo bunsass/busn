@@ -10,40 +10,29 @@
   <script src="script.js" defer></script>
 </head>
 <body>
+  <!-- Splash Screen -->
+  <div id="splash-screen">
+    <div class="splash-content">
+      <p class="splash-text">Click to continue</p>
+    </div>
+  </div>
+
   <!-- Animated Background -->
   <div id="particles"></div>
 
   <div class="container">
-    <h1 id="greeting">Welcome to My Profile</h1>
+    <h1 id="greeting"></h1>
     
     <div style="text-align: center;">
       <div class="glitch-text">バンサス</div>
     </div>
 
-    <!-- Spotify Featured Song -->
-    <div class="card">
-      <h2>🎵 Featured Song</h2>
-      <div class="spotify-embed">
-        <iframe style="border-radius:12px" 
-                src="https://open.spotify.com/embed/track/2P4OICZRVAQcYAV2JReRfj?utm_source=generator" 
-                width="100%" 
-                height="152" 
-                frameBorder="0" 
-                allowfullscreen="" 
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                loading="lazy"
-                title="Spotify Featured Song">
-        </iframe>
-      </div>
-    </div>
-
     <!-- About Me -->
     <div class="card">
       <h2>About Me</h2>
-      <p><strong>Name:</strong> Bui Minh Triet</p>
+      <p><strong>Name:</strong> Bui Minh Triet / buns</p>
       <p><strong>Location:</strong> Da lat, Vietnam</p>
       <p><strong>Birthday:</strong> 05/07/2011</p>
-      <p><strong>Education:</strong> currently home-schooling</p>
     </div>
 
     <!-- Contact -->
@@ -51,20 +40,20 @@
       <h2>Contact Me</h2>
       <ul class="contact-list">
         <li><strong>Email:</strong> <a href="mailto:buminhtriet57@gmail.com">click here to email me❤️</a></li>
-        <li><strong>GitHub:</strong> <a href="https://github.com/bunsass" target="_blank">bunsass</a></li>
-        <li><strong>Discord:</strong> <a href='https://discord.com/users/1003100550700748871' target="_blank">click here or : bunshevid_oguri</a></li>
-        <li><strong>Facebook:</strong> <a href="https://www.facebook.com/bunsass/" target="_blank">bunsass</a></li>
+        <li><strong>GitHub:</strong> <a href="https://github.com/bunsass" target="_blank" rel="noopener noreferrer">bunsass</a></li>
+        <li><strong>Discord:</strong> <a href='https://discord.com/users/1003100550700748871' target="_blank" rel="noopener noreferrer">click here or : bunshevid_oguri</a></li>
+        <li><strong>Facebook:</strong> <a href="https://www.facebook.com/bunsass/" target="_blank" rel="noopener noreferrer">bunsass</a></li>
       </ul>
     </div>
 
     <!-- Biography -->
     <div class="card">
-      <h2>My Bioo(*^▽^*)┛</h2>
+      <h2>My Bio(*^▽^*)┛</h2>
       <p>Hello! I'm passionate about learning new stuffs, coding, and creating amazing experiences. I love learning new things and working on projects that make a difference. In my free time, I enjoy listening to music, playing games, and exploring new ideas. Let's connect and create something awesome together!</p>
     </div>
 
      <!-- Honkai Star Rail Section -->
-    <section class="card hsr-section">
+    <section class="card game-section hsr-section">
       <h2>⭐ Honkai Star Rail Profile</h2>
       
       <div id="loading-indicator" class="hidden">
@@ -109,7 +98,7 @@
               </div>
               <div class="uid-info">
                 <span class="uid-text">UID: <span id="player-uid"></span></span>
-                <button class="copy-uid-btn" id="copy-hsr-uid">📋 Copy</button>
+                <button class="copy-uid-btn" id="copy-hsr-uid" aria-label="Copy HSR UID">📋 Copy</button>
               </div>
             </div>
           </div>
@@ -118,7 +107,7 @@
     </section>
 
     <!-- Zenless Zone Zero Section -->
-    <section class="card zzz-section">
+    <section class="card game-section zzz-section">
       <h2>⚡ Zenless Zone Zero Profile</h2>
       
       <div id="zzz-loading-indicator" class="hidden">
@@ -151,13 +140,18 @@
                 <span class="achievement-text">Shiyu Defense</span>
               </div>
               <div class="achievement-info">
-                <span class="achievement-number" id="exploration-progress"></span>
-                <div class="achievement-icon">🗺️</div>
-                <span class="achievement-text">Exploration</span>
+                <span class="achievement-number" id="line-breaker"></span>
+                <div class="achievement-icon">⚔️</div>
+                <span class="achievement-text">Line Breaker</span>
+              </div>
+              <div class="achievement-info">
+                <span class="achievement-number" id="disintegration"></span>
+                <div class="achievement-icon">💥</div>
+                <span class="achievement-text">Disintegration</span>
               </div>
               <div class="uid-info">
                 <span class="uid-text">UID: <span id="zzz-player-uid"></span></span>
-                <button class="copy-uid-btn" id="copy-zzz-uid">📋 Copy</button>
+                <button class="copy-uid-btn" id="copy-zzz-uid" aria-label="Copy ZZZ UID">📋 Copy</button>
               </div>
             </div>
           </div>
@@ -198,20 +192,18 @@
       <label for="volume">🔊</label>
       <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5" aria-label="Volume control">
     </div>
-    <button class="control-btn" id="prev">⮜ Previous</button>
-    <button class="control-btn" id="play-pause">▶ Play</button>
-    <button class="control-btn" id="next">⮞ Next</button>
-    <button class="control-btn close-btn" id="close-controls">✖ Close</button>
+    <button class="control-btn" id="prev" aria-label="Previous song">⏮️ Previous</button>
+    <button class="control-btn" id="play-pause" aria-label="Play or pause">▶️ Play</button>
+    <button class="control-btn" id="next" aria-label="Next song">⏭️ Next</button>
+    <button class="control-btn close-btn" id="close-controls" aria-label="Close controls">✖ Close</button>
   </div>
 
   <audio id="audio"></audio>
 
-  <img class="decorative-image image1" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_3.webp" alt="Decorative 1" loading="lazy" onerror="this.style.display='none'">
-  <img class="decorative-image image2" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_2.webp" alt="Decorative 2" loading="lazy" onerror="this.style.display='none'">
-  <img class="decorative-image image3" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_6.webp" alt="Decorative 3" loading="lazy" onerror="this.style.display='none'">
-  <img class="decorative-image image4" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_5.webp" alt="Decorative 4" loading="lazy" onerror="this.style.display='none'">
-  <img class="image5" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Sticker_PPG_24_Evernight_03.webp" alt="Central Decorative" loading="lazy" onerror="this.style.display='none'">
+  <img class="decorative-image image1" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_3.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
+  <img class="decorative-image image2" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_2.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
+  <img class="decorative-image image3" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_6.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
+  <img class="decorative-image image4" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_5.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
+  <img class="image5" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Sticker_PPG_24_Evernight_03.webp" alt="Central decorative character" loading="lazy" onerror="this.style.display='none'">
 </body>
-
 </html>
-
