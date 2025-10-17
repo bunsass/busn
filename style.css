@@ -272,13 +272,7 @@ h1 {
 
 .close-btn {
   background: linear-gradient(135deg, #ef4444, #b91c1c);
-  display: none; /* Hidden by default, shown on mobile */
-}
-
-@media (max-width: 768px) {
-  .close-btn {
-    display: block; /* Show close button on mobile */
-  }
+  display: block; /* Always visible on all devices */
 }
 
 .volume-control {
