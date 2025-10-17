@@ -218,11 +218,25 @@ volumeSlider.addEventListener('input', (e) => {
 });
 
 // Close button for mobile
-document.getElementById('close-controls')?.addEventListener('click', (e) => {
-  e.stopPropagation();
-  console.log('Close button clicked');
-  closeMenu();
-});
+const closeButton = document.getElementById('close-controls');
+if (closeButton) {
+  closeButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    console.log('Close button clicked');
+    menuOpen = false;
+    musicControls.classList.remove('show');
+  }, true);
+  
+  // Also handle touch events for better mobile support
+  closeButton.addEventListener('touchend', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    console.log('Close button touched');
+    menuOpen = false;
+    musicControls.classList.remove('show');
+  }, true);
+}
 
 // ========================================
 // Dynamic Greeting Based on Time
