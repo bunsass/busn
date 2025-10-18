@@ -154,8 +154,15 @@ document.querySelectorAll('.section-fade').forEach(el => {
 let splashInteracted = false;
 
 function handleSplashInteraction(e) {
-  if (splashInteracted) return; // Prevent multiple triggers
+  console.log('Splash interaction triggered!', e.type); // Debug log
+  
+  if (splashInteracted) {
+    console.log('Already interacted, ignoring');
+    return;
+  }
+  
   splashInteracted = true;
+  console.log('Processing splash interaction...');
   
   // Prevent default behavior
   if (e) {
@@ -164,8 +171,12 @@ function handleSplashInteraction(e) {
   }
   
   const splashScreen = document.getElementById('splash-screen');
-  if (!splashScreen) return;
+  if (!splashScreen) {
+    console.log('Splash screen not found!');
+    return;
+  }
   
+  console.log('Fading out splash screen...');
   splashScreen.classList.add('fade-out');
   
   // Show music player after splash interaction
@@ -190,34 +201,51 @@ function handleSplashInteraction(e) {
   setTimeout(() => {
     if (splashScreen && splashScreen.parentNode) {
       splashScreen.remove();
+      console.log('Splash screen removed');
     }
   }, 800);
 }
 
-// Initialize splash screen events after DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  const splashScreen = document.getElementById('splash-screen');
-  if (!splashScreen) return;
+// Wait for page to fully load before setting up events
+window.addEventListener('load', () => {
+  console.log('Page loaded, setting up splash screen...');
   
-  // iOS-friendly event handling
-  const handleTouch = (e) => {
-    handleSplashInteraction(e);
-  };
-  
-  // Add all possible event types for maximum compatibility
-  splashScreen.addEventListener('touchstart', handleTouch, { passive: false });
-  splashScreen.addEventListener('touchend', handleTouch, { passive: false });
-  splashScreen.addEventListener('click', handleTouch);
-  splashScreen.addEventListener('mousedown', handleTouch);
-  
-  // Fallback: listen on the entire document for iOS
-  if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-    document.addEventListener('touchstart', (e) => {
-      if (splashScreen && !splashInteracted && splashScreen.contains(e.target)) {
-        handleSplashInteraction(e);
-      }
-    }, { passive: false, once: true });
-  }
+  // Small delay to ensure everything is ready
+  setTimeout(() => {
+    const splashScreen = document.getElementById('splash-screen');
+    
+    if (!splashScreen) {
+      console.error('Splash screen element not found!');
+      return;
+    }
+    
+    console.log('Splash screen found, adding event listeners...');
+    
+    // Remove any existing pointer-events restrictions
+    splashScreen.style.pointerEvents = 'auto';
+    
+    // Simplified event handling - just use touchstart and click
+    splashScreen.addEventListener('touchstart', (e) => {
+      console.log('touchstart detected');
+      handleSplashInteraction(e);
+    }, { passive: false });
+    
+    splashScreen.addEventListener('click', (e) => {
+      console.log('click detected');
+      handleSplashInteraction(e);
+    });
+    
+    // Add visual feedback for debugging
+    splashScreen.addEventListener('touchstart', () => {
+      splashScreen.style.opacity = '0.8';
+    }, { passive: true });
+    
+    splashScreen.addEventListener('touchend', () => {
+      splashScreen.style.opacity = '1';
+    }, { passive: true });
+    
+    console.log('Event listeners added successfully');
+  }, 100);
 });
 
 // Add multiple event listeners for better compatibility
