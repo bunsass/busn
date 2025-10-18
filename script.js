@@ -1009,7 +1009,7 @@ class HSREnkaAPI extends EnkaAPI {
       if (suStarsEl) suStarsEl.textContent = info.recordInfo?.maxRogueChallengeScore || 0;
       
       // Set Light Cones count
-      const lightConesEl = document.getElementById('hsr-exploration');
+      const lightConesEl = document.getElementById('lightcones-count');
       if (lightConesEl) lightConesEl.textContent = info.recordInfo?.equipmentCount || 0;
       
       // Set UID
