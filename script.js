@@ -13,29 +13,170 @@ const debounce = (func, wait) => {
 // Mobile Detection & Performance
 // ========================================
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 const particleCount = isMobile ? 5 : 30;
 
 // ========================================
-// Loading Screen
+// Global State
+// ========================================
+let hasUserInteracted = false;
+
+// ========================================
+// Loading & Splash Screen Handler
 // ========================================
 window.addEventListener('load', () => {
   const loadingScreen = document.getElementById('loading-screen');
   const splashScreen = document.getElementById('splash-screen');
   
-  // Show splash screen immediately
-  splashScreen.classList.remove('hidden');
+  console.log("Window loaded");
+  console.log("Loading screen:", loadingScreen);
+  console.log("Splash screen:", splashScreen);
   
+  // Minimum loading time
   setTimeout(() => {
-    loadingScreen.classList.add('fade-out');
-    setTimeout(() => {
-      loadingScreen.remove();
-    }, 800);
-  }, 2000);
+    if (loadingScreen) {
+      loadingScreen.classList.add('fade-out');
+      setTimeout(() => {
+        loadingScreen.style.display = 'none';
+      }, 800);
+    }
+    
+    // Show splash screen after loading screen fades
+    if (splashScreen) {
+      setTimeout(() => {
+        splashScreen.classList.remove('hidden');
+        splashScreen.style.display = 'flex';
+        console.log("Splash screen should now be visible");
+      }, 500);
+    }
+  }, 1500);
 });
 
 // ========================================
-// Cursor Trail Effect
+// Splash Screen Handler (iOS Compatible)
 // ========================================
+function setupSplashScreen() {
+  const splashScreen = document.getElementById('splash-screen');
+  const container = document.querySelector('.container');
+  
+  if (!splashScreen) return;
+  
+  // Mark splash as ready
+  document.body.classList.add('splash-ready');
+  
+  // Single unified interaction handler
+  function handleSplashInteraction(e) {
+    if (hasUserInteracted) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    hasUserInteracted = true;
+    
+    console.log("Splash screen clicked");
+    
+    // Mark content as visible for decorative images
+    document.body.classList.add('content-visible');
+    
+    // SMOOTH fade transition - no white flash
+    splashScreen.style.transition = 'opacity 0.8s ease-out';
+    splashScreen.style.opacity = '0';
+    splashScreen.style.pointerEvents = 'none';
+    
+    // Make container visible smoothly
+    if (container) {
+      container.style.transition = 'opacity 0.8s ease-in';
+      container.style.opacity = '1';
+    }
+    
+    setTimeout(() => {
+      splashScreen.classList.add('hidden');
+      splashScreen.remove();
+    }, 800);
+    
+    // Show music player after splash interaction
+    const musicPlayer = document.getElementById('music-player');
+    const songInfo = document.getElementById('song-info');
+    if (musicPlayer) musicPlayer.style.display = 'block';
+    if (songInfo) songInfo.style.display = 'none';
+    
+    // Initialize audio and try to play
+    const audio = document.getElementById('audio');
+    if (audio) {
+      audio.volume = 0.5;
+      
+      loadSong(currentSongIndex);
+      
+      const playPromise = audio.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log("Audio started successfully");
+            const albumArt = document.getElementById('album-art');
+            if (albumArt) albumArt.classList.add('playing');
+            
+            const playPauseBtn = document.getElementById('play-pause');
+            if (playPauseBtn) playPauseBtn.textContent = '⏸ Pause';
+            
+            const songInfo = document.getElementById('song-info');
+            if (songInfo) {
+              songInfo.textContent = `♪ ${songs[0].title}`;
+              songInfo.classList.add('show');
+            }
+            
+            // Setup visualizer
+            if (!audioContext) {
+              setupAudioContext();
+            }
+            if (audioContext) {
+              visualizerCanvas.classList.add('active');
+              isVisualizerActive = true;
+              drawVisualizer();
+            }
+          })
+          .catch(err => {
+            console.warn("Audio autoplay prevented:", err);
+            // Set up click-anywhere-to-play fallback
+            document.addEventListener('click', function audioFallback() {
+              audio.play().then(() => {
+                console.log("Audio started after user interaction");
+                document.removeEventListener('click', audioFallback);
+                
+                const albumArt = document.getElementById('album-art');
+                if (albumArt) albumArt.classList.add('playing');
+                
+                const playPauseBtn = document.getElementById('play-pause');
+                if (playPauseBtn) playPauseBtn.textContent = '⏸ Pause';
+                
+                if (!audioContext) {
+                  setupAudioContext();
+                }
+                if (audioContext) {
+                  visualizerCanvas.classList.add('active');
+                  isVisualizerActive = true;
+                  drawVisualizer();
+                }
+              });
+            }, { once: true });
+          });
+      }
+    }
+    
+    // Start typewriter effect
+    setTimeout(() => {
+      typeWriterEffect();
+    }, 300);
+  }
+  
+  // Attach event listeners for both click and touch
+  splashScreen.addEventListener('click', handleSplashInteraction, { once: true });
+  splashScreen.addEventListener('touchstart', handleSplashInteraction, { once: true, passive: false });
+}
+
+// Initialize splash screen when DOM is ready
+document.addEventListener('DOMContentLoaded', setupSplashScreen);
+
 if (!isMobile) {
   const canvas = document.getElementById('cursor-trail');
   const ctx = canvas.getContext('2d');
@@ -149,43 +290,12 @@ document.querySelectorAll('.section-fade').forEach(el => {
 });
 
 // ========================================
-// Splash Screen & Autoplay
-// ========================================
-const splashScreen = document.getElementById('splash-screen');
-
-function handleSplashInteraction(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  
-  splashScreen.classList.add('fade-out');
-  
-  // Load and autoplay first song after user interaction
-  loadSong(currentSongIndex);
-  
-  // Wait for audio to be ready, then play
-  audio.addEventListener('canplay', function autoplayHandler() {
-    playSong();
-    audio.removeEventListener('canplay', autoplayHandler);
-  }, { once: true });
-  
-  setTimeout(() => {
-    typeWriterEffect();
-  }, 300);
-  
-  setTimeout(() => {
-    splashScreen.remove();
-  }, 800);
-}
-
-// Support both touch and click events for iOS
-splashScreen.addEventListener('click', handleSplashInteraction);
-splashScreen.addEventListener('touchend', handleSplashInteraction);
-
-// ========================================
 // Typewriter Effect for Greeting
 // ========================================
 function typeWriterEffect() {
   const greetingEl = document.getElementById('greeting');
+  if (!greetingEl) return;
+  
   const hour = new Date().getHours();
   
   const greetings = {
@@ -630,6 +740,16 @@ class EnkaAPI {
     this.elementIds = config.elementIds;
     this.proxies = [
       {
+        name: 'CORSProxy.io',
+        url: (apiUrl) => `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`,
+        parse: (data) => data
+      },
+      {
+        name: 'ThingProxy',
+        url: (apiUrl) => `https://thingproxy.freeboard.io/fetch/${apiUrl}`,
+        parse: (data) => data
+      },
+      {
         name: 'AllOrigins',
         url: (apiUrl) => `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`,
         parse: (data) => {
@@ -641,8 +761,49 @@ class EnkaAPI {
         }
       },
       {
-        name: 'CodeTabs',
+        name: 'CORS.SH',
+        url: (apiUrl) => `https://cors.sh/${apiUrl}`,
+        parse: (data) => data
+      },
+      {
+        name: 'Proxy CORS',
         url: (apiUrl) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`,
+        parse: (data) => data
+      },
+      {
+        name: 'CrossOrigin.me',
+        url: (apiUrl) => `https://crossorigin.me/${apiUrl}`,
+        parse: (data) => data
+      },
+      {
+        name: 'YACD',
+        url: (apiUrl) => `https://yacd.haishan.me/cors/${apiUrl}`,
+        parse: (data) => data
+      },
+      {
+        name: 'CORS Anywhere Heroku',
+        url: (apiUrl) => `https://cors-anywhere.herokuapp.com/${apiUrl}`,
+        parse: (data) => data
+      },
+      {
+        name: 'JSONProxy',
+        url: (apiUrl) => `https://jsonp.afeld.me/?url=${encodeURIComponent(apiUrl)}`,
+        parse: (data) => data
+      },
+      {
+        name: 'Whatever Origin',
+        url: (apiUrl) => `https://whatever-origin.herokuapp.com/get?url=${encodeURIComponent(apiUrl)}`,
+        parse: (data) => {
+          try {
+            return JSON.parse(data.contents);
+          } catch {
+            return null;
+          }
+        }
+      },
+      {
+        name: 'CORS Proxy',
+        url: (apiUrl) => `https://corsproxy.org/?${encodeURIComponent(apiUrl)}`,
         parse: (data) => data
       },
       {
@@ -692,8 +853,9 @@ class EnkaAPI {
           }
           
           console.log(`✅ Successfully fetched ${this.game} data using ${proxy.name}`);
-          this.displayPlayerData(apiData);
           this.showLoading(false);
+          this.displayPlayerData(apiData);
+          this.showPlayerInfo();
           return;
           
         } catch (error) {
@@ -705,14 +867,16 @@ class EnkaAPI {
       console.log(`All ${this.game} proxies failed, using mock data`);
       this.showError('Unable to fetch live data. Displaying demo data.');
       const apiData = this.getMockData();
+      this.showLoading(false);
       this.displayPlayerData(apiData);
+      this.showPlayerInfo();
       
     } catch (error) {
       console.error(`Error fetching ${this.game} data:`, error);
       this.showError('Failed to fetch player data. Displaying demo data.');
-      this.displayPlayerData(this.getMockData());
-    } finally {
       this.showLoading(false);
+      this.displayPlayerData(this.getMockData());
+      this.showPlayerInfo();
     }
   }
 
@@ -771,99 +935,88 @@ class HSREnkaAPI extends EnkaAPI {
     return {
       uid: this.configuredUID,
       detailInfo: {
-        nickname: "Trailblazer",
+        nickname: "Chamoi",
         level: 70,
         worldLevel: 6,
         signature: "Demo data - API unavailable",
+        headIcon: 201409,
         recordInfo: {
           achievementCount: 800,
           maxRogueChallengeScore: 9,
-          bookCount: 85
+          bookCount: 110
         }
       }
     };
   }
 
   validateData(data) {
-    return data && data.detailInfo;
-  }
+  // Check both direct structure and wrapped structure
+  if (data && data.detailInfo) return true;
+  if (data && data.uid && data.ttl) return true;
+  return false;
+}
 
   displayPlayerData(data) {
-    try {
-      if (!data || !data.detailInfo) {
-        throw new Error('Invalid player data received');
-      }
-
-      const player = data.detailInfo;
-      
-      const nicknameEl = document.getElementById('player-nickname');
-      if (nicknameEl) nicknameEl.textContent = player.nickname || 'Unknown Player';
-      
-      const levelEl = document.getElementById('player-level');
-      if (levelEl) levelEl.textContent = player.level || '0';
-      
-      const worldLevelEl = document.getElementById('world-level');
-      if (worldLevelEl) worldLevelEl.textContent = player.worldLevel || '0';
-      
-      const signatureEl = document.getElementById('player-signature');
-      if (signatureEl) signatureEl.textContent = player.signature || 'No signature set';
-      
-      const achievementEl = document.getElementById('achievement-count');
-      if (achievementEl) {
-        const achievementCount = player.recordInfo?.achievementCount || 
-                                 player.finishAchievementNum || 
-                                 player.achievementCount || '0';
-        achievementEl.textContent = achievementCount;
-      }
-      
-      const uidEl = document.getElementById('player-uid');
-      if (uidEl) uidEl.textContent = data.uid || 'N/A';
-      
-      const avatarEl = document.getElementById('player-avatar');
-      if (avatarEl) {
-        const avatarUrl = `https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png`;
-        avatarEl.onerror = () => {
-          const initial = player.nickname?.charAt(0) || 'HSR';
-          avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(initial)}&size=90&background=667eea&color=ffffff&bold=true`;
-        };
-        avatarEl.src = avatarUrl;
-      }
-      
-      this.displaySimulatedUniverse(player);
-      this.showPlayerInfo();
-      
-    } catch (error) {
-      console.error('Error displaying player data:', error);
-      this.showError('Failed to display player data. Please try again.');
+    const info = data.detailInfo;
+    
+    // Set avatar - HSR uses headIcon field
+    const avatarImg = document.getElementById('player-avatar');
+    if (avatarImg) {
+      // Use Enka.network CDN for HSR avatars
+      const avatarUrl = info.headIcon 
+        ? `https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/${info.headIcon}.png`
+        : 'https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png';
+      avatarImg.src = avatarUrl;
+      avatarImg.onerror = () => {
+        avatarImg.src = 'https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png';
+      };
     }
-  }
-
-  displaySimulatedUniverse(player) {
-    try {
-      const recordInfo = player.recordInfo;
-      
-      if (!recordInfo) {
-        document.getElementById('su-stars').textContent = '0';
-        document.getElementById('hsr-exploration').textContent = '0%';
-        return;
-      }
-
-      const suStarsEl = document.getElementById('su-stars');
-      if (suStarsEl) suStarsEl.textContent = recordInfo.maxRogueChallengeScore || '0';
-
-      const explorationEl = document.getElementById('hsr-exploration');
-      if (explorationEl && recordInfo.bookCount !== undefined) {
-        const explorationPercent = Math.min(Math.round((recordInfo.bookCount / 120) * 100), 100);
-        explorationEl.textContent = explorationPercent + '%';
-      } else if (explorationEl) {
-        explorationEl.textContent = '0%';
-      }
-      
-    } catch (error) {
-      console.error('Error displaying HSR stats:', error);
-      document.getElementById('su-stars').textContent = '0';
-      document.getElementById('hsr-exploration').textContent = '0%';
+    
+    // Set nickname
+    const nicknameEl = document.getElementById('player-nickname');
+    if (nicknameEl) nicknameEl.textContent = info.nickname || 'Trailblazer';
+    
+    // Set level
+    const levelEl = document.getElementById('player-level');
+    if (levelEl) levelEl.textContent = info.level || 70;
+    
+    // Set world level
+    const worldLevelEl = document.getElementById('world-level');
+    if (worldLevelEl) worldLevelEl.textContent = info.worldLevel || 6;
+    
+    // Set signature
+    const signatureEl = document.getElementById('player-signature');
+    if (signatureEl) signatureEl.textContent = info.signature || 'May this journey lead us starward.';
+    
+    // Set achievements
+    const achievementEl = document.getElementById('achievement-count');
+    if (achievementEl) achievementEl.textContent = info.recordInfo?.achievementCount || 0;
+    
+    // Set Simulated Universe stars
+    const suStarsEl = document.getElementById('su-stars');
+    if (suStarsEl) suStarsEl.textContent = info.recordInfo?.maxRogueChallengeScore || 0;
+    
+    // Set exploration percentage
+    const explorationEl = document.getElementById('hsr-exploration');
+    if (explorationEl) explorationEl.textContent = `${info.recordInfo?.bookCount || 0}%`;
+    
+    // Set UID
+    const uidEl = document.getElementById('player-uid');
+    if (uidEl) uidEl.textContent = data.uid || this.configuredUID;
+    
+    // Setup copy button
+    const copyBtn = document.getElementById('copy-hsr-uid');
+    if (copyBtn) {
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(data.uid || this.configuredUID);
+        copyBtn.textContent = '✓ Copied!';
+        setTimeout(() => {
+          copyBtn.textContent = '📋 Copy';
+        }, 2000);
+      };
     }
+    
+    this.showPlayerInfo();
   }
 }
 
@@ -891,15 +1044,16 @@ class ZZZEnkaAPI extends EnkaAPI {
       PlayerInfo: {
         SocialDetail: {
           ProfileDetail: {
-            Nickname: "Proxy",
-            Level: 50,
-            Uid: this.configuredUID
+            Nickname: 'Buns',
+            Level: 60,
+            Uid: this.configuredUID,
+            AvatarId: 2021
           },
-          Desc: "Demo data - API unavailable",
+          Desc: 'skibidi',
           MedalList: [
-            { MedalType: 1, MedalScore: 0 },
-            { MedalType: 3, MedalScore: 0 },
-            { MedalType: 7, MedalScore: 0 }
+            { MedalType: 1, Value: 6 },
+            { MedalType: 3, Value: 7 },
+            { MedalType: 7, Value: 0 }
           ]
         }
       }
@@ -907,124 +1061,76 @@ class ZZZEnkaAPI extends EnkaAPI {
   }
 
   validateData(data) {
-    return data && data.PlayerInfo;
-  }
+  // Check both direct structure and wrapped structure  
+  if (data && data.PlayerInfo && data.PlayerInfo.SocialDetail) return true;
+  if (data && data.uid && data.ttl) return true;
+  return false;
+}
 
   displayPlayerData(data) {
-    try {
-      const playerInfo = data.PlayerInfo;
-      if (!playerInfo || !playerInfo.SocialDetail || !playerInfo.SocialDetail.ProfileDetail) {
-        throw new Error('Invalid player data structure');
-      }
-      
-      const player = playerInfo.SocialDetail.ProfileDetail;
-      const socialDetail = playerInfo.SocialDetail;
-      
-      const nicknameEl = document.getElementById('zzz-player-nickname');
-      if (nicknameEl) nicknameEl.textContent = player.Nickname || 'Unknown Player';
-      
-      const levelEl = document.getElementById('zzz-player-level');
-      if (levelEl) levelEl.textContent = player.Level || '0';
-      
-      const signatureEl = document.getElementById('zzz-player-signature');
-      if (signatureEl) signatureEl.textContent = socialDetail.Desc || 'No signature set';
-      
-      const uidEl = document.getElementById('zzz-player-uid');
-      if (uidEl) uidEl.textContent = player.Uid || data.uid || 'N/A';
-      
-      const avatarEl = document.getElementById('zzz-player-avatar');
-      if (avatarEl) {
-        const avatarUrl = `https://enka.network/ui/zzz/IconInterKnotRole0013.png`;
-        avatarEl.onerror = () => {
-          const initial = (player.Nickname || 'ZZZ').charAt(0);
-          avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(initial)}&size=90&background=e63946&color=ffffff&bold=true`;
-        };
-        avatarEl.src = avatarUrl;
-      }
-      
-      this.displayChallengeStats(playerInfo);
-      this.showPlayerInfo();
-      
-    } catch (error) {
-      console.error('Error displaying ZZZ player data:', error);
-      this.showError(`Failed to display player data: ${error.message}`);
+    const socialDetail = data.PlayerInfo.SocialDetail;
+    const profileDetail = socialDetail.ProfileDetail;
+    
+    // Set avatar - hardcoded to your ZZZ avatar
+    const avatarImg = document.getElementById('zzz-player-avatar');
+    if (avatarImg) {
+      // Use Enka.network CDN with your specific avatar
+      avatarImg.src = 'https://enka.network/ui/zzz/IconInterKnotRole0013.png';
+      avatarImg.onerror = () => {
+        avatarImg.src = 'https://raw.githubusercontent.com/bunsass/busn/main/asset/Sticker_PPG_24_Evernight_03.webp';
+      };
     }
-  }
-
-  displayChallengeStats(playerInfo) {
-    try {
-      const medals = playerInfo.SocialDetail?.MedalList || [];
-      
-      let shiyuStars = 0;
-      let lineBreaker = 0;
-      let disintegration = 0;
-      
-      medals.forEach(medal => {
-        if (medal.MedalType === 1) shiyuStars = medal.MedalScore || medal.Value || 0;
-        else if (medal.MedalType === 3) lineBreaker = medal.MedalScore || medal.Value || 0;
-        else if (medal.MedalType === 7) disintegration = medal.MedalScore || medal.Value || 0;
-      });
-
-      const shiyuEl = document.getElementById('shiyu-defense');
-      if (shiyuEl) shiyuEl.textContent = shiyuStars;
-
-      const lineBreakerEl = document.getElementById('line-breaker');
-      if (lineBreakerEl) lineBreakerEl.textContent = lineBreaker;
-
-      const disintegrationEl = document.getElementById('disintegration');
-      if (disintegrationEl) disintegrationEl.textContent = disintegration;
-      
-    } catch (error) {
-      console.error('Error displaying ZZZ challenge data:', error);
-      const shiyuEl = document.getElementById('shiyu-defense');
-      const lineBreakerEl = document.getElementById('line-breaker');
-      const disintegrationEl = document.getElementById('disintegration');
-      
-      if (shiyuEl) shiyuEl.textContent = '0';
-      if (lineBreakerEl) lineBreakerEl.textContent = '0';
-      if (disintegrationEl) disintegrationEl.textContent = '0';
+    
+    // Set nickname
+    const nicknameEl = document.getElementById('zzz-player-nickname');
+    if (nicknameEl) nicknameEl.textContent = profileDetail.Nickname || 'Proxy';
+    
+    // Set level
+    const levelEl = document.getElementById('zzz-player-level');
+    if (levelEl) levelEl.textContent = profileDetail.Level || 60;
+    
+    // Set signature (from Desc field)
+    const signatureEl = document.getElementById('zzz-player-signature');
+    if (signatureEl) signatureEl.textContent = socialDetail.Desc || 'Welcome to New Eridu!';
+    
+    // Extract medal data for stats
+    const medals = socialDetail.MedalList || [];
+    
+    // Shiyu Defense is MedalType 1
+    const shiyuMedal = medals.find(m => m.MedalType === 1);
+    const shiyuEl = document.getElementById('shiyu-defense');
+    if (shiyuEl) shiyuEl.textContent = shiyuMedal?.Value || 0;
+    
+    // Line Breaker is MedalType 3
+    const lineBreakerMedal = medals.find(m => m.MedalType === 3);
+    const lineBreakerEl = document.getElementById('line-breaker');
+    if (lineBreakerEl) lineBreakerEl.textContent = lineBreakerMedal?.Value || 0;
+    
+    // Disintegration is MedalType 7
+    const disintegrationMedal = medals.find(m => m.MedalType === 7);
+    const disintegrationEl = document.getElementById('disintegration');
+    if (disintegrationEl) disintegrationEl.textContent = disintegrationMedal?.Value || 0;
+    
+    // Set UID
+    const uidEl = document.getElementById('zzz-player-uid');
+    if (uidEl) uidEl.textContent = profileDetail.Uid || data.uid || this.configuredUID;
+    
+    // Setup copy button
+    const copyBtn = document.getElementById('copy-zzz-uid');
+    if (copyBtn) {
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(profileDetail.Uid || data.uid || this.configuredUID);
+        copyBtn.textContent = '✓ Copied!';
+        setTimeout(() => {
+          copyBtn.textContent = '📋 Copy';
+        }, 2000);
+      };
     }
+    
+    this.showPlayerInfo();
   }
 }
 
-// Initialize APIs
-const hsrAPI = new HSREnkaAPI();
-const zzzAPI = new ZZZEnkaAPI();
-
-// ========================================
-// Copy UID functionality
-// ========================================
-function copyUID(uidText, buttonId) {
-  navigator.clipboard.writeText(uidText).then(() => {
-    const btn = document.getElementById(buttonId);
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '✓ Copied!';
-    btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-    
-    setTimeout(() => {
-      btn.innerHTML = originalText;
-      btn.style.background = '';
-    }, 2000);
-  }).catch(err => {
-    console.error('Failed to copy:', err);
-    const btn = document.getElementById(buttonId);
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '✗ Failed';
-    btn.style.background = 'linear-gradient(135deg, #ef4444, #b91c1c)';
-    
-    setTimeout(() => {
-      btn.innerHTML = originalText;
-      btn.style.background = '';
-    }, 2000);
-  });
-}
-
-document.getElementById('copy-hsr-uid').addEventListener('click', function() {
-  const uidText = document.getElementById('player-uid').textContent;
-  copyUID(uidText, 'copy-hsr-uid');
-});
-
-document.getElementById('copy-zzz-uid').addEventListener('click', function() {
-  const uidText = document.getElementById('zzz-player-uid').textContent;
-  copyUID(uidText, 'copy-zzz-uid');
-});
+// Initialize both game APIs
+new HSREnkaAPI();
+new ZZZEnkaAPI();
