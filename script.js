@@ -153,7 +153,10 @@ document.querySelectorAll('.section-fade').forEach(el => {
 // ========================================
 const splashScreen = document.getElementById('splash-screen');
 
-splashScreen.addEventListener('click', () => {
+function handleSplashInteraction(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  
   splashScreen.classList.add('fade-out');
   
   // Load and autoplay first song after user interaction
@@ -172,7 +175,11 @@ splashScreen.addEventListener('click', () => {
   setTimeout(() => {
     splashScreen.remove();
   }, 800);
-});
+}
+
+// Support both touch and click events for iOS
+splashScreen.addEventListener('click', handleSplashInteraction);
+splashScreen.addEventListener('touchend', handleSplashInteraction);
 
 // ========================================
 // Typewriter Effect for Greeting
