@@ -153,8 +153,15 @@ document.querySelectorAll('.section-fade').forEach(el => {
 // ========================================
 const splashScreen = document.getElementById('splash-screen');
 
-splashScreen.addEventListener('click', () => {
+function handleSplashInteraction(e) {
+  e.preventDefault();
   splashScreen.classList.add('fade-out');
+  
+  // Show music player after splash interaction
+  const musicPlayer = document.getElementById('music-player');
+  const songInfo = document.getElementById('song-info');
+  if (musicPlayer) musicPlayer.style.display = 'block';
+  if (songInfo) songInfo.style.display = 'none'; // Keep hidden until playing
   
   // Load and autoplay first song after user interaction
   loadSong(currentSongIndex);
@@ -172,7 +179,10 @@ splashScreen.addEventListener('click', () => {
   setTimeout(() => {
     splashScreen.remove();
   }, 800);
-});
+}
+
+splashScreen.addEventListener('click', handleSplashInteraction);
+splashScreen.addEventListener('touchend', handleSplashInteraction);
 
 // ========================================
 // Typewriter Effect for Greeting
@@ -1021,3 +1031,4 @@ document.getElementById('copy-zzz-uid').addEventListener('click', function() {
   const uidText = document.getElementById('zzz-player-uid').textContent;
   copyUID(uidText, 'copy-zzz-uid');
 });
+
