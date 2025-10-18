@@ -151,15 +151,20 @@ document.querySelectorAll('.section-fade').forEach(el => {
 // ========================================
 // Splash Screen & Autoplay
 // ========================================
-const splashScreen = document.getElementById('splash-screen');
 let splashInteracted = false;
 
 function handleSplashInteraction(e) {
   if (splashInteracted) return; // Prevent multiple triggers
   splashInteracted = true;
   
-  e.preventDefault();
-  e.stopPropagation();
+  // Prevent default behavior
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  
+  const splashScreen = document.getElementById('splash-screen');
+  if (!splashScreen) return;
   
   splashScreen.classList.add('fade-out');
   
@@ -183,9 +188,37 @@ function handleSplashInteraction(e) {
   }, 300);
   
   setTimeout(() => {
-    splashScreen.remove();
+    if (splashScreen && splashScreen.parentNode) {
+      splashScreen.remove();
+    }
   }, 800);
 }
+
+// Initialize splash screen events after DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  const splashScreen = document.getElementById('splash-screen');
+  if (!splashScreen) return;
+  
+  // iOS-friendly event handling
+  const handleTouch = (e) => {
+    handleSplashInteraction(e);
+  };
+  
+  // Add all possible event types for maximum compatibility
+  splashScreen.addEventListener('touchstart', handleTouch, { passive: false });
+  splashScreen.addEventListener('touchend', handleTouch, { passive: false });
+  splashScreen.addEventListener('click', handleTouch);
+  splashScreen.addEventListener('mousedown', handleTouch);
+  
+  // Fallback: listen on the entire document for iOS
+  if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+    document.addEventListener('touchstart', (e) => {
+      if (splashScreen && !splashInteracted && splashScreen.contains(e.target)) {
+        handleSplashInteraction(e);
+      }
+    }, { passive: false, once: true });
+  }
+});
 
 // Add multiple event listeners for better compatibility
 splashScreen.addEventListener('click', handleSplashInteraction);
