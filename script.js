@@ -1,621 +1,237 @@
-// ========================================
-// Mobile Detection
-// ========================================
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>My Profile</title>
+  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/bunsass/busn/refs/heads/main/asset/Sticker_PPG_24_Evernight_02.ico">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <!-- Cursor Trail -->
+  <canvas id="cursor-trail"></canvas>
 
-// ========================================
-// Initialize Media Elements
-// ========================================
-let hasUserInteracted = false;
-let currentAudio = null;
-let isMuted = false;
-
-function initMedia() {
-  console.log("initMedia called");
-  const backgroundMusic = document.getElementById('audio');
-  const backgroundVideo = document.getElementById('background');
-  
-  if (backgroundMusic) {
-    backgroundMusic.volume = 0.5;
-  }
-}
-
-// ========================================
-// Custom Cursor Setup
-// ========================================
-function setupCustomCursor() {
-  const cursor = document.querySelector('.custom-cursor');
-  
-  if (!cursor) return;
-  
-  if (isTouchDevice) {
-    document.body.classList.add('touch-device');
-    cursor.style.display = 'none';
-  } else {
-    document.addEventListener('mousemove', (e) => {
-      cursor.style.left = e.clientX + 'px';
-      cursor.style.top = e.clientY + 'px';
-      cursor.style.display = 'block';
-    });
-
-    document.addEventListener('mousedown', () => {
-      cursor.style.transform = 'scale(0.8) translate(-50%, -50%)';
-    });
-
-    document.addEventListener('mouseup', () => {
-      cursor.style.transform = 'scale(1) translate(-50%, -50%)';
-    });
-  }
-}
-
-// ========================================
-// Loading & Splash Screen Handler
-// ========================================
-function setupLoadingAndSplash() {
-  const loadingScreen = document.getElementById('loading-screen');
-  const splashScreen = document.getElementById('splash-screen');
-  
-  // Show loading screen first, then splash
-  window.addEventListener('load', () => {
-    console.log("Window loaded");
-    
-    setTimeout(() => {
-      if (loadingScreen) {
-        loadingScreen.classList.add('fade-out');
-        setTimeout(() => {
-          loadingScreen.remove();
-        }, 800);
-      }
-      
-      // Show splash screen after loading
-      if (splashScreen) {
-        splashScreen.classList.remove('hidden');
-      }
-    }, 2000);
-  });
-  
-  // Setup splash screen interaction
-  if (splashScreen) {
-    setupSplashScreen(splashScreen);
-  }
-}
-
-// ========================================
-// Splash Screen Handler (iOS Compatible)
-// ========================================
-function setupSplashScreen(splashScreen) {
-  // Single unified interaction handler
-  function handleSplashInteraction(e) {
-    if (hasUserInteracted) return;
-    
-    e.preventDefault();
-    e.stopPropagation();
-    hasUserInteracted = true;
-    
-    console.log("Splash screen clicked");
-    
-    // Hide splash screen
-    splashScreen.style.opacity = '0';
-    splashScreen.style.pointerEvents = 'none';
-    
-    setTimeout(() => {
-      splashScreen.classList.add('hidden');
-      splashScreen.remove();
-    }, 500);
-    
-    // Initialize audio
-    const audio = document.getElementById('audio');
-    if (audio) {
-      audio.volume = 0.5;
-      currentAudio = audio;
-      
-      // Try to play first song
-      const songs = [
-        {
-          title: "Time To love",
-          url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Time%20To%20Love.mp3"
-        }
-      ];
-      
-      audio.src = songs[0].url;
-      
-      const playPromise = audio.play();
-      
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log("Audio started successfully");
-            const albumArt = document.getElementById('album-art');
-            if (albumArt) albumArt.classList.add('playing');
-            
-            const playPauseBtn = document.getElementById('play-pause');
-            if (playPauseBtn) playPauseBtn.textContent = '⏸ Pause';
-            
-            const songInfo = document.getElementById('song-info');
-            if (songInfo) {
-              songInfo.textContent = `♪ ${songs[0].title}`;
-              songInfo.classList.add('show');
-            }
-          })
-          .catch(err => {
-            console.warn("Audio autoplay prevented:", err);
-            // Set up click-anywhere-to-play fallback
-            document.addEventListener('click', function audioFallback() {
-              audio.play().then(() => {
-                console.log("Audio started after user interaction");
-                document.removeEventListener('click', audioFallback);
-                
-                const albumArt = document.getElementById('album-art');
-                if (albumArt) albumArt.classList.add('playing');
-                
-                const playPauseBtn = document.getElementById('play-pause');
-                if (playPauseBtn) playPauseBtn.textContent = '⏸ Pause';
-              });
-            }, { once: true });
-          });
-      }
-    }
-    
-    // Start typewriter effects
-    typeWriterEffect();
-    
-    // Initialize all other features
-    initializeAllFeatures();
-  }
-  
-  // Attach event listeners
-  splashScreen.addEventListener('click', handleSplashInteraction, { once: true });
-  
-  if (isTouchDevice) {
-    splashScreen.addEventListener('touchend', handleSplashInteraction, { once: true, passive: false });
-  }
-}
-
-// ========================================
-// Typewriter Effect for Greeting
-// ========================================
-function typeWriterEffect() {
-  const greetingEl = document.getElementById('greeting');
-  if (!greetingEl) return;
-  
-  const hour = new Date().getHours();
-  
-  const greetings = {
-    morning: ['Good Morning, proxies!', 'Rise and Shine, Wanderer!', 'Good Morning, Trailblazer!'],
-    afternoon: ['Good Afternoon, Traveler!', 'Hello There, Wanderer!', 'Good Afternoon, Trailblazer!', 'Good Afternoon, proxies!'],
-    evening: ['Good Evening, Traveler!', 'Greetings, Night Wanderer!', 'Good Evening, Trailblazer!', 'Good Evening, proxies!'],
-    night: ['Good Night, Stargazer!', 'Welcome, Night Owl!', 'Greetings, Moonlit Wanderer!', 'Good Night, proxies!']
-  };
-  
-  let timeOfDay;
-  if (hour >= 5 && hour < 12) timeOfDay = 'morning';
-  else if (hour >= 12 && hour < 17) timeOfDay = 'afternoon';
-  else if (hour >= 17 && hour < 21) timeOfDay = 'evening';
-  else timeOfDay = 'night';
-  
-  const greetingArray = greetings[timeOfDay];
-  const text = greetingArray[Math.floor(Math.random() * greetingArray.length)];
-  
-  let index = 0;
-  greetingEl.textContent = '';
-  
-  function type() {
-    if (index < text.length) {
-      greetingEl.textContent += text.charAt(index);
-      index++;
-      setTimeout(type, 80);
-    }
-  }
-  
-  type();
-}
-
-// ========================================
-// Initialize All Features After Splash
-// ========================================
-function initializeAllFeatures() {
-  console.log("Initializing all features...");
-  
-  // Initialize particles
-  initializeParticles();
-  
-  // Setup music player
-  setupMusicPlayer();
-  
-  // Fetch Discord status
-  fetchDiscordStatus();
-  
-  // Setup scroll animations
-  setupScrollAnimations();
-  
-  // Initialize game APIs
-  initializeGameAPIs();
-  
-  console.log("All features initialized");
-}
-
-// ========================================
-// Background Particles
-// ========================================
-function initializeParticles() {
-  const particlesContainer = document.getElementById('particles');
-  if (!particlesContainer) return;
-  
-  const particleCount = isMobile ? 5 : 30;
-  
-  for (let i = 0; i < particleCount; i++) {
-    const particle = document.createElement('div');
-    particle.className = 'particle';
-    const size = isMobile ? Math.random() * 3 + 2 : Math.random() * 5 + 2;
-    particle.style.width = size + 'px';
-    particle.style.height = size + 'px';
-    particle.style.left = Math.random() * 100 + '%';
-    particle.style.top = Math.random() * 100 + '%';
-    
-    const colors = [
-      'rgba(139, 92, 246, 0.4)',
-      'rgba(99, 102, 241, 0.3)',
-      'rgba(167, 139, 250, 0.3)',
-      'rgba(196, 181, 253, 0.3)',
-      'rgba(236, 72, 153, 0.3)'
-    ];
-    particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-    particle.style.boxShadow = `0 0 ${size * 2}px ${particle.style.background}`;
-    particle.style.animationDelay = Math.random() * 5 + 's';
-    particle.style.animationDuration = (Math.random() * 5 + 8) + 's';
-    particlesContainer.appendChild(particle);
-  }
-}
-
-// ========================================
-// Music Player Setup
-// ========================================
-function setupMusicPlayer() {
-  const songs = [
-    {
-      title: "Time To love",
-      url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Time%20To%20Love.mp3"
-    },
-    {
-      title: "Had I Not Seen the Sun",
-      url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Had%20I%20Not%20Seen%20the%20Sun.mp3"
-    },
-    {
-      title: "if i can stop one heart from breaking",
-      url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3"
-    }
-  ];
-
-  let currentSongIndex = 0;
-  const audio = document.getElementById('audio');
-  const albumArt = document.getElementById('album-art');
-  const playPauseBtn = document.getElementById('play-pause');
-  const prevBtn = document.getElementById('prev');
-  const nextBtn = document.getElementById('next');
-  const volumeSlider = document.getElementById('volume');
-  const songInfo = document.getElementById('song-info');
-  const musicControls = document.getElementById('music-controls');
-  
-  if (!audio) return;
-  
-  currentAudio = audio;
-  audio.volume = 0.5;
-  
-  function loadSong(index) {
-    const song = songs[index];
-    audio.src = song.url;
-    if (songInfo) songInfo.textContent = `♪ ${song.title}`;
-  }
-  
-  function playSong() {
-    const playPromise = audio.play();
-    
-    if (playPromise !== undefined) {
-      playPromise.then(() => {
-        if (albumArt) albumArt.classList.add('playing');
-        if (playPauseBtn) playPauseBtn.textContent = '⏸ Pause';
-        if (songInfo) songInfo.classList.add('show');
-      }).catch(error => {
-        console.warn('Playback prevented:', error);
-      });
-    }
-  }
-  
-  function pauseSong() {
-    audio.pause();
-    if (albumArt) albumArt.classList.remove('playing');
-    if (playPauseBtn) playPauseBtn.textContent = '▶ Play';
-  }
-  
-  function playNextSong() {
-    currentSongIndex = (currentSongIndex + 1) % songs.length;
-    loadSong(currentSongIndex);
-    playSong();
-  }
-  
-  function playPrevSong() {
-    currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
-    loadSong(currentSongIndex);
-    playSong();
-  }
-  
-  // Event listeners
-  if (audio) {
-    audio.addEventListener('ended', () => {
-      playNextSong();
-    });
-  }
-  
-  let menuOpen = false;
-  
-  if (albumArt) {
-    albumArt.addEventListener('click', (e) => {
-      e.stopPropagation();
-      
-      if (audio.paused) {
-        if (!audio.src) loadSong(currentSongIndex);
-        playSong();
-      } else {
-        pauseSong();
-      }
-      
-      if (isMobile && musicControls) {
-        menuOpen = !menuOpen;
-        if (menuOpen) {
-          musicControls.classList.add('show');
-        } else {
-          musicControls.classList.remove('show');
-        }
-      }
-    });
-  }
-  
-  if (playPauseBtn) {
-    playPauseBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (audio.paused) {
-        if (!audio.src) loadSong(currentSongIndex);
-        playSong();
-      } else {
-        pauseSong();
-      }
-    });
-  }
-  
-  if (prevBtn) {
-    prevBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      playPrevSong();
-    });
-  }
-  
-  if (nextBtn) {
-    nextBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      playNextSong();
-    });
-  }
-  
-  if (volumeSlider) {
-    volumeSlider.addEventListener('input', (e) => {
-      e.stopPropagation();
-      audio.volume = volumeSlider.value;
-    });
-  }
-  
-  const closeButton = document.getElementById('close-controls');
-  if (closeButton && musicControls) {
-    closeButton.addEventListener('click', (e) => {
-      e.stopPropagation();
-      menuOpen = false;
-      musicControls.classList.remove('show');
-    });
-  }
-  
-  // Desktop hover behavior
-  if (!isMobile && albumArt && musicControls) {
-    albumArt.addEventListener('mouseenter', () => {
-      setTimeout(() => {
-        musicControls.classList.add('show');
-      }, 300);
-    });
-
-    albumArt.addEventListener('mouseleave', () => {
-      setTimeout(() => {
-        if (!musicControls.matches(':hover')) {
-          musicControls.classList.remove('show');
-        }
-      }, 300);
-    });
-
-    musicControls.addEventListener('mouseleave', () => {
-      musicControls.classList.remove('show');
-    });
-  }
-}
-
-// ========================================
-// Scroll Animations
-// ========================================
-function setupScrollAnimations() {
-  const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -100px 0px'
-  };
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-      }
-    });
-  }, observerOptions);
-
-  document.querySelectorAll('.section-fade').forEach(el => {
-    observer.observe(el);
-  });
-}
-
-// ========================================
-// Discord Status (Lanyard API)
-// ========================================
-const DISCORD_ID = '1003100550700748871';
-
-async function fetchDiscordStatus() {
-  const statusContainer = document.getElementById('discord-status');
-  if (!statusContainer) return;
-  
-  try {
-    const response = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    if (data.success && data.data) {
-      displayDiscordStatus(data.data);
-    } else {
-      throw new Error('Invalid response format');
-    }
-  } catch (error) {
-    console.warn('Discord status unavailable:', error.message);
-    statusContainer.innerHTML = `
-      <p style="color: rgba(255, 255, 255, 0.7); text-align: center; padding: 20px;">
-        Discord status currently unavailable
-      </p>
-    `;
-  }
-}
-
-function displayDiscordStatus(data) {
-  const statusContainer = document.getElementById('discord-status');
-  if (!statusContainer) return;
-  
-  const status = data.discord_status;
-  const user = data.discord_user;
-  const activities = data.activities || [];
-  
-  const statusConfig = {
-    online: { text: 'Online', color: '#43b581' },
-    idle: { text: 'Idle', color: '#faa61a' },
-    dnd: { text: 'Do Not Disturb', color: '#f04747' },
-    offline: { text: 'Offline', color: '#747f8d' }
-  };
-  
-  const currentStatus = statusConfig[status] || statusConfig.offline;
-  
-  const activity = activities.find(a => a.type !== 4);
-  
-  let activityHTML = '';
-  if (activity) {
-    const activityTypes = {
-      0: 'Playing',
-      1: 'Streaming', 
-      2: 'Listening to',
-      3: 'Watching',
-      5: 'Competing in'
-    };
-    
-    const activityTitle = activityTypes[activity.type] || 'Activity';
-    const activityName = activity.name;
-    const details = activity.details || '';
-    const state = activity.state || '';
-    
-    activityHTML = `
-      <div class="discord-activity">
-        <div class="discord-activity-title">${activityTitle}</div>
-        <div class="discord-activity-name">${activityName}</div>
-        ${details ? `<div class="discord-activity-details">${details}</div>` : ''}
-        ${state ? `<div class="discord-activity-details">${state}</div>` : ''}
-      </div>
-    `;
-  }
-  
-  const avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
-  
-  statusContainer.innerHTML = `
-    <div class="discord-info">
-      <div class="discord-avatar-container">
-        <img src="${avatarUrl}" alt="${user.username}" class="discord-avatar-img">
-        <div class="status-indicator ${status}" style="background: ${currentStatus.color};"></div>
-      </div>
-      <div class="discord-details">
-        <h3 class="discord-username">${user.global_name || user.username}</h3>
-        <div class="discord-status-badge" style="border-color: ${currentStatus.color};">
-          <span class="status-dot" style="background: ${currentStatus.color};"></span>
-          ${currentStatus.text}
-        </div>
-        ${activityHTML}
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div class="loading-content">
+      <div class="loading-spinner-main"></div>
+      <p class="loading-text">Loading Experience...</p>
+      <div class="loading-bar">
+        <div class="loading-progress"></div>
       </div>
     </div>
-  `;
-}
+  </div>
 
-// ========================================
-// Game APIs (Placeholder - add your existing code)
-// ========================================
-function initializeGameAPIs() {
-  // Add your HSR and ZZZ API code here
-  console.log("Game APIs initialized");
-}
+  <!-- Splash Screen -->
+  <div id="splash-screen">
+    <div class="splash-content">
+      <p class="splash-text">Click to continue</p>
+    </div>
+  </div>
 
-// ========================================
-// Copy UID functionality
-// ========================================
-function copyUID(uidText, buttonId) {
-  navigator.clipboard.writeText(uidText).then(() => {
-    const btn = document.getElementById(buttonId);
-    if (!btn) return;
+  <!-- Animated Background -->
+  <div id="particles"></div>
+
+  <div class="container page-transition">
+    <h1 id="greeting" class="parallax-slow"></h1>
     
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '✓ Copied!';
-    btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-    
-    setTimeout(() => {
-      btn.innerHTML = originalText;
-      btn.style.background = '';
-    }, 2000);
-  }).catch(err => {
-    console.error('Failed to copy:', err);
-  });
-}
+    <div style="text-align: center;">
+      <div class="glitch-text parallax-medium">バンサス</div>
+    </div>
 
-const copyHsrBtn = document.getElementById('copy-hsr-uid');
-if (copyHsrBtn) {
-  copyHsrBtn.addEventListener('click', function() {
-    const uidText = document.getElementById('player-uid')?.textContent;
-    if (uidText) copyUID(uidText, 'copy-hsr-uid');
-  });
-}
+    <!-- About Me -->
+    <div class="card section-fade parallax-fast">
+      <h2>About Me</h2>
+      <p><strong>Name:</strong> Bui Minh Triet / buns</p>
+      <p><strong>Location:</strong> Da lat, Vietnam</p>
+      <p><strong>Birthday:</strong> 05/07/2011</p>
+    </div>
 
-const copyZzzBtn = document.getElementById('copy-zzz-uid');
-if (copyZzzBtn) {
-  copyZzzBtn.addEventListener('click', function() {
-    const uidText = document.getElementById('zzz-player-uid')?.textContent;
-    if (uidText) copyUID(uidText, 'copy-zzz-uid');
-  });
-}
+    <!-- Discord Status Card -->
+    <div class="card section-fade parallax-fast" id="discord-status-card">
+      <h2>💬 Discord Status</h2>
+      <div id="discord-status">
+        <div class="discord-loading">
+          <div class="loading-spinner"></div>
+          <p>Loading Discord status...</p>
+        </div>
+      </div>
+    </div>
 
-// ========================================
-// Initialize on DOM Ready
-// ========================================
-document.addEventListener('DOMContentLoaded', () => {
-  console.log("DOM Content Loaded - Setting up...");
-  
-  // Initialize media
-  initMedia();
-  
-  // Setup custom cursor
-  setupCustomCursor();
-  
-  // Setup loading and splash screens
-  setupLoadingAndSplash();
-});
+    <!-- Contact -->
+    <div class="card section-fade parallax-fast">
+      <h2>Contact Me</h2>
+      <ul class="contact-list">
+        <li><strong>Email:</strong> <a href="mailto:buminhtriet57@gmail.com" class="social-link">click here to email me❤️</a></li>
+        <li><strong>GitHub:</strong> <a href="https://github.com/bunsass" target="_blank" rel="noopener noreferrer" class="social-link">bunsass</a></li>
+        <li><strong>Discord:</strong> <a href='https://discord.com/users/1003100550700748871' target="_blank" rel="noopener noreferrer" class="social-link">click here or : bunshevid_oguri</a></li>
+        <li><strong>Facebook:</strong> <a href="https://www.facebook.com/bunsass/" target="_blank" rel="noopener noreferrer" class="social-link">bunsass</a></li>
+      </ul>
+    </div>
 
-// Additional load event
-window.addEventListener('load', () => {
-  console.log("Window load event fired");
-});
+    <!-- Biography -->
+    <div class="card section-fade parallax-fast">
+      <h2>My Bio(*^▽^*)┛</h2>
+      <p>Hello! I'm passionate about learning new stuffs, coding, and creating amazing experiences. I love learning new things and working on projects that make a difference. In my free time, I enjoy listening to music, playing games, and exploring new ideas. Let's connect and create something awesome together!</p>
+    </div>
+
+     <!-- Honkai Star Rail Section -->
+    <section class="card game-section hsr-section section-fade parallax-fast">
+      <h2>⭐ Honkai Star Rail Profile</h2>
+      
+      <div id="loading-indicator" class="hidden">
+        <div class="loading-spinner"></div>
+        <p>Loading player info...</p>
+      </div>
+      
+      <div id="error-message" class="hidden error-box">
+        <p id="error-text"></p>
+      </div>
+      
+      <div id="hsr-player-info" class="hidden">
+        <div class="player-basic-info">
+          <div class="player-layout-container">
+            <div class="player-left">
+              <img id="player-avatar" src="" alt="Player Avatar" class="player-avatar">
+              <div class="player-main-info">
+                <h3 id="player-nickname"></h3>
+                <div class="player-level-info">
+                  <span class="level-text">TL <span id="player-level"></span></span>
+                  <span class="eq-text">EQ <span id="world-level"></span></span>
+                </div>
+                <p class="player-signature" id="player-signature"></p>
+              </div>
+            </div>
+            
+            <div class="player-right">
+              <div class="achievement-info">
+                <span class="achievement-number" id="achievement-count"></span>
+                <div class="achievement-icon">🏆</div>
+                <span class="achievement-text">Achievements</span>
+              </div>
+              <div class="achievement-info">
+                <span class="achievement-number" id="su-stars"></span>
+                <div class="achievement-icon">⭐</div>
+                <span class="achievement-text">Simulated Universe</span>
+              </div>
+              <div class="achievement-info">
+                <span class="achievement-number" id="hsr-exploration"></span>
+                <div class="achievement-icon">🗺️</div>
+                <span class="achievement-text">Exploration</span>
+              </div>
+              <div class="uid-info">
+                <span class="uid-text">UID: <span id="player-uid"></span></span>
+                <button class="copy-uid-btn" id="copy-hsr-uid" aria-label="Copy HSR UID">📋 Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Zenless Zone Zero Section -->
+    <section class="card game-section zzz-section section-fade parallax-fast">
+      <h2>⚡ Zenless Zone Zero Profile</h2>
+      
+      <div id="zzz-loading-indicator" class="hidden">
+        <div class="loading-spinner"></div>
+        <p>Loading player info...</p>
+      </div>
+      
+      <div id="zzz-error-message" class="hidden error-box">
+        <p id="zzz-error-text"></p>
+      </div>
+      
+      <div id="zzz-player-info" class="hidden">
+        <div class="player-basic-info">
+          <div class="player-layout-container">
+            <div class="player-left">
+              <img id="zzz-player-avatar" src="" alt="Player Avatar" class="player-avatar">
+              <div class="player-main-info">
+                <h3 id="zzz-player-nickname"></h3>
+                <div class="player-level-info">
+                  <span class="level-text">Level <span id="zzz-player-level"></span></span>
+                </div>
+                <p class="player-signature" id="zzz-player-signature"></p>
+              </div>
+            </div>
+            
+            <div class="player-right">
+              <div class="achievement-info">
+                <span class="achievement-number" id="shiyu-defense"></span>
+                <div class="achievement-icon">🛡️</div>
+                <span class="achievement-text">Shiyu Defense</span>
+              </div>
+              <div class="achievement-info">
+                <span class="achievement-number" id="line-breaker"></span>
+                <div class="achievement-icon">⚔️</div>
+                <span class="achievement-text">Line Breaker</span>
+              </div>
+              <div class="achievement-info">
+                <span class="achievement-number" id="disintegration"></span>
+                <div class="achievement-icon">💥</div>
+                <span class="achievement-text">Disintegration</span>
+              </div>
+              <div class="uid-info">
+                <span class="uid-text">UID: <span id="zzz-player-uid"></span></span>
+                <button class="copy-uid-btn" id="copy-zzz-uid" aria-label="Copy ZZZ UID">📋 Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Spotify Profile -->
+    <div class="card section-fade parallax-fast">
+      <h2>🎧 Featured Playlists</h2>
+      <p>Check out my playlists:3 </p>
+      <div class="spotify-embed">
+        <iframe style="border-radius:12px" 
+                src="https://open.spotify.com/embed/playlist/7iG4O8ZnFchAoh81RXIwVH?utm_source=generator" 
+                width="100%" 
+                height="380" 
+                frameBorder="0" 
+                allowfullscreen="" 
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                loading="lazy"
+                title="Spotify Featured Playlist">
+        </iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Music Player -->
+  <div id="music-player">
+    <canvas id="visualizer"></canvas>
+    <div id="album-art-container">
+      <img id="album-art" src="https://cdn.discordapp.com/attachments/1416355899232223235/1428594030283067402/2229438d735a893d8f80cd69f4319678.png?ex=68f3115e&is=68f1bfde&hm=057e81965a0105dfcccc3332ed6256590129ffc2b7a1cf8387bed3f98d01c539&" alt="Album Art">
+    </div>
+  </div>
+
+  <div id="song-info"></div>
+
+  <div id="music-controls">
+    <div class="volume-control">
+      <label for="volume">🔊</label>
+      <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5" aria-label="Volume control">
+    </div>
+    <button class="control-btn" id="prev" aria-label="Previous song">⏮️ Previous</button>
+    <button class="control-btn" id="play-pause" aria-label="Play or pause">▶️ Play</button>
+    <button class="control-btn" id="next" aria-label="Next song">⏭️ Next</button>
+    <button class="control-btn close-btn" id="close-controls" aria-label="Close controls">✖ Close</button>
+  </div>
+
+  <audio id="audio" crossorigin="anonymous"></audio>
+
+  <img class="decorative-image image1 parallax-slow" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_3.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
+  <img class="decorative-image image2 parallax-slow" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_2.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
+  <img class="decorative-image image3 parallax-slow" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_6.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
+  <img class="decorative-image image4 parallax-slow" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_5.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
+  <img class="image5" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Sticker_PPG_24_Evernight_03.webp" alt="Central decorative character" loading="lazy" onerror="this.style.display='none'">
+</body>
+</html>
