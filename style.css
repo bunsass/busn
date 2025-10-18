@@ -249,7 +249,7 @@ h1 {
   100% { color: #ff0080; text-shadow: 2px 2px #00ffff; }
 }
 
-/* Content Cards - iOS FIX */
+/* Content Cards - iOS FIX (guns.lol approach) */
 .container {
   max-width: 900px;
   margin: 0 auto;
@@ -258,7 +258,7 @@ h1 {
   z-index: 1;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.8s ease-in, visibility 0s 0.8s;
+  transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
 }
 
 .container.visible {
