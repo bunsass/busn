@@ -1,30 +1,4 @@
-/* ========================================
-   CRITICAL: Force Dark Theme Across All Devices
-   ======================================== */
-:root {
-  color-scheme: dark;
-  -webkit-color-scheme: dark;
-}
-
-/* Force dark background - iOS Safari fix */
-body, html {
-  background-color: #0a0a0f !important;
-  -webkit-text-size-adjust: 100%;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.container {
-  opacity: 0;
-  transition: opacity 0.8s ease-in;
-}
-
-.container.visible {
-  opacity: 1;
-}
-
-/* ========================================
-   Loading Screen
-   ======================================== */
+/* Loading Screen */
 #loading-screen {
   position: fixed;
   top: 0;
@@ -90,9 +64,7 @@ body, html {
   100% { width: 100%; }
 }
 
-/* ========================================
-   Cursor Trail Canvas
-   ======================================== */
+/* Cursor Trail Canvas */
 #cursor-trail {
   position: fixed;
   top: 0;
@@ -103,9 +75,7 @@ body, html {
   z-index: 9998;
 }
 
-/* ========================================
-   Splash Screen
-   ======================================== */
+/* Splash Screen */
 #splash-screen {
   position: fixed;
   top: 0;
@@ -113,27 +83,21 @@ body, html {
   width: 100%;
   height: 100%;
   background: #000000;
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: center;
   z-index: 9999;
   opacity: 1;
   transition: opacity 0.8s ease;
   cursor: pointer;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
+}
+
+#splash-screen:not(.hidden) {
+  display: flex;
 }
 
 #splash-screen.fade-out {
   opacity: 0;
-  pointer-events: none;
-}
-
-.splash-content {
-  text-align: center;
-  animation: fadeInSplash 1s ease-out;
   pointer-events: none;
 }
 
@@ -165,9 +129,7 @@ body, html {
   }
 }
 
-/* ========================================
-   Page Transitions
-   ======================================== */
+/* Page Transitions */
 .page-transition {
   animation: pageEnter 0.6s ease-out;
 }
@@ -194,9 +156,7 @@ body, html {
   transform: translateY(0);
 }
 
-/* ========================================
-   Reset & Base Styling
-   ======================================== */
+/* Reset & Base Styling */
 * {
   margin: 0;
   padding: 0;
@@ -209,8 +169,8 @@ html {
 
 body {
   font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #0a0a0f 0%, #1a1425 25%, #2d1b3d 50%, #3d2554 75%, #4a2d63 100%) !important;
-  background-attachment: fixed !important;
+  background: linear-gradient(135deg, #0a0a0f 0%, #1a1425 25%, #2d1b3d 50%, #3d2554 75%, #4a2d63 100%);
+  background-attachment: fixed;
   color: #333;
   overflow-x: hidden;
   min-height: 100vh;
@@ -219,9 +179,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ========================================
-   Animated Background Particles
-   ======================================== */
+/* Animated Background Particles */
 #particles {
   position: fixed;
   top: 0;
@@ -252,9 +210,7 @@ body {
   }
 }
 
-/* ========================================
-   Header
-   ======================================== */
+/* Header */
 h1 {
   text-align: center;
   font-size: 4rem;
@@ -273,9 +229,7 @@ h1 {
   50% { filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.9)); }
 }
 
-/* ========================================
-   Glitch Text Effect
-   ======================================== */
+/* Glitch Text Effect */
 .glitch-text {
   text-align: center;
   font-size: 2.5rem;
@@ -295,15 +249,15 @@ h1 {
   100% { color: #ff0080; text-shadow: 2px 2px #00ffff; }
 }
 
-/* ========================================
-   Content Cards
-   ======================================== */
+/* Content Cards */
 .container {
   max-width: 900px;
   margin: 0 auto;
   padding: 20px;
   position: relative;
   z-index: 1;
+  opacity: 0;
+  transition: opacity 0.8s ease-in;
 }
 
 .card {
@@ -361,9 +315,7 @@ h1 {
   font-size: 1.05rem;
 }
 
-/* ========================================
-   Discord Status
-   ======================================== */
+/* Discord Status */
 #discord-status {
   min-height: 80px;
 }
@@ -500,9 +452,7 @@ h1 {
   line-height: 1.4;
 }
 
-/* ========================================
-   Contact List
-   ======================================== */
+/* Contact List */
 .contact-list {
   list-style: none;
 }
@@ -534,9 +484,7 @@ h1 {
   border-bottom-color: #ffeb3b;
 }
 
-/* ========================================
-   Social Links Animation
-   ======================================== */
+/* Social Links Animation */
 .social-link {
   display: inline-block;
   position: relative;
@@ -562,9 +510,7 @@ h1 {
   }
 }
 
-/* ========================================
-   Music Player
-   ======================================== */
+/* Music Player */
 #music-player {
   position: fixed;
   bottom: 30px;
@@ -572,6 +518,7 @@ h1 {
   z-index: 1000;
 }
 
+/* Visualizer */
 #visualizer {
   position: absolute;
   bottom: -10px;
@@ -588,14 +535,40 @@ h1 {
   opacity: 1;
 }
 
+#album-art-container {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  position: relative;
+}
+
+#album-art-container:hover {
+  transform: scale(1.1);
+}
+
+#album-art {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.6);
+  object-fit: cover;
+  display: block;
+}
+
+#album-art.playing {
+  animation: spin 4s linear infinite;
+  will-change: transform;
+}
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-/* ========================================
-   Music Controls
-   ======================================== */
+/* Music Controls */
 #music-controls {
   position: fixed;
   bottom: 120px;
@@ -696,61 +669,19 @@ h1 {
   to { opacity: 1; transform: translateX(0); }
 }
 
-/* ========================================
-   Album Art
-   ======================================== */
-#album-art-container {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-  position: relative;
-  -webkit-transform: translateZ(0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-#album-art-container:hover {
-  transform: scale(1.1);
-}
-
-#album-art {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  border: 4px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.6);
-  object-fit: cover;
-  display: block;
-  visibility: visible !important;
-  opacity: 1 !important;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-  image-rendering: -webkit-optimize-contrast;
-}
-
-#album-art.playing {
-  animation: spin 4s linear infinite;
-  will-change: transform;
-}
-
-/* ========================================
-   Spotify Section
-   ======================================== */
+/* Spotify Section */
 .spotify-embed {
   margin: 20px 0;
   border-radius: 15px;
   overflow: hidden;
 }
 
-/* ========================================
-   Game Section Shared Styles
-   ======================================== */
+/* Game Section Shared Styles */
 .game-section {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+/* HSR Section Styling */
 .hsr-section {
   background: rgba(99, 102, 241, 0.12);
   border-color: rgba(139, 92, 246, 0.3);
@@ -766,6 +697,7 @@ h1 {
   box-shadow: 0 12px 40px rgba(99, 102, 241, 0.3);
 }
 
+/* ZZZ Section Styling */
 .zzz-section {
   background: rgba(236, 72, 153, 0.12);
   border-color: rgba(236, 72, 153, 0.3);
@@ -781,9 +713,7 @@ h1 {
   box-shadow: 0 12px 40px rgba(236, 72, 153, 0.3);
 }
 
-/* ========================================
-   Loading Indicator
-   ======================================== */
+/* Loading Indicator */
 #loading-indicator, #zzz-loading-indicator {
   text-align: center;
   margin: 20px 0;
@@ -805,9 +735,7 @@ h1 {
   100% { transform: rotate(360deg); }
 }
 
-/* ========================================
-   Error Message
-   ======================================== */
+/* Error Message */
 .error-box {
   background: rgba(255, 107, 129, 0.15);
   border: 1px solid rgba(255, 107, 129, 0.3);
@@ -817,9 +745,7 @@ h1 {
   color: #ffb3c1;
 }
 
-/* ========================================
-   Player Info
-   ======================================== */
+/* Player Info */
 .player-basic-info {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 12px;
@@ -979,23 +905,17 @@ h1 {
   transform: translateY(0);
 }
 
-/* ========================================
-   Hidden State
-   ======================================== */
+/* Hidden state */
 .hidden {
   display: none !important;
 }
 
-/* ========================================
-   Decorative Images - FIXED FOR iOS
-   ======================================== */
+/* Decorative Images */
 .decorative-image {
   position: fixed;
   z-index: -1;
   opacity: 0.4;
   pointer-events: none;
-  display: block !important;
-  visibility: visible !important;
 }
 
 .image1 {
@@ -1034,13 +954,9 @@ h1 {
   opacity: 0.2;
   pointer-events: none;
   margin: 0;
-  display: block !important;
-  visibility: visible !important;
 }
 
-/* ========================================
-   Mobile Optimizations
-   ======================================== */
+/* Mobile Optimizations */
 @media (max-width: 1400px) {
   .image1, .image2, .image3, .image4 {
     width: 350px;
@@ -1062,7 +978,7 @@ h1 {
 
 @media (max-width: 768px) {
   body {
-    background-attachment: scroll !important;
+    background-attachment: scroll;
   }
 
   #cursor-trail {
@@ -1236,4 +1152,38 @@ h1 {
     max-width: 70vw;
     opacity: 0.1;
   }
+}
+/* Prevent flash of content before splash screen */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000000;
+  z-index: 9998;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.8s ease;
+}
+
+body.splash-ready::before {
+  opacity: 0;
+}
+
+/* Hide decorative images initially */
+.decorative-image,
+.image5 {
+  opacity: 0 !important;
+  transition: opacity 1s ease;
+}
+
+body.content-visible .decorative-image,
+body.content-visible .image5 {
+  opacity: 0.4 !important;
+}
+
+body.content-visible .image5 {
+  opacity: 0.2 !important;
 }
