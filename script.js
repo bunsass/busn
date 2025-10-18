@@ -1,171 +1,70 @@
 // ========================================
-// Mobile Detection
+// Utility Functions
+// ========================================
+const debounce = (func, wait) => {
+  let timeout;
+  return function executedFunction(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+};
+
+// ========================================
+// Mobile Detection & Performance
 // ========================================
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
 const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const particleCount = isMobile ? 5 : 30;
 
 // ========================================
-// Initialize Media Elements
+// Global State
 // ========================================
 let hasUserInteracted = false;
-let currentAudio = null;
-let isMuted = false;
-
-function initMedia() {
-  console.log("initMedia called");
-  const audio = document.getElementById('audio');
-  
-  if (audio) {
-    audio.volume = 0.5;
-  }
-}
-
-// ========================================
-// Custom Cursor Setup
-// ========================================
-function setupCustomCursor() {
-  const cursor = document.querySelector('.custom-cursor');
-  
-  if (!cursor) return;
-  
-  if (isTouchDevice) {
-    document.body.classList.add('touch-device');
-    cursor.style.display = 'none';
-  } else {
-    document.addEventListener('mousemove', (e) => {
-      cursor.style.left = e.clientX + 'px';
-      cursor.style.top = e.clientY + 'px';
-      cursor.style.display = 'block';
-    });
-
-    document.addEventListener('mousedown', () => {
-      cursor.style.transform = 'scale(0.8) translate(-50%, -50%)';
-    });
-
-    document.addEventListener('mouseup', () => {
-      cursor.style.transform = 'scale(1) translate(-50%, -50%)';
-    });
-  }
-}
-
-// ========================================
-// Fix Decorative Images - Enhanced Version
-// ========================================
-function fixDecorativeImages() {
-  const images = document.querySelectorAll('.decorative-image, .image5');
-  
-  images.forEach((img, index) => {
-    // Force image visibility
-    img.style.display = 'block';
-    img.style.visibility = 'visible';
-    
-    // Set opacity based on class
-    if (img.classList.contains('image5')) {
-      img.style.opacity = '0.2';
-    } else {
-      img.style.opacity = '0.4';
-    }
-    
-    // Log image load status
-    img.onload = function() {
-      console.log(`✅ Image ${index + 1} loaded successfully:`, this.src);
-      this.style.display = 'block';
-      this.style.visibility = 'visible';
-    };
-    
-    // Handle load error - try multiple CDN options
-    img.onerror = function() {
-      console.warn(`⚠️ Image ${index + 1} failed to load from:`, this.src);
-      
-      // Get the filename from the URL
-      const urlParts = this.src.split('/');
-      const filename = urlParts[urlParts.length - 1];
-      
-      // Try alternative CDN sources
-      const fallbackSources = [
-        `https://cdn.jsdelivr.net/gh/bunsass/busn@main/asset/${filename}`,
-        `https://raw.githubusercontent.com/bunsass/busn/main/asset/${filename}`,
-        `https://github.com/bunsass/busn/raw/main/asset/${filename}`
-      ];
-      
-      // Try next source if current one fails
-      let currentIndex = fallbackSources.findIndex(src => this.src.includes('jsdelivr') ? src.includes('jsdelivr') : src.includes('raw.githubusercontent'));
-      
-      if (currentIndex < fallbackSources.length - 1) {
-        console.log(`Trying fallback source ${currentIndex + 1}...`);
-        this.src = fallbackSources[currentIndex + 1];
-      } else {
-        console.log(`All sources failed for ${filename}, keeping element visible`);
-        // Keep the element visible even if image doesn't load
-        this.style.display = 'block';
-        this.style.visibility = 'visible';
-        this.style.background = 'rgba(139, 92, 246, 0.1)';
-      }
-    };
-    
-    // Force reload on iOS
-    if (isIOS && img.complete && img.naturalHeight === 0) {
-      const src = img.src;
-      img.src = '';
-      setTimeout(() => {
-        img.src = src;
-      }, 50);
-    }
-  });
-  
-  // Additional check after 2 seconds
-  setTimeout(() => {
-    images.forEach((img, index) => {
-      if (!img.complete || img.naturalHeight === 0) {
-        console.warn(`Image ${index + 1} still not loaded after 2s, forcing visibility`);
-        img.style.display = 'block';
-        img.style.visibility = 'visible';
-      }
-    });
-  }, 2000);
-}
 
 // ========================================
 // Loading & Splash Screen Handler
 // ========================================
-function setupLoadingAndSplash() {
+window.addEventListener('load', () => {
   const loadingScreen = document.getElementById('loading-screen');
   const splashScreen = document.getElementById('splash-screen');
-  const container = document.querySelector('.container');
   
-  // Show loading screen first, then splash
-  window.addEventListener('load', () => {
-    console.log("Window loaded");
+  console.log("Window loaded");
+  console.log("Loading screen:", loadingScreen);
+  console.log("Splash screen:", splashScreen);
+  
+  // Minimum loading time
+  setTimeout(() => {
+    if (loadingScreen) {
+      loadingScreen.classList.add('fade-out');
+      setTimeout(() => {
+        loadingScreen.style.display = 'none';
+      }, 800);
+    }
     
-    // Fix decorative images after load
-    fixDecorativeImages();
-    
-    setTimeout(() => {
-      if (loadingScreen) {
-        loadingScreen.classList.add('fade-out');
-        setTimeout(() => {
-          loadingScreen.remove();
-        }, 800);
-      }
-      
-      // Show splash screen after loading
-      if (splashScreen) {
+    // Show splash screen after loading screen fades
+    if (splashScreen) {
+      setTimeout(() => {
         splashScreen.classList.remove('hidden');
-      }
-    }, 2000);
-  });
-  
-  // Setup splash screen interaction
-  if (splashScreen) {
-    setupSplashScreen(splashScreen, container);
-  }
-}
+        splashScreen.style.display = 'flex';
+        console.log("Splash screen should now be visible");
+      }, 500);
+    }
+  }, 1500);
+});
 
 // ========================================
 // Splash Screen Handler (iOS Compatible)
 // ========================================
-function setupSplashScreen(splashScreen, container) {
+function setupSplashScreen() {
+  const splashScreen = document.getElementById('splash-screen');
+  const container = document.querySelector('.container');
+  
+  if (!splashScreen) return;
+  
+  // Mark splash as ready
+  document.body.classList.add('splash-ready');
+  
   // Single unified interaction handler
   function handleSplashInteraction(e) {
     if (hasUserInteracted) return;
@@ -175,6 +74,9 @@ function setupSplashScreen(splashScreen, container) {
     hasUserInteracted = true;
     
     console.log("Splash screen clicked");
+    
+    // Mark content as visible for decorative images
+    document.body.classList.add('content-visible');
     
     // SMOOTH fade transition - no white flash
     splashScreen.style.transition = 'opacity 0.8s ease-out';
@@ -192,21 +94,18 @@ function setupSplashScreen(splashScreen, container) {
       splashScreen.remove();
     }, 800);
     
-    // Initialize audio
+    // Show music player after splash interaction
+    const musicPlayer = document.getElementById('music-player');
+    const songInfo = document.getElementById('song-info');
+    if (musicPlayer) musicPlayer.style.display = 'block';
+    if (songInfo) songInfo.style.display = 'none';
+    
+    // Initialize audio and try to play
     const audio = document.getElementById('audio');
     if (audio) {
       audio.volume = 0.5;
-      currentAudio = audio;
       
-      // Try to play first song
-      const songs = [
-        {
-          title: "Time To love",
-          url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Time%20To%20Love.mp3"
-        }
-      ];
-      
-      audio.src = songs[0].url;
+      loadSong(currentSongIndex);
       
       const playPromise = audio.play();
       
@@ -225,6 +124,16 @@ function setupSplashScreen(splashScreen, container) {
               songInfo.textContent = `♪ ${songs[0].title}`;
               songInfo.classList.add('show');
             }
+            
+            // Setup visualizer
+            if (!audioContext) {
+              setupAudioContext();
+            }
+            if (audioContext) {
+              visualizerCanvas.classList.add('active');
+              isVisualizerActive = true;
+              drawVisualizer();
+            }
           })
           .catch(err => {
             console.warn("Audio autoplay prevented:", err);
@@ -239,26 +148,146 @@ function setupSplashScreen(splashScreen, container) {
                 
                 const playPauseBtn = document.getElementById('play-pause');
                 if (playPauseBtn) playPauseBtn.textContent = '⏸ Pause';
+                
+                if (!audioContext) {
+                  setupAudioContext();
+                }
+                if (audioContext) {
+                  visualizerCanvas.classList.add('active');
+                  isVisualizerActive = true;
+                  drawVisualizer();
+                }
               });
             }, { once: true });
           });
       }
     }
     
-    // Start typewriter effects
-    typeWriterEffect();
-    
-    // Initialize all other features
-    initializeAllFeatures();
+    // Start typewriter effect
+    setTimeout(() => {
+      typeWriterEffect();
+    }, 300);
   }
   
-  // Attach event listeners
+  // Attach event listeners for both click and touch
   splashScreen.addEventListener('click', handleSplashInteraction, { once: true });
-  
-  if (isTouchDevice) {
-    splashScreen.addEventListener('touchend', handleSplashInteraction, { once: true, passive: false });
-  }
+  splashScreen.addEventListener('touchstart', handleSplashInteraction, { once: true, passive: false });
 }
+
+// Initialize splash screen when DOM is ready
+document.addEventListener('DOMContentLoaded', setupSplashScreen);
+
+if (!isMobile) {
+  const canvas = document.getElementById('cursor-trail');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = [];
+  const maxParticles = 50;
+
+  class TrailParticle {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.size = Math.random() * 3 + 1;
+      this.speedX = Math.random() * 2 - 1;
+      this.speedY = Math.random() * 2 - 1;
+      this.life = 1;
+      this.decay = Math.random() * 0.02 + 0.01;
+      this.color = `hsl(${Math.random() * 60 + 260}, 70%, 60%)`;
+    }
+
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+      this.life -= this.decay;
+      this.size *= 0.98;
+    }
+
+    draw() {
+      ctx.fillStyle = this.color;
+      ctx.globalAlpha = this.life;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  document.addEventListener('mousemove', (e) => {
+    for (let i = 0; i < 2; i++) {
+      particles.push(new TrailParticle(e.clientX, e.clientY));
+    }
+    if (particles.length > maxParticles) {
+      particles.splice(0, 2);
+    }
+  });
+
+  function animateTrail() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    for (let i = particles.length - 1; i >= 0; i--) {
+      particles[i].update();
+      particles[i].draw();
+      
+      if (particles[i].life <= 0 || particles[i].size <= 0.5) {
+        particles.splice(i, 1);
+      }
+    }
+    
+    requestAnimationFrame(animateTrail);
+  }
+
+  animateTrail();
+
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+}
+
+// ========================================
+// Parallax Scrolling
+// ========================================
+window.addEventListener('scroll', () => {
+  const scrolled = window.pageYOffset;
+  
+  const slowElements = document.querySelectorAll('.parallax-slow');
+  const mediumElements = document.querySelectorAll('.parallax-medium');
+  const fastElements = document.querySelectorAll('.parallax-fast');
+  
+  slowElements.forEach(el => {
+    el.style.transform = `translateY(${scrolled * 0.1}px)`;
+  });
+  
+  mediumElements.forEach(el => {
+    el.style.transform = `translateY(${scrolled * 0.3}px)`;
+  });
+  
+  fastElements.forEach(el => {
+    el.style.transform = `translateY(${scrolled * -0.05}px)`;
+  });
+});
+
+// ========================================
+// Smooth Section Transitions
+// ========================================
+const observerOptions = {
+  threshold: 0.1,
+  rootMargin: '0px 0px -100px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, observerOptions);
+
+document.querySelectorAll('.section-fade').forEach(el => {
+  observer.observe(el);
+});
 
 // ========================================
 // Typewriter Effect for Greeting
@@ -300,275 +329,303 @@ function typeWriterEffect() {
 }
 
 // ========================================
-// Initialize All Features After Splash
-// ========================================
-function initializeAllFeatures() {
-  console.log("Initializing all features...");
-  
-  // Initialize particles
-  initializeParticles();
-  
-  // Setup music player
-  setupMusicPlayer();
-  
-  // Fetch Discord status
-  fetchDiscordStatus();
-  
-  // Setup scroll animations
-  setupScrollAnimations();
-  
-  // Initialize game APIs
-  initializeGameAPIs();
-  
-  console.log("All features initialized");
-}
-
-// ========================================
 // Background Particles
 // ========================================
-function initializeParticles() {
-  const particlesContainer = document.getElementById('particles');
-  if (!particlesContainer) return;
+const particlesContainer = document.getElementById('particles');
+for (let i = 0; i < particleCount; i++) {
+  const particle = document.createElement('div');
+  particle.className = 'particle';
+  const size = isMobile ? Math.random() * 3 + 2 : Math.random() * 5 + 2;
+  particle.style.width = size + 'px';
+  particle.style.height = size + 'px';
+  particle.style.left = Math.random() * 100 + '%';
+  particle.style.top = Math.random() * 100 + '%';
   
-  const particleCount = isMobile ? 5 : 30;
-  
-  for (let i = 0; i < particleCount; i++) {
-    const particle = document.createElement('div');
-    particle.className = 'particle';
-    const size = isMobile ? Math.random() * 3 + 2 : Math.random() * 5 + 2;
-    particle.style.width = size + 'px';
-    particle.style.height = size + 'px';
-    particle.style.left = Math.random() * 100 + '%';
-    particle.style.top = Math.random() * 100 + '%';
-    
-    const colors = [
-      'rgba(139, 92, 246, 0.4)',
-      'rgba(99, 102, 241, 0.3)',
-      'rgba(167, 139, 250, 0.3)',
-      'rgba(196, 181, 253, 0.3)',
-      'rgba(236, 72, 153, 0.3)'
-    ];
-    particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-    particle.style.boxShadow = `0 0 ${size * 2}px ${particle.style.background}`;
-    particle.style.animationDelay = Math.random() * 5 + 's';
-    particle.style.animationDuration = (Math.random() * 5 + 8) + 's';
-    particlesContainer.appendChild(particle);
-  }
-}
-
-// ========================================
-// Music Player Setup
-// ========================================
-function setupMusicPlayer() {
-  const songs = [
-    {
-      title: "Time To love",
-      url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Time%20To%20Love.mp3"
-    },
-    {
-      title: "Had I Not Seen the Sun",
-      url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Had%20I%20Not%20Seen%20the%20Sun.mp3"
-    },
-    {
-      title: "if i can stop one heart from breaking",
-      url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3"
-    }
+  const colors = [
+    'rgba(139, 92, 246, 0.4)',
+    'rgba(99, 102, 241, 0.3)',
+    'rgba(167, 139, 250, 0.3)',
+    'rgba(196, 181, 253, 0.3)',
+    'rgba(236, 72, 153, 0.3)'
   ];
+  particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+  particle.style.boxShadow = `0 0 ${size * 2}px ${particle.style.background}`;
+  particle.style.animationDelay = Math.random() * 5 + 's';
+  particle.style.animationDuration = (Math.random() * 5 + 8) + 's';
+  particlesContainer.appendChild(particle);
+}
 
-  let currentSongIndex = 0;
-  const audio = document.getElementById('audio');
-  const albumArt = document.getElementById('album-art');
-  const albumArtContainer = document.getElementById('album-art-container');
-  const playPauseBtn = document.getElementById('play-pause');
-  const prevBtn = document.getElementById('prev');
-  const nextBtn = document.getElementById('next');
-  const volumeSlider = document.getElementById('volume');
-  const songInfo = document.getElementById('song-info');
-  const musicControls = document.getElementById('music-controls');
-  
-  if (!audio) return;
-  
-  currentAudio = audio;
-  audio.volume = 0.5;
-  
-  // Ensure album art loads properly on iOS
-  if (albumArt && isIOS) {
-    albumArt.style.display = 'block';
-    albumArt.style.visibility = 'visible';
-    albumArt.style.opacity = '1';
-    // Force iOS to render the image
-    const imgSrc = albumArt.src;
-    albumArt.src = '';
-    setTimeout(() => {
-      albumArt.src = imgSrc;
-    }, 10);
+// ========================================
+// Music Player & Visualizer
+// ========================================
+const songs = [
+  {
+    title: "Time To love",
+    url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Time%20To%20Love.mp3"
+  },
+  {
+    title: "Had I Not Seen the Sun",
+    url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Had%20I%20Not%20Seen%20the%20Sun.mp3"
+  },
+  {
+    title: "if i can stop one heart from breaking",
+    url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3"
   }
-  
-  function loadSong(index) {
-    const song = songs[index];
-    audio.src = song.url;
-    if (songInfo) songInfo.textContent = `♪ ${song.title}`;
-  }
-  
-  function playSong() {
-    const playPromise = audio.play();
-    
-    if (playPromise !== undefined) {
-      playPromise.then(() => {
-        if (albumArt) albumArt.classList.add('playing');
-        if (playPauseBtn) playPauseBtn.textContent = '⏸ Pause';
-        if (songInfo) songInfo.classList.add('show');
-      }).catch(error => {
-        console.warn('Playback prevented:', error);
-      });
-    }
-  }
-  
-  function pauseSong() {
-    audio.pause();
-    if (albumArt) albumArt.classList.remove('playing');
-    if (playPauseBtn) playPauseBtn.textContent = '▶ Play';
-  }
-  
-  function playNextSong() {
-    currentSongIndex = (currentSongIndex + 1) % songs.length;
-    loadSong(currentSongIndex);
-    playSong();
-  }
-  
-  function playPrevSong() {
-    currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
-    loadSong(currentSongIndex);
-    playSong();
-  }
-  
-  // Event listeners
-  if (audio) {
-    audio.addEventListener('ended', () => {
-      playNextSong();
-    });
-  }
-  
-  let menuOpen = false;
-  
-  // Album art click handler - works for both desktop and mobile
-  if (albumArtContainer) {
-    const handleAlbumClick = (e) => {
-      e.stopPropagation();
-      e.preventDefault();
+];
+
+let currentSongIndex = 0;
+const audio = document.getElementById('audio');
+const albumArt = document.getElementById('album-art');
+const playPauseBtn = document.getElementById('play-pause');
+const prevBtn = document.getElementById('prev');
+const nextBtn = document.getElementById('next');
+const volumeSlider = document.getElementById('volume');
+const songInfo = document.getElementById('song-info');
+const musicControls = document.getElementById('music-controls');
+
+// Visualizer Setup
+const visualizerCanvas = document.getElementById('visualizer');
+const visualizerCtx = visualizerCanvas.getContext('2d');
+visualizerCanvas.width = 120;
+visualizerCanvas.height = 60;
+
+let audioContext, analyser, dataArray, bufferLength, isVisualizerActive = false;
+let sourceNode = null;
+
+function setupAudioContext() {
+  if (!audioContext) {
+    try {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioContext.createAnalyser();
       
-      if (audio.paused) {
-        if (!audio.src || audio.src === '') loadSong(currentSongIndex);
-        playSong();
-      } else {
-        pauseSong();
+      // Only create source node once
+      if (!sourceNode) {
+        sourceNode = audioContext.createMediaElementSource(audio);
+        sourceNode.connect(analyser);
       }
       
-      // Toggle menu on mobile
-      if (isMobile && musicControls) {
-        menuOpen = !menuOpen;
-        if (menuOpen) {
-          musicControls.classList.add('show');
-        } else {
-          musicControls.classList.remove('show');
-        }
-      }
-    };
-    
-    albumArtContainer.addEventListener('click', handleAlbumClick);
-    
-    if (isTouchDevice) {
-      albumArtContainer.addEventListener('touchend', handleAlbumClick, { passive: false });
+      analyser.connect(audioContext.destination);
+      analyser.fftSize = 64;
+      bufferLength = analyser.frequencyBinCount;
+      dataArray = new Uint8Array(bufferLength);
+      return true;
+    } catch (error) {
+      console.warn('Audio visualizer not supported:', error);
+      return false;
     }
   }
+  return true;
+}
+
+function drawVisualizer() {
+  if (!analyser || !isVisualizerActive) return;
   
-  if (playPauseBtn) {
-    playPauseBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (audio.paused) {
-        if (!audio.src || audio.src === '') loadSong(currentSongIndex);
-        playSong();
-      } else {
-        pauseSong();
-      }
-    });
-  }
+  requestAnimationFrame(drawVisualizer);
+  analyser.getByteFrequencyData(dataArray);
   
-  if (prevBtn) {
-    prevBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      playPrevSong();
-    });
-  }
+  visualizerCtx.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
   
-  if (nextBtn) {
-    nextBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      playNextSong();
-    });
-  }
+  const barWidth = (visualizerCanvas.width / bufferLength) * 2;
+  let x = 0;
   
-  if (volumeSlider) {
-    volumeSlider.addEventListener('input', (e) => {
-      e.stopPropagation();
-      audio.volume = volumeSlider.value;
-    });
-  }
-  
-  const closeButton = document.getElementById('close-controls');
-  if (closeButton && musicControls) {
-    closeButton.addEventListener('click', (e) => {
-      e.stopPropagation();
-      menuOpen = false;
-      musicControls.classList.remove('show');
-    });
-  }
-  
-  // Desktop hover behavior
-  if (!isMobile && albumArtContainer && musicControls) {
-    let hoverTimeout;
+  for (let i = 0; i < bufferLength; i++) {
+    const barHeight = (dataArray[i] / 255) * visualizerCanvas.height * 0.8;
     
-    albumArtContainer.addEventListener('mouseenter', () => {
-      hoverTimeout = setTimeout(() => {
-        musicControls.classList.add('show');
-      }, 300);
-    });
+    const gradient = visualizerCtx.createLinearGradient(0, visualizerCanvas.height, 0, 0);
+    gradient.addColorStop(0, '#8b5cf6');
+    gradient.addColorStop(1, '#ec4899');
+    
+    visualizerCtx.fillStyle = gradient;
+    visualizerCtx.fillRect(x, visualizerCanvas.height - barHeight, barWidth - 1, barHeight);
+    x += barWidth + 1;
+  }
+}
 
-    albumArtContainer.addEventListener('mouseleave', () => {
-      clearTimeout(hoverTimeout);
-      setTimeout(() => {
-        if (!musicControls.matches(':hover')) {
-          musicControls.classList.remove('show');
-        }
-      }, 300);
-    });
+audio.volume = 0.5;
 
-    musicControls.addEventListener('mouseleave', () => {
-      musicControls.classList.remove('show');
+function loadSong(index) {
+  const song = songs[index];
+  audio.src = song.url;
+  songInfo.textContent = `♪ ${song.title}`;
+}
+
+function playSong() {
+  // Setup visualizer only once
+  if (!audioContext) {
+    setupAudioContext();
+  }
+  
+  if (audioContext && audioContext.state === 'suspended') {
+    audioContext.resume();
+  }
+  
+  const playPromise = audio.play();
+  
+  if (playPromise !== undefined) {
+    playPromise.then(() => {
+      albumArt.classList.add('playing');
+      playPauseBtn.textContent = '⏸ Pause';
+      songInfo.classList.add('show');
+      
+      if (audioContext) {
+        visualizerCanvas.classList.add('active');
+        isVisualizerActive = true;
+        drawVisualizer();
+      }
+    }).catch(error => {
+      console.warn('Playback prevented:', error);
+      albumArt.classList.remove('playing');
+      playPauseBtn.textContent = '▶ Play';
     });
   }
 }
 
-// ========================================
-// Scroll Animations
-// ========================================
-function setupScrollAnimations() {
-  const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -100px 0px'
-  };
+function pauseSong() {
+  audio.pause();
+  albumArt.classList.remove('playing');
+  playPauseBtn.textContent = '▶ Play';
+  visualizerCanvas.classList.remove('active');
+  isVisualizerActive = false;
+}
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('visible');
-      }
-    });
-  }, observerOptions);
+function playNextSong() {
+  currentSongIndex = (currentSongIndex + 1) % songs.length;
+  loadSong(currentSongIndex);
+  playSong();
+}
 
-  document.querySelectorAll('.section-fade').forEach(el => {
-    observer.observe(el);
+function playPrevSong() {
+  currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+  loadSong(currentSongIndex);
+  playSong();
+}
+
+audio.addEventListener('ended', () => {
+  playNextSong();
+});
+
+let menuOpen = false;
+
+function closeMenu() {
+  if (menuOpen) {
+    menuOpen = false;
+    musicControls.classList.remove('show');
+  }
+}
+
+albumArt.addEventListener('click', (e) => {
+  e.stopPropagation();
+  
+  if (audio.paused) {
+    if (!audio.src) loadSong(currentSongIndex);
+    playSong();
+  } else {
+    pauseSong();
+  }
+  
+  if (isMobile) {
+    menuOpen = !menuOpen;
+    if (menuOpen) {
+      musicControls.classList.add('show');
+    } else {
+      musicControls.classList.remove('show');
+    }
+  }
+});
+
+albumArt.addEventListener('dblclick', (e) => {
+  e.preventDefault();
+  playNextSong();
+});
+
+if (!isMobile) {
+  let hoverTimeout;
+  albumArt.addEventListener('mouseenter', () => {
+    hoverTimeout = setTimeout(() => {
+      musicControls.classList.add('show');
+    }, 300);
   });
+
+  albumArt.addEventListener('mouseleave', () => {
+    clearTimeout(hoverTimeout);
+    setTimeout(() => {
+      if (!musicControls.matches(':hover')) {
+        musicControls.classList.remove('show');
+      }
+    }, 300);
+  });
+
+  musicControls.addEventListener('mouseleave', () => {
+    musicControls.classList.remove('show');
+  });
+}
+
+if (isMobile) {
+  const handleOutsideInteraction = (e) => {
+    if (!menuOpen) return;
+    
+    const musicPlayer = document.getElementById('music-player');
+    const musicControls = document.getElementById('music-controls');
+    
+    const isClickInsidePlayer = musicPlayer && musicPlayer.contains(e.target);
+    const isClickInsideControls = musicControls && musicControls.contains(e.target);
+    
+    if (!isClickInsidePlayer && !isClickInsideControls) {
+      closeMenu();
+    }
+  };
+  
+  document.addEventListener('touchstart', handleOutsideInteraction, true);
+  document.addEventListener('click', handleOutsideInteraction, true);
+  
+  const debouncedCloseMenu = debounce(closeMenu, 100);
+  window.addEventListener('scroll', () => {
+    if (menuOpen) {
+      debouncedCloseMenu();
+    }
+  }, { passive: true });
+}
+
+playPauseBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (audio.paused) {
+    if (!audio.src) loadSong(currentSongIndex);
+    playSong();
+  } else {
+    pauseSong();
+  }
+});
+
+prevBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  playPrevSong();
+});
+
+nextBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  playNextSong();
+});
+
+volumeSlider.addEventListener('input', (e) => {
+  e.stopPropagation();
+  audio.volume = volumeSlider.value;
+});
+
+const closeButton = document.getElementById('close-controls');
+if (closeButton) {
+  closeButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    menuOpen = false;
+    musicControls.classList.remove('show');
+  }, true);
+  
+  closeButton.addEventListener('touchend', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    menuOpen = false;
+    musicControls.classList.remove('show');
+  }, true);
 }
 
 // ========================================
@@ -578,7 +635,6 @@ const DISCORD_ID = '1003100550700748871';
 
 async function fetchDiscordStatus() {
   const statusContainer = document.getElementById('discord-status');
-  if (!statusContainer) return;
   
   try {
     const response = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`);
@@ -598,7 +654,8 @@ async function fetchDiscordStatus() {
     console.warn('Discord status unavailable:', error.message);
     statusContainer.innerHTML = `
       <p style="color: rgba(255, 255, 255, 0.7); text-align: center; padding: 20px;">
-        Discord status currently unavailable
+        Discord status currently unavailable<br>
+        <small style="opacity: 0.6;">Make sure you're in the Lanyard Discord server</small>
       </p>
     `;
   }
@@ -606,8 +663,6 @@ async function fetchDiscordStatus() {
 
 function displayDiscordStatus(data) {
   const statusContainer = document.getElementById('discord-status');
-  if (!statusContainer) return;
-  
   const status = data.discord_status;
   const user = data.discord_user;
   const activities = data.activities || [];
@@ -621,6 +676,7 @@ function displayDiscordStatus(data) {
   
   const currentStatus = statusConfig[status] || statusConfig.offline;
   
+  // Find main activity (exclude custom status type 4)
   const activity = activities.find(a => a.type !== 4);
   
   let activityHTML = '';
@@ -668,6 +724,11 @@ function displayDiscordStatus(data) {
   `;
 }
 
+// Fetch Discord status on load
+fetchDiscordStatus();
+// Refresh every 30 seconds
+setInterval(fetchDiscordStatus, 30000);
+
 // ========================================
 // Enka API Base Class
 // ========================================
@@ -679,14 +740,20 @@ class EnkaAPI {
     this.elementIds = config.elementIds;
     this.proxies = [
       {
-        name: 'CORS Anywhere (Heroku)',
-        url: (apiUrl) => `https://cors-anywhere.herokuapp.com/${apiUrl}`,
-        parse: (data) => data
-      },
-      {
         name: 'AllOrigins',
-        url: (apiUrl) => `https://api.allorigins.win/raw?url=${encodeURIComponent(apiUrl)}`,
-        parse: (data) => data
+        url: (apiUrl) => `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`,
+        parse: (data) => {
+          // AllOrigins wraps response in { contents: "..." }
+          if (data.contents) {
+            try {
+              return JSON.parse(data.contents);
+            } catch (e) {
+              console.warn('AllOrigins parse error:', e);
+              return null;
+            }
+          }
+          return data;
+        }
       },
       {
         name: 'CodeTabs',
@@ -694,8 +761,28 @@ class EnkaAPI {
         parse: (data) => data
       },
       {
+        name: 'CORSProxy.io',
+        url: (apiUrl) => `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`,
+        parse: (data) => data
+      },
+      {
         name: 'ThingProxy',
         url: (apiUrl) => `https://thingproxy.freeboard.io/fetch/${apiUrl}`,
+        parse: (data) => data
+      },
+      {
+        name: 'CORS.SH',
+        url: (apiUrl) => `https://cors.sh/${apiUrl}`,
+        parse: (data) => data
+      },
+      {
+        name: 'CORS Anywhere',
+        url: (apiUrl) => `https://cors-anywhere.herokuapp.com/${apiUrl}`,
+        parse: (data) => data
+      },
+      {
+        name: 'JSONProxy',
+        url: (apiUrl) => `https://jsonp.afeld.me/?url=${encodeURIComponent(apiUrl)}`,
         parse: (data) => data
       },
       {
@@ -718,55 +805,83 @@ class EnkaAPI {
 
     const apiUrl = `${this.baseURL}/${uid}`;
     
-    try {
-      console.log(`Fetching ${this.game} data for UID:`, uid);
-      
-      for (const proxy of this.proxies) {
-        try {
-          console.log(`Trying ${this.game} with ${proxy.name}...`);
-          
-          const proxyUrl = proxy.url(apiUrl);
-          const response = await fetch(proxyUrl, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' }
-          });
-          
-          if (!response.ok) {
-            console.warn(`${proxy.name} failed with status ${response.status}`);
-            continue;
-          }
-          
-          const data = await response.json();
-          const apiData = proxy.parse(data);
-          
-          if (!this.validateData(apiData)) {
-            console.warn(`${proxy.name} returned invalid data structure`);
-            continue;
-          }
-          
-          console.log(`✅ Successfully fetched ${this.game} data using ${proxy.name}`);
-          this.displayPlayerData(apiData);
-          this.showLoading(false);
-          return;
-          
-        } catch (error) {
-          console.warn(`${proxy.name} error:`, error.message);
+    console.log(`\n${'='.repeat(80)}`);
+    console.log(`🎮 Testing ${this.game} - UID: ${uid}`);
+    console.log(`🔗 API URL: ${apiUrl}`);
+    console.log(`${'='.repeat(80)}\n`);
+    
+    for (const proxy of this.proxies) {
+      try {
+        console.log(`\n🔄 Trying ${proxy.name}...`);
+        
+        const proxyUrl = proxy.url(apiUrl);
+        console.log(`   Proxy URL: ${proxyUrl}`);
+        
+        const response = await fetch(proxyUrl, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
+        
+        console.log(`   Status: ${response.status} ${response.statusText}`);
+        
+        if (!response.ok) {
+          console.warn(`   ❌ ${proxy.name} failed with status ${response.status}`);
           continue;
         }
+        
+        const data = await response.json();
+        console.log(`   ✅ ${proxy.name} SUCCESS!`);
+        
+        // Parse the data based on proxy type
+        let apiData = proxy.parse(data);
+        
+        if (proxy.name === 'AllOrigins' && data.contents) {
+          console.log(`   📦 Parsing AllOrigins wrapper...`);
+          try {
+            apiData = JSON.parse(data.contents);
+            console.log(`   ✅ Successfully parsed AllOrigins contents`);
+          } catch (e) {
+            console.warn(`   ⚠️ Failed to parse AllOrigins contents:`, e.message);
+            continue;
+          }
+        }
+        
+        console.log(`   📊 Data structure:`, apiData);
+        
+        // Validate data
+        if (!this.validateData(apiData)) {
+          console.warn(`   ❌ ${proxy.name} returned invalid data structure`);
+          console.log(`   Expected fields not found`);
+          continue;
+        }
+        
+        console.log(`\n🎉 SUCCESS! Using ${proxy.name} for ${this.game}`);
+        console.log(`${'='.repeat(80)}\n`);
+        
+        this.showLoading(false);
+        this.hideError();
+        this.displayPlayerData(apiData);
+        this.showPlayerInfo();
+        return;
+        
+      } catch (error) {
+        console.warn(`   ❌ ${proxy.name} error:`, error.message);
+        continue;
       }
-      
-      console.log(`All ${this.game} proxies failed, using mock data`);
-      this.showError('Unable to fetch live data. Displaying demo data.');
-      const apiData = this.getMockData();
-      this.displayPlayerData(apiData);
-      
-    } catch (error) {
-      console.error(`Error fetching ${this.game} data:`, error);
-      this.showError('Failed to fetch player data. Displaying demo data.');
-      this.displayPlayerData(this.getMockData());
-    } finally {
-      this.showLoading(false);
     }
+    
+    // All proxies failed
+    console.error(`\n💔 All ${this.game} proxies failed`);
+    console.log(`Possible reasons:`);
+    console.log(`  • API is down or rate-limited`);
+    console.log(`  • UID is invalid or private`);
+    console.log(`  • All proxy services are blocked`);
+    console.log(`  • Try again in a few minutes\n`);
+    
+    this.showError('Unable to fetch live data. Displaying demo data.');
+    this.showLoading(false);
+    this.displayPlayerData(this.getMockData());
+    this.showPlayerInfo();
   }
 
   showLoading(show) {
@@ -824,98 +939,101 @@ class HSREnkaAPI extends EnkaAPI {
     return {
       uid: this.configuredUID,
       detailInfo: {
-        nickname: "Trailblazer",
+        nickname: "Chamoi",
         level: 70,
         worldLevel: 6,
         signature: "Demo data - API unavailable",
+        headIcon: 201409,
         recordInfo: {
-          achievementCount: 800,
-          maxRogueChallengeScore: 9,
-          bookCount: 85
+          achievementCount: 10,
+          maxRogueChallengeScore: 90,
+          equipmentCount: 790
         }
       }
     };
   }
 
   validateData(data) {
-    return data && data.detailInfo;
+    // Check both direct structure and wrapped structure
+    if (data && data.detailInfo) return true;
+    if (data && data.uid && data.ttl) return true;
+    return false;
   }
 
   displayPlayerData(data) {
     try {
-      if (!data || !data.detailInfo) {
-        throw new Error('Invalid player data received');
-      }
-
-      const player = data.detailInfo;
+      const info = data.detailInfo;
       
-      const nicknameEl = document.getElementById('player-nickname');
-      if (nicknameEl) nicknameEl.textContent = player.nickname || 'Unknown Player';
-      
-      const levelEl = document.getElementById('player-level');
-      if (levelEl) levelEl.textContent = player.level || '0';
-      
-      const worldLevelEl = document.getElementById('world-level');
-      if (worldLevelEl) worldLevelEl.textContent = player.worldLevel || '0';
-      
-      const signatureEl = document.getElementById('player-signature');
-      if (signatureEl) signatureEl.textContent = player.signature || 'No signature set';
-      
-      const achievementEl = document.getElementById('achievement-count');
-      if (achievementEl) {
-        const achievementCount = player.recordInfo?.achievementCount || 
-                                 player.finishAchievementNum || 
-                                 player.achievementCount || '0';
-        achievementEl.textContent = achievementCount;
+      if (!info) {
+        console.error('❌ HSR: detailInfo not found in data');
+        return;
       }
       
-      const uidEl = document.getElementById('player-uid');
-      if (uidEl) uidEl.textContent = data.uid || 'N/A';
+      console.log('🔍 HSR: Displaying player data:', info);
       
-      const avatarEl = document.getElementById('player-avatar');
-      if (avatarEl) {
-        const avatarUrl = `https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png`;
-        avatarEl.onerror = () => {
-          const initial = player.nickname?.charAt(0) || 'HSR';
-          avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(initial)}&size=90&background=667eea&color=ffffff&bold=true`;
+      // Set avatar - HSR uses headIcon field
+      const avatarImg = document.getElementById('player-avatar');
+      if (avatarImg) {
+        // Use Enka.network CDN for HSR avatars
+        const avatarUrl = info.headIcon 
+          ? `https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/${info.headIcon}.png`
+          : 'https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png';
+        avatarImg.src = avatarUrl;
+        avatarImg.onerror = () => {
+          avatarImg.src = 'https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png';
         };
-        avatarEl.src = avatarUrl;
       }
       
-      this.displaySimulatedUniverse(player);
+      // Set nickname
+      const nicknameEl = document.getElementById('player-nickname');
+      if (nicknameEl) nicknameEl.textContent = info.nickname || 'Trailblazer';
+      
+      // Set level
+      const levelEl = document.getElementById('player-level');
+      if (levelEl) levelEl.textContent = info.level || 70;
+      
+      // Set world level
+      const worldLevelEl = document.getElementById('world-level');
+      if (worldLevelEl) worldLevelEl.textContent = info.worldLevel || 6;
+      
+      // Set signature
+      const signatureEl = document.getElementById('player-signature');
+      if (signatureEl) signatureEl.textContent = info.signature || 'May this journey lead us starward.';
+      
+      // Set achievements
+      const achievementEl = document.getElementById('achievement-count');
+      if (achievementEl) achievementEl.textContent = info.recordInfo?.achievementCount || 0;
+      
+      // Set Simulated Universe stars
+      const suStarsEl = document.getElementById('su-stars');
+      if (suStarsEl) suStarsEl.textContent = info.recordInfo?.maxRogueChallengeScore || 0;
+      
+      // Set Light Cones count
+      const lightConesEl = document.getElementById('hsr-exploration');
+      if (lightConesEl) lightConesEl.textContent = info.recordInfo?.equipmentCount || 0;
+      
+      // Set UID
+      const uidEl = document.getElementById('player-uid');
+      if (uidEl) uidEl.textContent = data.uid || this.configuredUID;
+      
+      // Setup copy button
+      const copyBtn = document.getElementById('copy-hsr-uid');
+      if (copyBtn) {
+        copyBtn.onclick = () => {
+          navigator.clipboard.writeText(data.uid || this.configuredUID);
+          copyBtn.textContent = '✔ Copied!';
+          setTimeout(() => {
+            copyBtn.textContent = '📋 Copy';
+          }, 2000);
+        };
+      }
+      
+      console.log('✅ HSR: Successfully displayed player data');
       this.showPlayerInfo();
       
     } catch (error) {
-      console.error('Error displaying player data:', error);
-      this.showError('Failed to display player data. Please try again.');
-    }
-  }
-
-  displaySimulatedUniverse(player) {
-    try {
-      const recordInfo = player.recordInfo;
-      
-      if (!recordInfo) {
-        document.getElementById('su-stars').textContent = '0';
-        document.getElementById('hsr-exploration').textContent = '0%';
-        return;
-      }
-
-      const suStarsEl = document.getElementById('su-stars');
-      if (suStarsEl) suStarsEl.textContent = recordInfo.maxRogueChallengeScore || '0';
-
-      const explorationEl = document.getElementById('hsr-exploration');
-      if (explorationEl && recordInfo.bookCount !== undefined) {
-        const explorationPercent = Math.min(Math.round((recordInfo.bookCount / 120) * 100), 100);
-        explorationEl.textContent = explorationPercent + '%';
-      } else if (explorationEl) {
-        explorationEl.textContent = '0%';
-      }
-      
-    } catch (error) {
-      console.error('Error displaying HSR stats:', error);
-      document.getElementById('su-stars').textContent = '0';
-      document.getElementById('hsr-exploration').textContent = '0%';
+      console.error('❌ HSR: Error displaying player data:', error);
+      console.error('Data received:', data);
     }
   }
 }
@@ -944,15 +1062,16 @@ class ZZZEnkaAPI extends EnkaAPI {
       PlayerInfo: {
         SocialDetail: {
           ProfileDetail: {
-            Nickname: "Proxy",
-            Level: 50,
-            Uid: this.configuredUID
+            Nickname: 'Buns',
+            Level: 60,
+            Uid: this.configuredUID,
+            AvatarId: 2021
           },
-          Desc: "Demo data - API unavailable",
+          Desc: 'skibidi',
           MedalList: [
-            { MedalType: 1, MedalScore: 0 },
-            { MedalType: 3, MedalScore: 0 },
-            { MedalType: 7, MedalScore: 0 }
+            { MedalType: 3, Value: 0 },
+            { MedalType: 1, Value: 0 },
+            { MedalType: 7, Value: 0 }
           ]
         }
       }
@@ -960,176 +1079,76 @@ class ZZZEnkaAPI extends EnkaAPI {
   }
 
   validateData(data) {
-    return data && data.PlayerInfo;
+    // Check both direct structure and wrapped structure  
+    if (data && data.PlayerInfo && data.PlayerInfo.SocialDetail) return true;
+    if (data && data.uid && data.ttl) return true;
+    return false;
   }
 
   displayPlayerData(data) {
-    try {
-      const playerInfo = data.PlayerInfo;
-      if (!playerInfo || !playerInfo.SocialDetail || !playerInfo.SocialDetail.ProfileDetail) {
-        throw new Error('Invalid player data structure');
-      }
-      
-      const player = playerInfo.SocialDetail.ProfileDetail;
-      const socialDetail = playerInfo.SocialDetail;
-      
-      const nicknameEl = document.getElementById('zzz-player-nickname');
-      if (nicknameEl) nicknameEl.textContent = player.Nickname || 'Unknown Player';
-      
-      const levelEl = document.getElementById('zzz-player-level');
-      if (levelEl) levelEl.textContent = player.Level || '0';
-      
-      const signatureEl = document.getElementById('zzz-player-signature');
-      if (signatureEl) signatureEl.textContent = socialDetail.Desc || 'No signature set';
-      
-      const uidEl = document.getElementById('zzz-player-uid');
-      if (uidEl) uidEl.textContent = player.Uid || data.uid || 'N/A';
-      
-      const avatarEl = document.getElementById('zzz-player-avatar');
-      if (avatarEl) {
-        const avatarUrl = `https://enka.network/ui/zzz/IconInterKnotRole0013.png`;
-        avatarEl.onerror = () => {
-          const initial = (player.Nickname || 'ZZZ').charAt(0);
-          avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(initial)}&size=90&background=e63946&color=ffffff&bold=true`;
-        };
-        avatarEl.src = avatarUrl;
-      }
-      
-      this.displayChallengeStats(playerInfo);
-      this.showPlayerInfo();
-      
-    } catch (error) {
-      console.error('Error displaying ZZZ player data:', error);
-      this.showError(`Failed to display player data: ${error.message}`);
+    const socialDetail = data.PlayerInfo.SocialDetail;
+    const profileDetail = socialDetail.ProfileDetail;
+    
+    // Set avatar - hardcoded to your ZZZ avatar
+    const avatarImg = document.getElementById('zzz-player-avatar');
+    if (avatarImg) {
+      // Use Enka.network CDN with your specific avatar
+      avatarImg.src = 'https://enka.network/ui/zzz/IconInterKnotRole0013.png';
+      avatarImg.onerror = () => {
+        avatarImg.src = 'https://raw.githubusercontent.com/bunsass/busn/main/asset/Sticker_PPG_24_Evernight_03.webp';
+      };
     }
-  }
-
-  displayChallengeStats(playerInfo) {
-    try {
-      const medals = playerInfo.SocialDetail?.MedalList || [];
-      
-      let shiyuStars = 0;
-      let lineBreaker = 0;
-      let disintegration = 0;
-      
-      medals.forEach(medal => {
-        if (medal.MedalType === 1) shiyuStars = medal.MedalScore || medal.Value || 0;
-        else if (medal.MedalType === 3) lineBreaker = medal.MedalScore || medal.Value || 0;
-        else if (medal.MedalType === 7) disintegration = medal.MedalScore || medal.Value || 0;
-      });
-
-      const shiyuEl = document.getElementById('shiyu-defense');
-      if (shiyuEl) shiyuEl.textContent = shiyuStars;
-
-      const lineBreakerEl = document.getElementById('line-breaker');
-      if (lineBreakerEl) lineBreakerEl.textContent = lineBreaker;
-
-      const disintegrationEl = document.getElementById('disintegration');
-      if (disintegrationEl) disintegrationEl.textContent = disintegration;
-      
-    } catch (error) {
-      console.error('Error displaying ZZZ challenge data:', error);
-      const shiyuEl = document.getElementById('shiyu-defense');
-      const lineBreakerEl = document.getElementById('line-breaker');
-      const disintegrationEl = document.getElementById('disintegration');
-      
-      if (shiyuEl) shiyuEl.textContent = '0';
-      if (lineBreakerEl) lineBreakerEl.textContent = '0';
-      if (disintegrationEl) disintegrationEl.textContent = '0';
+    
+    // Set nickname
+    const nicknameEl = document.getElementById('zzz-player-nickname');
+    if (nicknameEl) nicknameEl.textContent = profileDetail.Nickname || 'Proxy';
+    
+    // Set level
+    const levelEl = document.getElementById('zzz-player-level');
+    if (levelEl) levelEl.textContent = profileDetail.Level || 60;
+    
+    // Set signature (from Desc field)
+    const signatureEl = document.getElementById('zzz-player-signature');
+    if (signatureEl) signatureEl.textContent = socialDetail.Desc || 'Welcome to New Eridu!';
+    
+    // Extract medal data for stats
+    const medals = socialDetail.MedalList || [];
+    
+    // Line Breaker is MedalType 3
+    const lineBreakerMedal = medals.find(m => m.MedalType === 3);
+    const lineBreakerEl = document.getElementById('line-breaker');
+    if (lineBreakerEl) lineBreakerEl.textContent = lineBreakerMedal?.Value || 0;
+    
+    // Shiyu Defense is MedalType 1
+    const shiyuMedal = medals.find(m => m.MedalType === 1);
+    const shiyuEl = document.getElementById('shiyu-defense');
+    if (shiyuEl) shiyuEl.textContent = shiyuMedal?.Value || 0;
+    
+    // Disintegration is MedalType 7
+    const disintegrationMedal = medals.find(m => m.MedalType === 7);
+    const disintegrationEl = document.getElementById('disintegration');
+    if (disintegrationEl) disintegrationEl.textContent = disintegrationMedal?.Value || 0;
+    
+    // Set UID
+    const uidEl = document.getElementById('zzz-player-uid');
+    if (uidEl) uidEl.textContent = profileDetail.Uid || data.uid || this.configuredUID;
+    
+    // Setup copy button
+    const copyBtn = document.getElementById('copy-zzz-uid');
+    if (copyBtn) {
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(profileDetail.Uid || data.uid || this.configuredUID);
+        copyBtn.textContent = '✔ Copied!';
+        setTimeout(() => {
+          copyBtn.textContent = '📋 Copy';
+        }, 2000);
+      };
     }
+    
+    this.showPlayerInfo();
   }
 }
 
-// ========================================
-// Game APIs Initialization
-// ========================================
-function initializeGameAPIs() {
-  // Initialize HSR and ZZZ APIs
-  try {
-    const hsrAPI = new HSREnkaAPI();
-    const zzzAPI = new ZZZEnkaAPI();
-    console.log("Game APIs initialized successfully");
-  } catch (error) {
-    console.error("Error initializing game APIs:", error);
-  }
-}
-
-// ========================================
-// Copy UID functionality
-// ========================================
-function copyUID(uidText, buttonId) {
-  navigator.clipboard.writeText(uidText).then(() => {
-    const btn = document.getElementById(buttonId);
-    if (!btn) return;
-    
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '✓ Copied!';
-    btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
-    
-    setTimeout(() => {
-      btn.innerHTML = originalText;
-      btn.style.background = '';
-    }, 2000);
-  }).catch(err => {
-    console.error('Failed to copy:', err);
-    const btn = document.getElementById(buttonId);
-    if (!btn) return;
-    
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '✗ Failed';
-    btn.style.background = 'linear-gradient(135deg, #ef4444, #b91c1c)';
-    
-    setTimeout(() => {
-      btn.innerHTML = originalText;
-      btn.style.background = '';
-    }, 2000);
-  });
-}
-
-// Setup copy UID buttons
-function setupCopyButtons() {
-  const copyHsrBtn = document.getElementById('copy-hsr-uid');
-  if (copyHsrBtn) {
-    copyHsrBtn.addEventListener('click', function() {
-      const uidText = document.getElementById('player-uid')?.textContent;
-      if (uidText) copyUID(uidText, 'copy-hsr-uid');
-    });
-  }
-
-  const copyZzzBtn = document.getElementById('copy-zzz-uid');
-  if (copyZzzBtn) {
-    copyZzzBtn.addEventListener('click', function() {
-      const uidText = document.getElementById('zzz-player-uid')?.textContent;
-      if (uidText) copyUID(uidText, 'copy-zzz-uid');
-    });
-  }
-}
-
-// ========================================
-// Initialize on DOM Ready
-// ========================================
-document.addEventListener('DOMContentLoaded', () => {
-  console.log("DOM Content Loaded - Setting up...");
-  
-  // Initialize media
-  initMedia();
-  
-  // Setup custom cursor
-  setupCustomCursor();
-  
-  // Setup loading and splash screens
-  setupLoadingAndSplash();
-  
-  // Setup copy buttons
-  setupCopyButtons();
-  
-  // Fix decorative images immediately
-  fixDecorativeImages();
-});
-
-// Additional load event
-window.addEventListener('load', () => {
-  console.log("Window load event fired");
-  // Fix decorative images again after full page load
-  fixDecorativeImages();
-});
+// Initialize both game APIs
+new HSREnkaAPI();
+new ZZZEnkaAPI();
