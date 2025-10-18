@@ -62,9 +62,6 @@ function setupSplashScreen() {
   
   if (!splashScreen) return;
   
-  // Mark splash as ready
-  document.body.classList.add('splash-ready');
-  
   // Single unified interaction handler
   function handleSplashInteraction(e) {
     if (hasUserInteracted) return;
@@ -83,11 +80,10 @@ function setupSplashScreen() {
     splashScreen.style.opacity = '0';
     splashScreen.style.pointerEvents = 'none';
     
-    // Make container visible smoothly - iOS FIX
+    // Make container visible smoothly - iOS FIX (similar to guns.lol approach)
     if (container) {
-      // Force reflow to ensure transition works on iOS
-      container.offsetHeight;
-      container.classList.add('visible');
+      container.style.opacity = '1';
+      container.style.visibility = 'visible';
       console.log("Container made visible");
     }
     
