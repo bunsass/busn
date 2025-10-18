@@ -22,14 +22,13 @@ window.addEventListener('load', () => {
   const loadingScreen = document.getElementById('loading-screen');
   const splashScreen = document.getElementById('splash-screen');
   
-  // Show splash screen after loading completes
+  // Show splash screen immediately
+  splashScreen.classList.remove('hidden');
+  
   setTimeout(() => {
     loadingScreen.classList.add('fade-out');
     setTimeout(() => {
       loadingScreen.remove();
-      if (splashScreen) {
-        splashScreen.classList.remove('hidden');
-      }
     }, 800);
   }, 2000);
 });
@@ -152,29 +151,13 @@ document.querySelectorAll('.section-fade').forEach(el => {
 // ========================================
 // Splash Screen & Autoplay
 // ========================================
-let splashInteracted = false;
+const splashScreen = document.getElementById('splash-screen');
 
 function handleSplashInteraction(e) {
-  if (splashInteracted) return;
-  splashInteracted = true;
+  e.preventDefault();
+  e.stopPropagation();
   
-  if (e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-  
-  const splashScreen = document.getElementById('splash-screen');
-  if (!splashScreen) return;
-  
-  // Immediately hide to prevent blocking
-  splashScreen.style.pointerEvents = 'none';
   splashScreen.classList.add('fade-out');
-  
-  // Show music player after splash interaction
-  const musicPlayer = document.getElementById('music-player');
-  const songInfo = document.getElementById('song-info');
-  if (musicPlayer) musicPlayer.style.display = 'block';
-  if (songInfo) songInfo.style.display = 'none';
   
   // Load and autoplay first song after user interaction
   loadSong(currentSongIndex);
@@ -190,49 +173,13 @@ function handleSplashInteraction(e) {
   }, 300);
   
   setTimeout(() => {
-    if (splashScreen && splashScreen.parentNode) {
-      splashScreen.remove();
-    }
+    splashScreen.remove();
   }, 800);
 }
 
-// Setup splash screen - runs after page loads
-function setupSplashScreen() {
-  const splashScreen = document.getElementById('splash-screen');
-  if (!splashScreen) return;
-  
-  console.log('Setting up splash screen...');
-  
-  // Ensure it's interactive
-  splashScreen.style.pointerEvents = 'auto';
-  splashScreen.style.cursor = 'pointer';
-  
-  // Single unified handler
-  const handleInteraction = (e) => {
-    console.log('Splash interaction detected:', e.type);
-    handleSplashInteraction(e);
-  };
-  
-  // Add event listeners with passive: false for iOS
-  splashScreen.addEventListener('touchstart', handleInteraction, { passive: false });
-  splashScreen.addEventListener('click', handleInteraction, false);
-  
-  // Visual feedback for touch
-  splashScreen.addEventListener('touchstart', () => {
-    splashScreen.style.opacity = '0.8';
-  }, { passive: true });
-  
-  splashScreen.addEventListener('touchend', () => {
-    splashScreen.style.opacity = '1';
-  }, { passive: true });
-  
-  console.log('Splash screen setup complete');
-}
-
-// Run setup when page loads
-window.addEventListener('load', () => {
-  setTimeout(setupSplashScreen, 100);
-});
+// Support both touch and click events for iOS
+splashScreen.addEventListener('click', handleSplashInteraction);
+splashScreen.addEventListener('touchend', handleSplashInteraction);
 
 // ========================================
 // Typewriter Effect for Greeting
