@@ -27,13 +27,8 @@ let hasUserInteracted = false;
 // ========================================
 window.addEventListener('load', () => {
   const loadingScreen = document.getElementById('loading-screen');
-  const splashScreen = document.getElementById('splash-screen');
   
-  console.log("Window loaded");
-  console.log("Loading screen:", loadingScreen);
-  console.log("Splash screen:", splashScreen);
-  
-  // Minimum loading time
+  // Hide loading screen after minimum time
   setTimeout(() => {
     if (loadingScreen) {
       loadingScreen.classList.add('fade-out');
@@ -41,76 +36,57 @@ window.addEventListener('load', () => {
         loadingScreen.style.display = 'none';
       }, 800);
     }
-    
-    // Show splash screen after loading screen fades
-    if (splashScreen) {
-      setTimeout(() => {
-        splashScreen.classList.remove('hidden');
-        splashScreen.style.display = 'flex';
-        console.log("Splash screen should now be visible");
-      }, 500);
-    }
-  }, 1500);
+  }, 2000); // 2 second loading time
 });
 
 // ========================================
-// Splash Screen Handler (iOS Compatible)
+// Splash Screen Handler
 // ========================================
-function setupSplashScreen() {
+document.addEventListener('DOMContentLoaded', () => {
   const splashScreen = document.getElementById('splash-screen');
   const container = document.querySelector('.container');
+  const audio = document.getElementById('audio');
   
   if (!splashScreen) return;
   
-  // Single unified interaction handler
-  function handleSplashInteraction(e) {
+  function handleSplashClick(e) {
     if (hasUserInteracted) return;
     
     e.preventDefault();
     e.stopPropagation();
     hasUserInteracted = true;
     
-    console.log("Splash screen clicked");
+    console.log("Splash screen clicked - starting experience");
     
-    // Mark content as visible for decorative images
+    // Mark for CSS transitions
+    document.body.classList.add('splash-dismissed');
     document.body.classList.add('content-visible');
     
-    // SMOOTH fade transition - no white flash
-    splashScreen.style.transition = 'opacity 0.8s ease-out';
-    splashScreen.style.opacity = '0';
-    splashScreen.style.pointerEvents = 'none';
+    // Fade out splash
+    splashScreen.classList.add('fade-out');
     
-    // Make container visible smoothly - iOS FIX (similar to guns.lol approach)
+    // Show container
     if (container) {
-      container.style.opacity = '1';
-      container.style.visibility = 'visible';
-      console.log("Container made visible");
+      container.classList.add('visible');
     }
     
+    // Remove splash after fade
     setTimeout(() => {
-      splashScreen.classList.add('hidden');
-      splashScreen.remove();
+      splashScreen.style.display = 'none';
     }, 800);
     
-    // Show music player after splash interaction
-    const musicPlayer = document.getElementById('music-player');
-    const songInfo = document.getElementById('song-info');
-    if (musicPlayer) musicPlayer.style.display = 'block';
-    if (songInfo) songInfo.style.display = 'none';
-    
-    // Initialize audio and try to play
-    const audio = document.getElementById('audio');
-    if (audio) {
+    // Initialize and play audio
+    if (audio && songs.length > 0) {
       audio.volume = 0.5;
-      
       loadSong(currentSongIndex);
       
+      // Try to autoplay
       const playPromise = audio.play();
       
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            console.log("Audio started successfully");
+            console.log("Audio autoplay successful");
             const albumArt = document.getElementById('album-art');
             if (albumArt) albumArt.classList.add('playing');
             
@@ -119,7 +95,7 @@ function setupSplashScreen() {
             
             const songInfo = document.getElementById('song-info');
             if (songInfo) {
-              songInfo.textContent = `♪ ${songs[0].title}`;
+              songInfo.textContent = `♪ ${songs[currentSongIndex].title}`;
               songInfo.classList.add('show');
             }
             
@@ -134,27 +110,25 @@ function setupSplashScreen() {
             }
           })
           .catch(err => {
-            console.warn("Audio autoplay prevented:", err);
-            // Set up click-anywhere-to-play fallback
-            document.addEventListener('click', function audioFallback() {
+            console.warn("Audio autoplay blocked:", err);
+            // Fallback: play on next user interaction
+            document.addEventListener('click', function playOnInteraction() {
               audio.play().then(() => {
-                console.log("Audio started after user interaction");
-                document.removeEventListener('click', audioFallback);
-                
+                console.log("Audio started after additional interaction");
                 const albumArt = document.getElementById('album-art');
                 if (albumArt) albumArt.classList.add('playing');
                 
                 const playPauseBtn = document.getElementById('play-pause');
                 if (playPauseBtn) playPauseBtn.textContent = '⏸ Pause';
                 
-                if (!audioContext) {
-                  setupAudioContext();
-                }
+                if (!audioContext) setupAudioContext();
                 if (audioContext) {
                   visualizerCanvas.classList.add('active');
                   isVisualizerActive = true;
                   drawVisualizer();
                 }
+                
+                document.removeEventListener('click', playOnInteraction);
               });
             }, { once: true });
           });
@@ -167,13 +141,11 @@ function setupSplashScreen() {
     }, 300);
   }
   
-  // Attach event listeners for both click and touch
-  splashScreen.addEventListener('click', handleSplashInteraction, { once: true });
-  splashScreen.addEventListener('touchstart', handleSplashInteraction, { once: true, passive: false });
-}
+  // Attach listeners
+  splashScreen.addEventListener('click', handleSplashClick, { once: true });
+  splashScreen.addEventListener('touchstart', handleSplashClick, { once: true, passive: false });
+});
 
-// Initialize splash screen when DOM is ready
-document.addEventListener('DOMContentLoaded', setupSplashScreen);
 
 if (!isMobile) {
   const canvas = document.getElementById('cursor-trail');
