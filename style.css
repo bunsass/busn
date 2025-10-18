@@ -83,17 +83,13 @@
   width: 100%;
   height: 100%;
   background: #000000;
-  display: none;
+  display: flex;  /* Changed from 'display: none' to 'display: flex' */
   justify-content: center;
   align-items: center;
-  z-index: 9999;
+  z-index: 10001;  /* Changed from 9999 to 10001 - higher than loading screen */
   opacity: 1;
   transition: opacity 0.8s ease;
   cursor: pointer;
-}
-
-#splash-screen:not(.hidden) {
-  display: flex;
 }
 
 #splash-screen.fade-out {
@@ -101,15 +97,8 @@
   pointer-events: none;
 }
 
-@keyframes fadeInSplash {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.splash-content {
+  text-align: center;
 }
 
 .splash-text {
@@ -129,31 +118,14 @@
   }
 }
 
-/* Page Transitions */
-.page-transition {
-  animation: pageEnter 0.6s ease-out;
+/* Hide loading screen until splash is dismissed */
+body:not(.splash-dismissed) #loading-screen {
+  display: none;
 }
 
-@keyframes pageEnter {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.section-fade {
+body:not(.splash-dismissed) .container {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-
-.section-fade.visible {
-  opacity: 1;
-  transform: translateY(0);
+  visibility: hidden;
 }
 
 /* Reset & Base Styling */
@@ -261,11 +233,6 @@ h1 {
   transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
 }
 
-.container.visible {
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.8s ease-in, visibility 0s 0s;
-}
 
 .card {
   background: rgba(255, 255, 255, 0.15);
@@ -1161,23 +1128,15 @@ h1 {
   }
 }
 
-/* Prevent flash of content before splash screen */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #000000;
-  z-index: 9998;
-  pointer-events: none;
-  opacity: 1;
-  transition: opacity 0.8s ease;
+/* Prevent flash of content - simplified approach */
+body:not(.content-visible) .container {
+  opacity: 0;
+  visibility: hidden;
 }
 
-body.splash-ready::before {
-  opacity: 0;
+body.content-visible .container {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Hide decorative images initially */
@@ -1187,8 +1146,7 @@ body.splash-ready::before {
   transition: opacity 1s ease;
 }
 
-body.content-visible .decorative-image,
-body.content-visible .image5 {
+body.content-visible .decorative-image {
   opacity: 0.4 !important;
 }
 
