@@ -740,6 +740,27 @@ class EnkaAPI {
     this.elementIds = config.elementIds;
     this.proxies = [
       {
+        name: 'AllOrigins',
+        url: (apiUrl) => `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`,
+        parse: (data) => {
+          // AllOrigins wraps response in { contents: "..." }
+          if (data.contents) {
+            try {
+              return JSON.parse(data.contents);
+            } catch (e) {
+              console.warn('AllOrigins parse error:', e);
+              return null;
+            }
+          }
+          return data;
+        }
+      },
+      {
+        name: 'CodeTabs',
+        url: (apiUrl) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`,
+        parse: (data) => data
+      },
+      {
         name: 'CORSProxy.io',
         url: (apiUrl) => `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`,
         parse: (data) => data
@@ -750,60 +771,18 @@ class EnkaAPI {
         parse: (data) => data
       },
       {
-        name: 'AllOrigins',
-        url: (apiUrl) => `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`,
-        parse: (data) => {
-          try {
-            return JSON.parse(data.contents);
-          } catch {
-            return null;
-          }
-        }
-      },
-      {
         name: 'CORS.SH',
         url: (apiUrl) => `https://cors.sh/${apiUrl}`,
         parse: (data) => data
       },
       {
-        name: 'Proxy CORS',
-        url: (apiUrl) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`,
-        parse: (data) => data
-      },
-      {
-        name: 'CrossOrigin.me',
-        url: (apiUrl) => `https://crossorigin.me/${apiUrl}`,
-        parse: (data) => data
-      },
-      {
-        name: 'YACD',
-        url: (apiUrl) => `https://yacd.haishan.me/cors/${apiUrl}`,
-        parse: (data) => data
-      },
-      {
-        name: 'CORS Anywhere Heroku',
+        name: 'CORS Anywhere',
         url: (apiUrl) => `https://cors-anywhere.herokuapp.com/${apiUrl}`,
         parse: (data) => data
       },
       {
         name: 'JSONProxy',
         url: (apiUrl) => `https://jsonp.afeld.me/?url=${encodeURIComponent(apiUrl)}`,
-        parse: (data) => data
-      },
-      {
-        name: 'Whatever Origin',
-        url: (apiUrl) => `https://whatever-origin.herokuapp.com/get?url=${encodeURIComponent(apiUrl)}`,
-        parse: (data) => {
-          try {
-            return JSON.parse(data.contents);
-          } catch {
-            return null;
-          }
-        }
-      },
-      {
-        name: 'CORS Proxy',
-        url: (apiUrl) => `https://corsproxy.org/?${encodeURIComponent(apiUrl)}`,
         parse: (data) => data
       },
       {
@@ -826,58 +805,83 @@ class EnkaAPI {
 
     const apiUrl = `${this.baseURL}/${uid}`;
     
-    try {
-      console.log(`Fetching ${this.game} data for UID:`, uid);
-      
-      for (const proxy of this.proxies) {
-        try {
-          console.log(`Trying ${this.game} with ${proxy.name}...`);
-          
-          const proxyUrl = proxy.url(apiUrl);
-          const response = await fetch(proxyUrl, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' }
-          });
-          
-          if (!response.ok) {
-            console.warn(`${proxy.name} failed with status ${response.status}`);
-            continue;
-          }
-          
-          const data = await response.json();
-          const apiData = proxy.parse(data);
-          
-          if (!this.validateData(apiData)) {
-            console.warn(`${proxy.name} returned invalid data structure`);
-            continue;
-          }
-          
-          console.log(`✅ Successfully fetched ${this.game} data using ${proxy.name}`);
-          this.showLoading(false);
-          this.displayPlayerData(apiData);
-          this.showPlayerInfo();
-          return;
-          
-        } catch (error) {
-          console.warn(`${proxy.name} error:`, error.message);
+    console.log(`\n${'='.repeat(80)}`);
+    console.log(`🎮 Testing ${this.game} - UID: ${uid}`);
+    console.log(`🔗 API URL: ${apiUrl}`);
+    console.log(`${'='.repeat(80)}\n`);
+    
+    for (const proxy of this.proxies) {
+      try {
+        console.log(`\n🔄 Trying ${proxy.name}...`);
+        
+        const proxyUrl = proxy.url(apiUrl);
+        console.log(`   Proxy URL: ${proxyUrl}`);
+        
+        const response = await fetch(proxyUrl, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
+        
+        console.log(`   Status: ${response.status} ${response.statusText}`);
+        
+        if (!response.ok) {
+          console.warn(`   ❌ ${proxy.name} failed with status ${response.status}`);
           continue;
         }
+        
+        const data = await response.json();
+        console.log(`   ✅ ${proxy.name} SUCCESS!`);
+        
+        // Parse the data based on proxy type
+        let apiData = proxy.parse(data);
+        
+        if (proxy.name === 'AllOrigins' && data.contents) {
+          console.log(`   📦 Parsing AllOrigins wrapper...`);
+          try {
+            apiData = JSON.parse(data.contents);
+            console.log(`   ✅ Successfully parsed AllOrigins contents`);
+          } catch (e) {
+            console.warn(`   ⚠️ Failed to parse AllOrigins contents:`, e.message);
+            continue;
+          }
+        }
+        
+        console.log(`   📊 Data structure:`, apiData);
+        
+        // Validate data
+        if (!this.validateData(apiData)) {
+          console.warn(`   ❌ ${proxy.name} returned invalid data structure`);
+          console.log(`   Expected fields not found`);
+          continue;
+        }
+        
+        console.log(`\n🎉 SUCCESS! Using ${proxy.name} for ${this.game}`);
+        console.log(`${'='.repeat(80)}\n`);
+        
+        this.showLoading(false);
+        this.hideError();
+        this.displayPlayerData(apiData);
+        this.showPlayerInfo();
+        return;
+        
+      } catch (error) {
+        console.warn(`   ❌ ${proxy.name} error:`, error.message);
+        continue;
       }
-      
-      console.log(`All ${this.game} proxies failed, using mock data`);
-      this.showError('Unable to fetch live data. Displaying demo data.');
-      const apiData = this.getMockData();
-      this.showLoading(false);
-      this.displayPlayerData(apiData);
-      this.showPlayerInfo();
-      
-    } catch (error) {
-      console.error(`Error fetching ${this.game} data:`, error);
-      this.showError('Failed to fetch player data. Displaying demo data.');
-      this.showLoading(false);
-      this.displayPlayerData(this.getMockData());
-      this.showPlayerInfo();
     }
+    
+    // All proxies failed
+    console.error(`\n💔 All ${this.game} proxies failed`);
+    console.log(`Possible reasons:`);
+    console.log(`  • API is down or rate-limited`);
+    console.log(`  • UID is invalid or private`);
+    console.log(`  • All proxy services are blocked`);
+    console.log(`  • Try again in a few minutes\n`);
+    
+    this.showError('Unable to fetch live data. Displaying demo data.');
+    this.showLoading(false);
+    this.displayPlayerData(this.getMockData());
+    this.showPlayerInfo();
   }
 
   showLoading(show) {
@@ -941,82 +945,96 @@ class HSREnkaAPI extends EnkaAPI {
         signature: "Demo data - API unavailable",
         headIcon: 201409,
         recordInfo: {
-          achievementCount: 800,
-          maxRogueChallengeScore: 9,
-          bookCount: 110
+          achievementCount: 10,
+          maxRogueChallengeScore: 90,
+          equipmentCount: 790
         }
       }
     };
   }
 
   validateData(data) {
-  // Check both direct structure and wrapped structure
-  if (data && data.detailInfo) return true;
-  if (data && data.uid && data.ttl) return true;
-  return false;
-}
+    // Check both direct structure and wrapped structure
+    if (data && data.detailInfo) return true;
+    if (data && data.uid && data.ttl) return true;
+    return false;
+  }
 
   displayPlayerData(data) {
-    const info = data.detailInfo;
-    
-    // Set avatar - HSR uses headIcon field
-    const avatarImg = document.getElementById('player-avatar');
-    if (avatarImg) {
-      // Use Enka.network CDN for HSR avatars
-      const avatarUrl = info.headIcon 
-        ? `https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/${info.headIcon}.png`
-        : 'https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png';
-      avatarImg.src = avatarUrl;
-      avatarImg.onerror = () => {
-        avatarImg.src = 'https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png';
-      };
+    try {
+      const info = data.detailInfo;
+      
+      if (!info) {
+        console.error('❌ HSR: detailInfo not found in data');
+        return;
+      }
+      
+      console.log('🔍 HSR: Displaying player data:', info);
+      
+      // Set avatar - HSR uses headIcon field
+      const avatarImg = document.getElementById('player-avatar');
+      if (avatarImg) {
+        // Use Enka.network CDN for HSR avatars
+        const avatarUrl = info.headIcon 
+          ? `https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/${info.headIcon}.png`
+          : 'https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png';
+        avatarImg.src = avatarUrl;
+        avatarImg.onerror = () => {
+          avatarImg.src = 'https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png';
+        };
+      }
+      
+      // Set nickname
+      const nicknameEl = document.getElementById('player-nickname');
+      if (nicknameEl) nicknameEl.textContent = info.nickname || 'Trailblazer';
+      
+      // Set level
+      const levelEl = document.getElementById('player-level');
+      if (levelEl) levelEl.textContent = info.level || 70;
+      
+      // Set world level
+      const worldLevelEl = document.getElementById('world-level');
+      if (worldLevelEl) worldLevelEl.textContent = info.worldLevel || 6;
+      
+      // Set signature
+      const signatureEl = document.getElementById('player-signature');
+      if (signatureEl) signatureEl.textContent = info.signature || 'May this journey lead us starward.';
+      
+      // Set achievements
+      const achievementEl = document.getElementById('achievement-count');
+      if (achievementEl) achievementEl.textContent = info.recordInfo?.achievementCount || 0;
+      
+      // Set Simulated Universe stars
+      const suStarsEl = document.getElementById('su-stars');
+      if (suStarsEl) suStarsEl.textContent = info.recordInfo?.maxRogueChallengeScore || 0;
+      
+      // Set Light Cones count
+      const lightConesEl = document.getElementById('hsr-exploration');
+      if (lightConesEl) lightConesEl.textContent = info.recordInfo?.equipmentCount || 0;
+      
+      // Set UID
+      const uidEl = document.getElementById('player-uid');
+      if (uidEl) uidEl.textContent = data.uid || this.configuredUID;
+      
+      // Setup copy button
+      const copyBtn = document.getElementById('copy-hsr-uid');
+      if (copyBtn) {
+        copyBtn.onclick = () => {
+          navigator.clipboard.writeText(data.uid || this.configuredUID);
+          copyBtn.textContent = '✔ Copied!';
+          setTimeout(() => {
+            copyBtn.textContent = '📋 Copy';
+          }, 2000);
+        };
+      }
+      
+      console.log('✅ HSR: Successfully displayed player data');
+      this.showPlayerInfo();
+      
+    } catch (error) {
+      console.error('❌ HSR: Error displaying player data:', error);
+      console.error('Data received:', data);
     }
-    
-    // Set nickname
-    const nicknameEl = document.getElementById('player-nickname');
-    if (nicknameEl) nicknameEl.textContent = info.nickname || 'Trailblazer';
-    
-    // Set level
-    const levelEl = document.getElementById('player-level');
-    if (levelEl) levelEl.textContent = info.level || 70;
-    
-    // Set world level
-    const worldLevelEl = document.getElementById('world-level');
-    if (worldLevelEl) worldLevelEl.textContent = info.worldLevel || 6;
-    
-    // Set signature
-    const signatureEl = document.getElementById('player-signature');
-    if (signatureEl) signatureEl.textContent = info.signature || 'May this journey lead us starward.';
-    
-    // Set achievements
-    const achievementEl = document.getElementById('achievement-count');
-    if (achievementEl) achievementEl.textContent = info.recordInfo?.achievementCount || 0;
-    
-    // Set Simulated Universe stars
-    const suStarsEl = document.getElementById('su-stars');
-    if (suStarsEl) suStarsEl.textContent = info.recordInfo?.maxRogueChallengeScore || 0;
-    
-    // Set exploration percentage
-    const explorationEl = document.getElementById('hsr-exploration');
-    if (explorationEl) explorationEl.textContent = `${info.recordInfo?.bookCount || 0}%`;
-    
-    // Set UID
-    const uidEl = document.getElementById('player-uid');
-    if (uidEl) uidEl.textContent = data.uid || this.configuredUID;
-    
-    // Setup copy button
-    const copyBtn = document.getElementById('copy-hsr-uid');
-    if (copyBtn) {
-      copyBtn.onclick = () => {
-        navigator.clipboard.writeText(data.uid || this.configuredUID);
-        copyBtn.textContent = '✓ Copied!';
-        setTimeout(() => {
-          copyBtn.textContent = '📋 Copy';
-        }, 2000);
-      };
-    }
-    
-    this.showPlayerInfo();
   }
 }
 
@@ -1051,8 +1069,8 @@ class ZZZEnkaAPI extends EnkaAPI {
           },
           Desc: 'skibidi',
           MedalList: [
-            { MedalType: 1, Value: 6 },
-            { MedalType: 3, Value: 7 },
+            { MedalType: 3, Value: 0 },
+            { MedalType: 1, Value: 0 },
             { MedalType: 7, Value: 0 }
           ]
         }
@@ -1061,11 +1079,11 @@ class ZZZEnkaAPI extends EnkaAPI {
   }
 
   validateData(data) {
-  // Check both direct structure and wrapped structure  
-  if (data && data.PlayerInfo && data.PlayerInfo.SocialDetail) return true;
-  if (data && data.uid && data.ttl) return true;
-  return false;
-}
+    // Check both direct structure and wrapped structure  
+    if (data && data.PlayerInfo && data.PlayerInfo.SocialDetail) return true;
+    if (data && data.uid && data.ttl) return true;
+    return false;
+  }
 
   displayPlayerData(data) {
     const socialDetail = data.PlayerInfo.SocialDetail;
@@ -1096,15 +1114,15 @@ class ZZZEnkaAPI extends EnkaAPI {
     // Extract medal data for stats
     const medals = socialDetail.MedalList || [];
     
-    // Shiyu Defense is MedalType 1
-    const shiyuMedal = medals.find(m => m.MedalType === 1);
-    const shiyuEl = document.getElementById('shiyu-defense');
-    if (shiyuEl) shiyuEl.textContent = shiyuMedal?.Value || 0;
-    
     // Line Breaker is MedalType 3
     const lineBreakerMedal = medals.find(m => m.MedalType === 3);
     const lineBreakerEl = document.getElementById('line-breaker');
     if (lineBreakerEl) lineBreakerEl.textContent = lineBreakerMedal?.Value || 0;
+    
+    // Shiyu Defense is MedalType 1
+    const shiyuMedal = medals.find(m => m.MedalType === 1);
+    const shiyuEl = document.getElementById('shiyu-defense');
+    if (shiyuEl) shiyuEl.textContent = shiyuMedal?.Value || 0;
     
     // Disintegration is MedalType 7
     const disintegrationMedal = medals.find(m => m.MedalType === 7);
@@ -1120,7 +1138,7 @@ class ZZZEnkaAPI extends EnkaAPI {
     if (copyBtn) {
       copyBtn.onclick = () => {
         navigator.clipboard.writeText(profileDetail.Uid || data.uid || this.configuredUID);
-        copyBtn.textContent = '✓ Copied!';
+        copyBtn.textContent = '✔ Copied!';
         setTimeout(() => {
           copyBtn.textContent = '📋 Copy';
         }, 2000);
