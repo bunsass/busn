@@ -83,10 +83,12 @@ function setupSplashScreen() {
     splashScreen.style.opacity = '0';
     splashScreen.style.pointerEvents = 'none';
     
-    // Make container visible smoothly
+    // Make container visible smoothly - iOS FIX
     if (container) {
-      container.style.transition = 'opacity 0.8s ease-in';
-      container.style.opacity = '1';
+      // Force reflow to ensure transition works on iOS
+      container.offsetHeight;
+      container.classList.add('visible');
+      console.log("Container made visible");
     }
     
     setTimeout(() => {
@@ -743,7 +745,6 @@ class EnkaAPI {
         name: 'AllOrigins',
         url: (apiUrl) => `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`,
         parse: (data) => {
-          // AllOrigins wraps response in { contents: "..." }
           if (data.contents) {
             try {
               return JSON.parse(data.contents);
@@ -832,7 +833,6 @@ class EnkaAPI {
         const data = await response.json();
         console.log(`   ✅ ${proxy.name} SUCCESS!`);
         
-        // Parse the data based on proxy type
         let apiData = proxy.parse(data);
         
         if (proxy.name === 'AllOrigins' && data.contents) {
@@ -848,7 +848,6 @@ class EnkaAPI {
         
         console.log(`   📊 Data structure:`, apiData);
         
-        // Validate data
         if (!this.validateData(apiData)) {
           console.warn(`   ❌ ${proxy.name} returned invalid data structure`);
           console.log(`   Expected fields not found`);
@@ -870,7 +869,6 @@ class EnkaAPI {
       }
     }
     
-    // All proxies failed
     console.error(`\n💔 All ${this.game} proxies failed`);
     console.log(`Possible reasons:`);
     console.log(`  • API is down or rate-limited`);
@@ -954,7 +952,6 @@ class HSREnkaAPI extends EnkaAPI {
   }
 
   validateData(data) {
-    // Check both direct structure and wrapped structure
     if (data && data.detailInfo) return true;
     if (data && data.uid && data.ttl) return true;
     return false;
@@ -971,10 +968,8 @@ class HSREnkaAPI extends EnkaAPI {
       
       console.log('🔍 HSR: Displaying player data:', info);
       
-      // Set avatar - HSR uses headIcon field
       const avatarImg = document.getElementById('player-avatar');
       if (avatarImg) {
-        // Use Enka.network CDN for HSR avatars
         const avatarUrl = info.headIcon 
           ? `https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/${info.headIcon}.png`
           : 'https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png';
@@ -984,44 +979,35 @@ class HSREnkaAPI extends EnkaAPI {
         };
       }
       
-      // Set nickname
       const nicknameEl = document.getElementById('player-nickname');
       if (nicknameEl) nicknameEl.textContent = info.nickname || 'Trailblazer';
       
-      // Set level
       const levelEl = document.getElementById('player-level');
       if (levelEl) levelEl.textContent = info.level || 70;
       
-      // Set world level
       const worldLevelEl = document.getElementById('world-level');
       if (worldLevelEl) worldLevelEl.textContent = info.worldLevel || 6;
       
-      // Set signature
       const signatureEl = document.getElementById('player-signature');
       if (signatureEl) signatureEl.textContent = info.signature || 'May this journey lead us starward.';
       
-      // Set achievements
       const achievementEl = document.getElementById('achievement-count');
       if (achievementEl) achievementEl.textContent = info.recordInfo?.achievementCount || 0;
       
-      // Set Simulated Universe stars
       const suStarsEl = document.getElementById('su-stars');
       if (suStarsEl) suStarsEl.textContent = info.recordInfo?.maxRogueChallengeScore || 0;
       
-      // Set Light Cones count
-      const lightConesEl = document.getElementById('hsr-exploration');
+      const lightConesEl = document.getElementById('lightcones-count');
       if (lightConesEl) lightConesEl.textContent = info.recordInfo?.equipmentCount || 0;
       
-      // Set UID
       const uidEl = document.getElementById('player-uid');
       if (uidEl) uidEl.textContent = data.uid || this.configuredUID;
       
-      // Setup copy button
       const copyBtn = document.getElementById('copy-hsr-uid');
       if (copyBtn) {
         copyBtn.onclick = () => {
           navigator.clipboard.writeText(data.uid || this.configuredUID);
-          copyBtn.textContent = '✔ Copied!';
+          copyBtn.textContent = '✓ Copied!';
           setTimeout(() => {
             copyBtn.textContent = '📋 Copy';
           }, 2000);
@@ -1079,7 +1065,6 @@ class ZZZEnkaAPI extends EnkaAPI {
   }
 
   validateData(data) {
-    // Check both direct structure and wrapped structure  
     if (data && data.PlayerInfo && data.PlayerInfo.SocialDetail) return true;
     if (data && data.uid && data.ttl) return true;
     return false;
@@ -1089,56 +1074,45 @@ class ZZZEnkaAPI extends EnkaAPI {
     const socialDetail = data.PlayerInfo.SocialDetail;
     const profileDetail = socialDetail.ProfileDetail;
     
-    // Set avatar - hardcoded to your ZZZ avatar
     const avatarImg = document.getElementById('zzz-player-avatar');
     if (avatarImg) {
-      // Use Enka.network CDN with your specific avatar
       avatarImg.src = 'https://enka.network/ui/zzz/IconInterKnotRole0013.png';
       avatarImg.onerror = () => {
         avatarImg.src = 'https://raw.githubusercontent.com/bunsass/busn/main/asset/Sticker_PPG_24_Evernight_03.webp';
       };
     }
     
-    // Set nickname
     const nicknameEl = document.getElementById('zzz-player-nickname');
     if (nicknameEl) nicknameEl.textContent = profileDetail.Nickname || 'Proxy';
     
-    // Set level
     const levelEl = document.getElementById('zzz-player-level');
     if (levelEl) levelEl.textContent = profileDetail.Level || 60;
     
-    // Set signature (from Desc field)
     const signatureEl = document.getElementById('zzz-player-signature');
     if (signatureEl) signatureEl.textContent = socialDetail.Desc || 'Welcome to New Eridu!';
     
-    // Extract medal data for stats
     const medals = socialDetail.MedalList || [];
     
-    // Line Breaker is MedalType 3
     const lineBreakerMedal = medals.find(m => m.MedalType === 3);
     const lineBreakerEl = document.getElementById('line-breaker');
     if (lineBreakerEl) lineBreakerEl.textContent = lineBreakerMedal?.Value || 0;
     
-    // Shiyu Defense is MedalType 1
     const shiyuMedal = medals.find(m => m.MedalType === 1);
     const shiyuEl = document.getElementById('shiyu-defense');
     if (shiyuEl) shiyuEl.textContent = shiyuMedal?.Value || 0;
     
-    // Disintegration is MedalType 7
     const disintegrationMedal = medals.find(m => m.MedalType === 7);
     const disintegrationEl = document.getElementById('disintegration');
     if (disintegrationEl) disintegrationEl.textContent = disintegrationMedal?.Value || 0;
     
-    // Set UID
     const uidEl = document.getElementById('zzz-player-uid');
     if (uidEl) uidEl.textContent = profileDetail.Uid || data.uid || this.configuredUID;
     
-    // Setup copy button
     const copyBtn = document.getElementById('copy-zzz-uid');
     if (copyBtn) {
       copyBtn.onclick = () => {
         navigator.clipboard.writeText(profileDetail.Uid || data.uid || this.configuredUID);
-        copyBtn.textContent = '✔ Copied!';
+        copyBtn.textContent = '✓ Copied!';
         setTimeout(() => {
           copyBtn.textContent = '📋 Copy';
         }, 2000);
