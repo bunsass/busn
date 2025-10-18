@@ -1,3 +1,17 @@
+/* Fix white flash on iOS - ADD THIS NEW SECTION */
+body, html {
+  background-color: #0a0a0f !important;
+}
+
+.container {
+  opacity: 0;
+  transition: opacity 0.8s ease-in;
+}
+
+/* Make container visible after splash */
+.container.visible {
+  opacity: 1;
+}
 /* Loading Screen */
 #loading-screen {
   position: fixed;
@@ -537,34 +551,6 @@ h1 {
 
 #visualizer.active {
   opacity: 1;
-}
-
-#album-art-container {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-  position: relative;
-}
-
-#album-art-container:hover {
-  transform: scale(1.1);
-}
-
-#album-art {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  border: 4px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.6);
-  object-fit: cover;
-  display: block;
-}
-
-#album-art.playing {
-  animation: spin 4s linear infinite;
-  will-change: transform;
 }
 
 @keyframes spin {
@@ -1156,4 +1142,42 @@ h1 {
     max-width: 70vw;
     opacity: 0.1;
   }
+}
+/* Your existing CSS - KEEP THIS */
+#album-art-container {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  position: relative;
+  /* ADD THESE TWO LINES */
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+#album-art-container:hover {
+  transform: scale(1.1);
+}
+
+#album-art {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.6);
+  object-fit: cover;
+  display: block;
+  /* ADD THESE LINES */
+  visibility: visible !important;
+  opacity: 1 !important;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  image-rendering: -webkit-optimize-contrast;
+}
+
+#album-art.playing {
+  animation: spin 4s linear infinite;
+  will-change: transform;
 }
