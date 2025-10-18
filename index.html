@@ -2,11 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="color-scheme" content="dark">
-  <meta name="theme-color" content="#0a0a0f">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Profile</title>
   <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/bunsass/busn/refs/heads/main/asset/Sticker_PPG_24_Evernight_02.ico">
   <link rel="stylesheet" href="style.css">
@@ -29,7 +25,7 @@
   </div>
 
   <!-- Splash Screen -->
-  <div id="splash-screen">
+  <div id="splash-screen" class="hidden">
     <div class="splash-content">
       <p class="splash-text">Click to continue</p>
     </div>
@@ -42,7 +38,7 @@
     <h1 id="greeting" class="parallax-slow"></h1>
     
     <div style="text-align: center;">
-      <div class="glitch-text parallax-medium">ãƒãƒ³ã‚µã‚¹</div>
+      <div class="glitch-text parallax-medium">バンサス</div>
     </div>
 
     <!-- About Me -->
@@ -122,8 +118,8 @@
               </div>
               <div class="achievement-info">
                 <span class="achievement-number" id="hsr-exploration"></span>
-                <div class="achievement-icon">🗺️</div>
-                <span class="achievement-text">Exploration</span>
+                <div class="achievement-icon">⚡</div>
+                <span class="achievement-text">Light Cones</span>
               </div>
               <div class="uid-info">
                 <span class="uid-text">UID: <span id="player-uid"></span></span>
@@ -164,14 +160,14 @@
             
             <div class="player-right">
               <div class="achievement-info">
-                <span class="achievement-number" id="shiyu-defense"></span>
-                <div class="achievement-icon">🛡️</div>
-                <span class="achievement-text">Shiyu Defense</span>
-              </div>
-              <div class="achievement-info">
                 <span class="achievement-number" id="line-breaker"></span>
                 <div class="achievement-icon">⚔️</div>
                 <span class="achievement-text">Line Breaker</span>
+              </div>
+              <div class="achievement-info">
+                <span class="achievement-number" id="shiyu-defense"></span>
+                <div class="achievement-icon">🛡️</div>
+                <span class="achievement-text">Shiyu Defense</span>
               </div>
               <div class="achievement-info">
                 <span class="achievement-number" id="disintegration"></span>
@@ -222,39 +218,18 @@
       <label for="volume">🔊</label>
       <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5" aria-label="Volume control">
     </div>
-    <button class="control-btn" id="prev" aria-label="Previous song">⏮️ Previous</button>
+    <button class="control-btn" id="prev" aria-label="Previous song">⮜️ Previous</button>
     <button class="control-btn" id="play-pause" aria-label="Play or pause">▶️ Play</button>
-    <button class="control-btn" id="next" aria-label="Next song">⏭️ Next</button>
+    <button class="control-btn" id="next" aria-label="Next song">⭢️ Next</button>
     <button class="control-btn close-btn" id="close-controls" aria-label="Close controls">✖ Close</button>
   </div>
 
   <audio id="audio" crossorigin="anonymous"></audio>
 
-  <!-- Decorative Images with better loading -->
-  <img class="decorative-image image1 parallax-slow" 
-       src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_3.webp" 
-       alt="Decorative character art" 
-       loading="eager"
-       crossorigin="anonymous">
-  <img class="decorative-image image2 parallax-slow" 
-       src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_2.webp" 
-       alt="Decorative character art" 
-       loading="eager"
-       crossorigin="anonymous">
-  <img class="decorative-image image3 parallax-slow" 
-       src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_6.webp" 
-       alt="Decorative character art" 
-       loading="eager"
-       crossorigin="anonymous">
-  <img class="decorative-image image4 parallax-slow" 
-       src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_5.webp" 
-       alt="Decorative character art" 
-       loading="eager"
-       crossorigin="anonymous">
-  <img class="image5" 
-       src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Sticker_PPG_24_Evernight_03.webp" 
-       alt="Central decorative character" 
-       loading="eager"
-       crossorigin="anonymous">
+  <img class="decorative-image image1 parallax-slow" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_3.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
+  <img class="decorative-image image2 parallax-slow" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_2.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
+  <img class="decorative-image image3 parallax-slow" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_6.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
+  <img class="decorative-image image4 parallax-slow" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_5.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
+  <img class="image5" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Sticker_PPG_24_Evernight_03.webp" alt="Central decorative character" loading="lazy" onerror="this.style.display='none'">
 </body>
 </html>
