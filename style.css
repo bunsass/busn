@@ -1153,3 +1153,32 @@ body.content-visible .decorative-image {
 body.content-visible .image5 {
   opacity: 0.2 !important;
 }
+/* Pulsing indicator for music player when interaction needed */
+#music-player.needs-interaction {
+  animation: pulseAttention 2s ease-in-out infinite;
+}
+
+#music-player.needs-interaction::after {
+  content: 'Tap to play music';
+  position: absolute;
+  bottom: -30px;
+  right: 0;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@keyframes pulseAttention {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px 10px rgba(139, 92, 246, 0);
+  }
+}
