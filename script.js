@@ -15,7 +15,19 @@ const debounce = (func, wait) => {
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
 const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 const particleCount = isMobile ? 5 : 30;
+
+// Fix for Safari full-screen viewport issues
+if (isIOS || isSafari) {
+  const fixViewport = () => {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+  };
+  fixViewport();
+  window.addEventListener('resize', fixViewport);
+  window.addEventListener('orientationchange', fixViewport);
+}
 
 // ========================================
 // Global State
@@ -28,7 +40,6 @@ let hasUserInteracted = false;
 window.addEventListener('load', () => {
   const loadingScreen = document.getElementById('loading-screen');
   
-  // Hide loading screen after minimum time
   setTimeout(() => {
     if (loadingScreen) {
       loadingScreen.classList.add('fade-out');
@@ -36,7 +47,7 @@ window.addEventListener('load', () => {
         loadingScreen.style.display = 'none';
       }, 800);
     }
-  }, 2000); // 2 second loading time
+  }, 2000);
 });
 
 // ========================================
@@ -58,95 +69,55 @@ document.addEventListener('DOMContentLoaded', () => {
     
     console.log("Splash screen clicked - starting experience");
     
-    // Mark for CSS transitions
     document.body.classList.add('splash-dismissed');
     document.body.classList.add('content-visible');
     
-    // Fade out splash
     splashScreen.classList.add('fade-out');
     
-    // Show container
     if (container) {
       container.classList.add('visible');
     }
     
-    // Remove splash after fade
     setTimeout(() => {
       splashScreen.style.display = 'none';
     }, 800);
     
-    // Initialize and play audio
     if (audio && songs.length > 0) {
       audio.volume = 0.5;
+      audio.load();
       loadSong(currentSongIndex);
       
-      // Try to autoplay
-      const playPromise = audio.play();
+      const playAttempt = () => {
+        const playPromise = audio.play();
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log("Audio autoplay successful");
+              updateAudioUI(true);
+            })
+            .catch(err => {
+              console.warn("Audio autoplay blocked:", err);
+              console.log("Audio ready for manual play");
+            });
+        }
+      };
       
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            console.log("Audio autoplay successful");
-            const albumArt = document.getElementById('album-art');
-            if (albumArt) albumArt.classList.add('playing');
-            
-            const playPauseBtn = document.getElementById('play-pause');
-            if (playPauseBtn) playPauseBtn.textContent = '⏸ Pause';
-            
-            const songInfo = document.getElementById('song-info');
-            if (songInfo) {
-              songInfo.textContent = `♪ ${songs[currentSongIndex].title}`;
-              songInfo.classList.add('show');
-            }
-            
-            // Setup visualizer
-            if (!audioContext) {
-              setupAudioContext();
-            }
-            if (audioContext) {
-              visualizerCanvas.classList.add('active');
-              isVisualizerActive = true;
-              drawVisualizer();
-            }
-          })
-          .catch(err => {
-            console.warn("Audio autoplay blocked:", err);
-            // Fallback: play on next user interaction
-            document.addEventListener('click', function playOnInteraction() {
-              audio.play().then(() => {
-                console.log("Audio started after additional interaction");
-                const albumArt = document.getElementById('album-art');
-                if (albumArt) albumArt.classList.add('playing');
-                
-                const playPauseBtn = document.getElementById('play-pause');
-                if (playPauseBtn) playPauseBtn.textContent = '⏸ Pause';
-                
-                if (!audioContext) setupAudioContext();
-                if (audioContext) {
-                  visualizerCanvas.classList.add('active');
-                  isVisualizerActive = true;
-                  drawVisualizer();
-                }
-                
-                document.removeEventListener('click', playOnInteraction);
-              });
-            }, { once: true });
-          });
-      }
+      playAttempt();
     }
     
-    // Start typewriter effect
     setTimeout(() => {
       typeWriterEffect();
     }, 300);
   }
   
-  // Attach listeners
   splashScreen.addEventListener('click', handleSplashClick, { once: true });
-  splashScreen.addEventListener('touchstart', handleSplashClick, { once: true, passive: false });
+  splashScreen.addEventListener('touchend', handleSplashClick, { once: true, passive: false });
 });
 
-
+// ========================================
+// Cursor Trail (Desktop Only)
+// ========================================
 if (!isMobile) {
   const canvas = document.getElementById('cursor-trail');
   const ctx = canvas.getContext('2d');
@@ -353,22 +324,47 @@ const volumeSlider = document.getElementById('volume');
 const songInfo = document.getElementById('song-info');
 const musicControls = document.getElementById('music-controls');
 
-// Visualizer Setup
 const visualizerCanvas = document.getElementById('visualizer');
 const visualizerCtx = visualizerCanvas.getContext('2d');
 visualizerCanvas.width = 120;
 visualizerCanvas.height = 60;
 
-let audioContext, analyser, dataArray, bufferLength, isVisualizerActive = false;
+let audioContext = null;
+let analyser = null;
 let sourceNode = null;
+let dataArray = null;
+let bufferLength = 0;
+let isVisualizerActive = false;
+
+function updateAudioUI(isPlaying) {
+  const albumArt = document.getElementById('album-art');
+  const playPauseBtn = document.getElementById('play-pause');
+  const songInfo = document.getElementById('song-info');
+  
+  if (isPlaying) {
+    if (albumArt) albumArt.classList.add('playing');
+    if (playPauseBtn) playPauseBtn.textContent = '⏸ Pause';
+    if (songInfo) {
+      songInfo.textContent = `♪ ${songs[currentSongIndex].title}`;
+      songInfo.classList.add('show');
+    }
+    
+    if (!audioContext) setupAudioContext();
+    if (audioContext) {
+      visualizerCanvas.classList.add('active');
+      isVisualizerActive = true;
+      drawVisualizer();
+    }
+  }
+}
 
 function setupAudioContext() {
   if (!audioContext) {
     try {
-      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioContext = new AudioContext();
       analyser = audioContext.createAnalyser();
       
-      // Only create source node once
       if (!sourceNode) {
         sourceNode = audioContext.createMediaElementSource(audio);
         sourceNode.connect(analyser);
@@ -378,12 +374,22 @@ function setupAudioContext() {
       analyser.fftSize = 64;
       bufferLength = analyser.frequencyBinCount;
       dataArray = new Uint8Array(bufferLength);
+      
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+      
       return true;
     } catch (error) {
       console.warn('Audio visualizer not supported:', error);
       return false;
     }
   }
+  
+  if (audioContext.state === 'suspended') {
+    audioContext.resume();
+  }
+  
   return true;
 }
 
@@ -420,19 +426,33 @@ function loadSong(index) {
 }
 
 function playSong() {
-  // Setup visualizer only once
+  console.log("playSong called - current song:", songs[currentSongIndex].title);
+  
+  if (!audio.src || audio.src === '') {
+    console.log("No audio source, loading song");
+    loadSong(currentSongIndex);
+  }
+  
   if (!audioContext) {
     setupAudioContext();
   }
   
   if (audioContext && audioContext.state === 'suspended') {
-    audioContext.resume();
+    console.log("Resuming suspended audio context");
+    audioContext.resume().then(() => {
+      console.log("Audio context resumed");
+    });
+  }
+  
+  if (isIOS || isSafari) {
+    audio.load();
   }
   
   const playPromise = audio.play();
   
   if (playPromise !== undefined) {
     playPromise.then(() => {
+      console.log("Playback started successfully");
       albumArt.classList.add('playing');
       playPauseBtn.textContent = '⏸ Pause';
       songInfo.classList.add('show');
@@ -443,9 +463,22 @@ function playSong() {
         drawVisualizer();
       }
     }).catch(error => {
-      console.warn('Playback prevented:', error);
+      console.error('Playback prevented:', error);
+      console.log('Error details:', {
+        name: error.name,
+        message: error.message,
+        audioState: audio.readyState,
+        audioSrc: audio.src,
+        audioContextState: audioContext?.state
+      });
+      
       albumArt.classList.remove('playing');
       playPauseBtn.textContent = '▶ Play';
+      
+      if (error.name === 'NotAllowedError' || error.name === 'NotSupportedError') {
+        console.log("Attempting recovery...");
+        audio.load();
+      }
     });
   }
 }
@@ -486,8 +519,19 @@ function closeMenu() {
 albumArt.addEventListener('click', (e) => {
   e.stopPropagation();
   
+  console.log("Album art clicked");
+  console.log("Audio state:", {
+    paused: audio.paused,
+    src: audio.src,
+    readyState: audio.readyState,
+    hasUserInteracted: hasUserInteracted
+  });
+  
   if (audio.paused) {
-    if (!audio.src) loadSong(currentSongIndex);
+    if (!audio.src || audio.src === '') {
+      console.log("Loading song first");
+      loadSong(currentSongIndex);
+    }
     playSong();
   } else {
     pauseSong();
@@ -507,6 +551,31 @@ albumArt.addEventListener('dblclick', (e) => {
   e.preventDefault();
   playNextSong();
 });
+
+albumArt.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  
+  console.log("Album art touched");
+  
+  if (audio.paused) {
+    if (!audio.src || audio.src === '') {
+      loadSong(currentSongIndex);
+    }
+    playSong();
+  } else {
+    pauseSong();
+  }
+  
+  if (isMobile) {
+    menuOpen = !menuOpen;
+    if (menuOpen) {
+      musicControls.classList.add('show');
+    } else {
+      musicControls.classList.remove('show');
+    }
+  }
+}, { passive: false });
 
 if (!isMobile) {
   let hoverTimeout;
@@ -558,13 +627,31 @@ if (isMobile) {
 
 playPauseBtn.addEventListener('click', (e) => {
   e.stopPropagation();
+  e.preventDefault();
+  
+  console.log("Play/Pause button clicked");
+  
   if (audio.paused) {
-    if (!audio.src) loadSong(currentSongIndex);
+    if (!audio.src || audio.src === '') loadSong(currentSongIndex);
     playSong();
   } else {
     pauseSong();
   }
 });
+
+playPauseBtn.addEventListener('touchend', (e) => {
+  e.stopPropagation();
+  e.preventDefault();
+  
+  console.log("Play/Pause button touched");
+  
+  if (audio.paused) {
+    if (!audio.src || audio.src === '') loadSong(currentSongIndex);
+    playSong();
+  } else {
+    pauseSong();
+  }
+}, { passive: false });
 
 prevBtn.addEventListener('click', (e) => {
   e.stopPropagation();
@@ -646,7 +733,6 @@ function displayDiscordStatus(data) {
   
   const currentStatus = statusConfig[status] || statusConfig.offline;
   
-  // Find main activity (exclude custom status type 4)
   const activity = activities.find(a => a.type !== 4);
   
   let activityHTML = '';
@@ -694,9 +780,7 @@ function displayDiscordStatus(data) {
   `;
 }
 
-// Fetch Discord status on load
 fetchDiscordStatus();
-// Refresh every 30 seconds
 setInterval(fetchDiscordStatus, 30000);
 
 // ========================================
@@ -788,7 +872,12 @@ class EnkaAPI {
         
         const response = await fetch(proxyUrl, {
           method: 'GET',
-          headers: { 'Accept': 'application/json' }
+          headers: { 
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache'
+          },
+          mode: 'cors',
+          credentials: 'omit'
         });
         
         console.log(`   Status: ${response.status} ${response.statusText}`);
@@ -842,6 +931,7 @@ class EnkaAPI {
     console.log(`  • API is down or rate-limited`);
     console.log(`  • UID is invalid or private`);
     console.log(`  • All proxy services are blocked`);
+    console.log(`  • Safari full-screen mode may block CORS`);
     console.log(`  • Try again in a few minutes\n`);
     
     this.showError('Unable to fetch live data. Displaying demo data.');
