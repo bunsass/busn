@@ -16,6 +16,139 @@ const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/
 const particleCount = isMobile ? 5 : 30;
 
 // ========================================
+// Loading Screen
+// ========================================
+window.addEventListener('load', () => {
+  const loadingScreen = document.getElementById('loading-screen');
+  const splashScreen = document.getElementById('splash-screen');
+  
+  // Show splash screen immediately
+  splashScreen.classList.remove('hidden');
+  
+  setTimeout(() => {
+    loadingScreen.classList.add('fade-out');
+    setTimeout(() => {
+      loadingScreen.remove();
+    }, 800);
+  }, 2000);
+});
+
+// ========================================
+// Cursor Trail Effect
+// ========================================
+if (!isMobile) {
+  const canvas = document.getElementById('cursor-trail');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = [];
+  const maxParticles = 50;
+
+  class TrailParticle {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.size = Math.random() * 3 + 1;
+      this.speedX = Math.random() * 2 - 1;
+      this.speedY = Math.random() * 2 - 1;
+      this.life = 1;
+      this.decay = Math.random() * 0.02 + 0.01;
+      this.color = `hsl(${Math.random() * 60 + 260}, 70%, 60%)`;
+    }
+
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+      this.life -= this.decay;
+      this.size *= 0.98;
+    }
+
+    draw() {
+      ctx.fillStyle = this.color;
+      ctx.globalAlpha = this.life;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  document.addEventListener('mousemove', (e) => {
+    for (let i = 0; i < 2; i++) {
+      particles.push(new TrailParticle(e.clientX, e.clientY));
+    }
+    if (particles.length > maxParticles) {
+      particles.splice(0, 2);
+    }
+  });
+
+  function animateTrail() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    for (let i = particles.length - 1; i >= 0; i--) {
+      particles[i].update();
+      particles[i].draw();
+      
+      if (particles[i].life <= 0 || particles[i].size <= 0.5) {
+        particles.splice(i, 1);
+      }
+    }
+    
+    requestAnimationFrame(animateTrail);
+  }
+
+  animateTrail();
+
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+}
+
+// ========================================
+// Parallax Scrolling
+// ========================================
+window.addEventListener('scroll', () => {
+  const scrolled = window.pageYOffset;
+  
+  const slowElements = document.querySelectorAll('.parallax-slow');
+  const mediumElements = document.querySelectorAll('.parallax-medium');
+  const fastElements = document.querySelectorAll('.parallax-fast');
+  
+  slowElements.forEach(el => {
+    el.style.transform = `translateY(${scrolled * 0.1}px)`;
+  });
+  
+  mediumElements.forEach(el => {
+    el.style.transform = `translateY(${scrolled * 0.3}px)`;
+  });
+  
+  fastElements.forEach(el => {
+    el.style.transform = `translateY(${scrolled * -0.05}px)`;
+  });
+});
+
+// ========================================
+// Smooth Section Transitions
+// ========================================
+const observerOptions = {
+  threshold: 0.1,
+  rootMargin: '0px 0px -100px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, observerOptions);
+
+document.querySelectorAll('.section-fade').forEach(el => {
+  observer.observe(el);
+});
+
+// ========================================
 // Splash Screen & Autoplay
 // ========================================
 const splashScreen = document.getElementById('splash-screen');
@@ -23,10 +156,14 @@ const splashScreen = document.getElementById('splash-screen');
 splashScreen.addEventListener('click', () => {
   splashScreen.classList.add('fade-out');
   
-  if (!audio.src) {
-    loadSong(currentSongIndex);
-  }
-  playSong();
+  // Load and autoplay first song after user interaction
+  loadSong(currentSongIndex);
+  
+  // Wait for audio to be ready, then play
+  audio.addEventListener('canplay', function autoplayHandler() {
+    playSong();
+    audio.removeEventListener('canplay', autoplayHandler);
+  }, { once: true });
   
   setTimeout(() => {
     typeWriterEffect();
@@ -102,20 +239,20 @@ for (let i = 0; i < particleCount; i++) {
 }
 
 // ========================================
-// Music Player
+// Music Player & Visualizer
 // ========================================
 const songs = [
   {
     title: "Time To love",
-    url: "https://select-red-x4xaymxkyg.edgeone.app/Time%20To%20Love.mp3"
+    url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Time%20To%20Love.mp3"
   },
   {
     title: "Had I Not Seen the Sun",
-    url: "https://spontaneous-indigo-cgcjbksra5.edgeone.app/Had%20I%20Not%20Seen%20the%20Sun.mp3"
+    url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Had%20I%20Not%20Seen%20the%20Sun.mp3"
   },
   {
     title: "if i can stop one heart from breaking",
-    url: "https://inquisitive-azure-jxdjgly1ow.edgeone.app/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3"
+    url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3"
   }
 ];
 
@@ -129,6 +266,64 @@ const volumeSlider = document.getElementById('volume');
 const songInfo = document.getElementById('song-info');
 const musicControls = document.getElementById('music-controls');
 
+// Visualizer Setup
+const visualizerCanvas = document.getElementById('visualizer');
+const visualizerCtx = visualizerCanvas.getContext('2d');
+visualizerCanvas.width = 120;
+visualizerCanvas.height = 60;
+
+let audioContext, analyser, dataArray, bufferLength, isVisualizerActive = false;
+let sourceNode = null;
+
+function setupAudioContext() {
+  if (!audioContext) {
+    try {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioContext.createAnalyser();
+      
+      // Only create source node once
+      if (!sourceNode) {
+        sourceNode = audioContext.createMediaElementSource(audio);
+        sourceNode.connect(analyser);
+      }
+      
+      analyser.connect(audioContext.destination);
+      analyser.fftSize = 64;
+      bufferLength = analyser.frequencyBinCount;
+      dataArray = new Uint8Array(bufferLength);
+      return true;
+    } catch (error) {
+      console.warn('Audio visualizer not supported:', error);
+      return false;
+    }
+  }
+  return true;
+}
+
+function drawVisualizer() {
+  if (!analyser || !isVisualizerActive) return;
+  
+  requestAnimationFrame(drawVisualizer);
+  analyser.getByteFrequencyData(dataArray);
+  
+  visualizerCtx.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
+  
+  const barWidth = (visualizerCanvas.width / bufferLength) * 2;
+  let x = 0;
+  
+  for (let i = 0; i < bufferLength; i++) {
+    const barHeight = (dataArray[i] / 255) * visualizerCanvas.height * 0.8;
+    
+    const gradient = visualizerCtx.createLinearGradient(0, visualizerCanvas.height, 0, 0);
+    gradient.addColorStop(0, '#8b5cf6');
+    gradient.addColorStop(1, '#ec4899');
+    
+    visualizerCtx.fillStyle = gradient;
+    visualizerCtx.fillRect(x, visualizerCanvas.height - barHeight, barWidth - 1, barHeight);
+    x += barWidth + 1;
+  }
+}
+
 audio.volume = 0.5;
 
 function loadSong(index) {
@@ -138,16 +333,42 @@ function loadSong(index) {
 }
 
 function playSong() {
-  audio.play();
-  albumArt.classList.add('playing');
-  playPauseBtn.textContent = '⏸ Pause';
-  songInfo.classList.add('show');
+  // Setup visualizer only once
+  if (!audioContext) {
+    setupAudioContext();
+  }
+  
+  if (audioContext && audioContext.state === 'suspended') {
+    audioContext.resume();
+  }
+  
+  const playPromise = audio.play();
+  
+  if (playPromise !== undefined) {
+    playPromise.then(() => {
+      albumArt.classList.add('playing');
+      playPauseBtn.textContent = '⏸ Pause';
+      songInfo.classList.add('show');
+      
+      if (audioContext) {
+        visualizerCanvas.classList.add('active');
+        isVisualizerActive = true;
+        drawVisualizer();
+      }
+    }).catch(error => {
+      console.warn('Playback prevented:', error);
+      albumArt.classList.remove('playing');
+      playPauseBtn.textContent = '▶ Play';
+    });
+  }
 }
 
 function pauseSong() {
   audio.pause();
   albumArt.classList.remove('playing');
   playPauseBtn.textContent = '▶ Play';
+  visualizerCanvas.classList.remove('active');
+  isVisualizerActive = false;
 }
 
 function playNextSong() {
@@ -162,7 +383,6 @@ function playPrevSong() {
   playSong();
 }
 
-// Auto-play next song when current song ends
 audio.addEventListener('ended', () => {
   playNextSong();
 });
@@ -291,12 +511,106 @@ if (closeButton) {
   }, true);
 }
 
-setTimeout(() => {
-  const cards = document.querySelectorAll('.card');
-  cards.forEach((card, index) => {
-    card.style.animationDelay = `${index * 0.1}s`;
-  });
-}, 100);
+// ========================================
+// Discord Status (Lanyard API)
+// ========================================
+const DISCORD_ID = '1003100550700748871';
+
+async function fetchDiscordStatus() {
+  const statusContainer = document.getElementById('discord-status');
+  
+  try {
+    const response = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success && data.data) {
+      displayDiscordStatus(data.data);
+    } else {
+      throw new Error('Invalid response format');
+    }
+  } catch (error) {
+    console.warn('Discord status unavailable:', error.message);
+    statusContainer.innerHTML = `
+      <p style="color: rgba(255, 255, 255, 0.7); text-align: center; padding: 20px;">
+        Discord status currently unavailable<br>
+        <small style="opacity: 0.6;">Make sure you're in the Lanyard Discord server</small>
+      </p>
+    `;
+  }
+}
+
+function displayDiscordStatus(data) {
+  const statusContainer = document.getElementById('discord-status');
+  const status = data.discord_status;
+  const user = data.discord_user;
+  const activities = data.activities || [];
+  
+  const statusConfig = {
+    online: { text: 'Online', color: '#43b581' },
+    idle: { text: 'Idle', color: '#faa61a' },
+    dnd: { text: 'Do Not Disturb', color: '#f04747' },
+    offline: { text: 'Offline', color: '#747f8d' }
+  };
+  
+  const currentStatus = statusConfig[status] || statusConfig.offline;
+  
+  // Find main activity (exclude custom status type 4)
+  const activity = activities.find(a => a.type !== 4);
+  
+  let activityHTML = '';
+  if (activity) {
+    const activityTypes = {
+      0: 'Playing',
+      1: 'Streaming', 
+      2: 'Listening to',
+      3: 'Watching',
+      5: 'Competing in'
+    };
+    
+    const activityTitle = activityTypes[activity.type] || 'Activity';
+    const activityName = activity.name;
+    const details = activity.details || '';
+    const state = activity.state || '';
+    
+    activityHTML = `
+      <div class="discord-activity">
+        <div class="discord-activity-title">${activityTitle}</div>
+        <div class="discord-activity-name">${activityName}</div>
+        ${details ? `<div class="discord-activity-details">${details}</div>` : ''}
+        ${state ? `<div class="discord-activity-details">${state}</div>` : ''}
+      </div>
+    `;
+  }
+  
+  const avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
+  
+  statusContainer.innerHTML = `
+    <div class="discord-info">
+      <div class="discord-avatar-container">
+        <img src="${avatarUrl}" alt="${user.username}" class="discord-avatar-img">
+        <div class="status-indicator ${status}" style="background: ${currentStatus.color};"></div>
+      </div>
+      <div class="discord-details">
+        <h3 class="discord-username">${user.global_name || user.username}</h3>
+        <div class="discord-status-badge" style="border-color: ${currentStatus.color};">
+          <span class="status-dot" style="background: ${currentStatus.color};"></span>
+          ${currentStatus.text}
+        </div>
+        ${activityHTML}
+      </div>
+    </div>
+  `;
+}
+
+// Fetch Discord status on load
+fetchDiscordStatus();
+// Refresh every 30 seconds
+setInterval(fetchDiscordStatus, 30000);
 
 // ========================================
 // Enka API Base Class
@@ -309,23 +623,24 @@ class EnkaAPI {
     this.elementIds = config.elementIds;
     this.proxies = [
       {
+        name: 'AllOrigins',
+        url: (apiUrl) => `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`,
+        parse: (data) => {
+          try {
+            return JSON.parse(data.contents);
+          } catch {
+            return null;
+          }
+        }
+      },
+      {
         name: 'CodeTabs',
         url: (apiUrl) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`,
         parse: (data) => data
       },
       {
-        name: 'AllOrigins',
-        url: (apiUrl) => `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`,
-        parse: (data) => JSON.parse(data.contents)
-      },
-      {
-        name: 'CORSProxy.io',
-        url: (apiUrl) => `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`,
-        parse: (data) => data
-      },
-      {
-        name: 'ThingProxy',
-        url: (apiUrl) => `https://thingproxy.freeboard.io/fetch/${apiUrl}`,
+        name: 'Direct',
+        url: (apiUrl) => apiUrl,
         parse: (data) => data
       }
     ];
@@ -687,7 +1002,7 @@ function copyUID(uidText, buttonId) {
     console.error('Failed to copy:', err);
     const btn = document.getElementById(buttonId);
     const originalText = btn.innerHTML;
-    btn.innerHTML = '❌ Failed';
+    btn.innerHTML = '✗ Failed';
     btn.style.background = 'linear-gradient(135deg, #ef4444, #b91c1c)';
     
     setTimeout(() => {
