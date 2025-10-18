@@ -13,21 +13,12 @@ let isMuted = false;
 
 function initMedia() {
   console.log("initMedia called");
-  const backgroundMusic = document.getElementById('background-music');
+  const backgroundMusic = document.getElementById('audio');
   const backgroundVideo = document.getElementById('background');
   
-  if (!backgroundMusic || !backgroundVideo) {
-    console.error("Media elements not found");
-    return;
+  if (backgroundMusic) {
+    backgroundMusic.volume = 0.5;
   }
-  
-  backgroundMusic.volume = 0.3;
-  backgroundVideo.muted = true;
-  
-  // Try to play video silently
-  backgroundVideo.play().catch(err => {
-    console.warn("Failed to play background video:", err);
-  });
 }
 
 // ========================================
@@ -40,24 +31,7 @@ function setupCustomCursor() {
   
   if (isTouchDevice) {
     document.body.classList.add('touch-device');
-    
-    document.addEventListener('touchstart', (e) => {
-      const touch = e.touches[0];
-      cursor.style.left = touch.clientX + 'px';
-      cursor.style.top = touch.clientY + 'px';
-      cursor.style.display = 'block';
-    }, { passive: true });
-
-    document.addEventListener('touchmove', (e) => {
-      const touch = e.touches[0];
-      cursor.style.left = touch.clientX + 'px';
-      cursor.style.top = touch.clientY + 'px';
-      cursor.style.display = 'block';
-    }, { passive: true });
-
-    document.addEventListener('touchend', () => {
-      cursor.style.display = 'none';
-    }, { passive: true });
+    cursor.style.display = 'none';
   } else {
     document.addEventListener('mousemove', (e) => {
       cursor.style.left = e.clientX + 'px';
@@ -76,669 +50,572 @@ function setupCustomCursor() {
 }
 
 // ========================================
-// Start Screen Handler (iOS Compatible)
+// Loading & Splash Screen Handler
 // ========================================
-function setupStartScreen() {
-  const startScreen = document.getElementById('start-screen');
-  const startText = document.getElementById('start-text');
-  const profileBlock = document.getElementById('profile-block');
-  const profileContainer = document.querySelector('.profile-container');
-  const backgroundMusic = document.getElementById('background-music');
+function setupLoadingAndSplash() {
+  const loadingScreen = document.getElementById('loading-screen');
+  const splashScreen = document.getElementById('splash-screen');
   
-  if (!startScreen || !startText) return;
+  // Show loading screen first, then splash
+  window.addEventListener('load', () => {
+    console.log("Window loaded");
+    
+    setTimeout(() => {
+      if (loadingScreen) {
+        loadingScreen.classList.add('fade-out');
+        setTimeout(() => {
+          loadingScreen.remove();
+        }, 800);
+      }
+      
+      // Show splash screen after loading
+      if (splashScreen) {
+        splashScreen.classList.remove('hidden');
+      }
+    }, 2000);
+  });
   
-  // Typewriter effect for start screen
-  const startMessage = "Click here to see the motion baby";
-  let startTextContent = '';
-  let startIndex = 0;
-  let startCursorVisible = true;
-  let typewriterInterval;
-  let cursorInterval;
-
-  function typeWriterStart() {
-    if (startIndex < startMessage.length) {
-      startTextContent = startMessage.slice(0, startIndex + 1);
-      startIndex++;
-      startText.textContent = startTextContent + (startCursorVisible ? '|' : ' ');
-      setTimeout(typeWriterStart, 100);
-    } else {
-      startText.textContent = startTextContent + (startCursorVisible ? '|' : ' ');
-    }
+  // Setup splash screen interaction
+  if (splashScreen) {
+    setupSplashScreen(splashScreen);
   }
+}
 
-  cursorInterval = setInterval(() => {
-    startCursorVisible = !startCursorVisible;
-    startText.textContent = startTextContent + (startCursorVisible ? '|' : ' ');
-  }, 500);
-
-  typeWriterStart();
-  
+// ========================================
+// Splash Screen Handler (iOS Compatible)
+// ========================================
+function setupSplashScreen(splashScreen) {
   // Single unified interaction handler
-  function handleStartInteraction(e) {
+  function handleSplashInteraction(e) {
     if (hasUserInteracted) return;
     
     e.preventDefault();
     e.stopPropagation();
     hasUserInteracted = true;
     
-    // Clear intervals
-    clearInterval(cursorInterval);
+    console.log("Splash screen clicked");
     
-    // Hide start screen
-    startScreen.style.opacity = '0';
-    startScreen.style.pointerEvents = 'none';
+    // Hide splash screen
+    splashScreen.style.opacity = '0';
+    splashScreen.style.pointerEvents = 'none';
     
     setTimeout(() => {
-      startScreen.classList.add('hidden');
-      startScreen.remove();
+      splashScreen.classList.add('hidden');
+      splashScreen.remove();
     }, 500);
     
     // Initialize audio
-    if (backgroundMusic) {
-      backgroundMusic.muted = false;
-      backgroundMusic.volume = 0.3;
-      currentAudio = backgroundMusic;
+    const audio = document.getElementById('audio');
+    if (audio) {
+      audio.volume = 0.5;
+      currentAudio = audio;
       
-      // Promise-based audio play for better iOS handling
-      const playPromise = backgroundMusic.play();
+      // Try to play first song
+      const songs = [
+        {
+          title: "Time To love",
+          url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Time%20To%20Love.mp3"
+        }
+      ];
+      
+      audio.src = songs[0].url;
+      
+      const playPromise = audio.play();
       
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            console.log("Background music started successfully");
+            console.log("Audio started successfully");
+            const albumArt = document.getElementById('album-art');
+            if (albumArt) albumArt.classList.add('playing');
+            
+            const playPauseBtn = document.getElementById('play-pause');
+            if (playPauseBtn) playPauseBtn.textContent = '⏸ Pause';
+            
+            const songInfo = document.getElementById('song-info');
+            if (songInfo) {
+              songInfo.textContent = `♪ ${songs[0].title}`;
+              songInfo.classList.add('show');
+            }
           })
           .catch(err => {
             console.warn("Audio autoplay prevented:", err);
             // Set up click-anywhere-to-play fallback
             document.addEventListener('click', function audioFallback() {
-              backgroundMusic.play().then(() => {
+              audio.play().then(() => {
                 console.log("Audio started after user interaction");
                 document.removeEventListener('click', audioFallback);
+                
+                const albumArt = document.getElementById('album-art');
+                if (albumArt) albumArt.classList.add('playing');
+                
+                const playPauseBtn = document.getElementById('play-pause');
+                if (playPauseBtn) playPauseBtn.textContent = '⏸ Pause';
               });
             }, { once: true });
           });
       }
     }
     
-    // Show profile block
-    if (profileBlock) {
-      profileBlock.classList.remove('hidden');
+    // Start typewriter effects
+    typeWriterEffect();
+    
+    // Initialize all other features
+    initializeAllFeatures();
+  }
+  
+  // Attach event listeners
+  splashScreen.addEventListener('click', handleSplashInteraction, { once: true });
+  
+  if (isTouchDevice) {
+    splashScreen.addEventListener('touchend', handleSplashInteraction, { once: true, passive: false });
+  }
+}
+
+// ========================================
+// Typewriter Effect for Greeting
+// ========================================
+function typeWriterEffect() {
+  const greetingEl = document.getElementById('greeting');
+  if (!greetingEl) return;
+  
+  const hour = new Date().getHours();
+  
+  const greetings = {
+    morning: ['Good Morning, proxies!', 'Rise and Shine, Wanderer!', 'Good Morning, Trailblazer!'],
+    afternoon: ['Good Afternoon, Traveler!', 'Hello There, Wanderer!', 'Good Afternoon, Trailblazer!', 'Good Afternoon, proxies!'],
+    evening: ['Good Evening, Traveler!', 'Greetings, Night Wanderer!', 'Good Evening, Trailblazer!', 'Good Evening, proxies!'],
+    night: ['Good Night, Stargazer!', 'Welcome, Night Owl!', 'Greetings, Moonlit Wanderer!', 'Good Night, proxies!']
+  };
+  
+  let timeOfDay;
+  if (hour >= 5 && hour < 12) timeOfDay = 'morning';
+  else if (hour >= 12 && hour < 17) timeOfDay = 'afternoon';
+  else if (hour >= 17 && hour < 21) timeOfDay = 'evening';
+  else timeOfDay = 'night';
+  
+  const greetingArray = greetings[timeOfDay];
+  const text = greetingArray[Math.floor(Math.random() * greetingArray.length)];
+  
+  let index = 0;
+  greetingEl.textContent = '';
+  
+  function type() {
+    if (index < text.length) {
+      greetingEl.textContent += text.charAt(index);
+      index++;
+      setTimeout(type, 80);
+    }
+  }
+  
+  type();
+}
+
+// ========================================
+// Initialize All Features After Splash
+// ========================================
+function initializeAllFeatures() {
+  console.log("Initializing all features...");
+  
+  // Initialize particles
+  initializeParticles();
+  
+  // Setup music player
+  setupMusicPlayer();
+  
+  // Fetch Discord status
+  fetchDiscordStatus();
+  
+  // Setup scroll animations
+  setupScrollAnimations();
+  
+  // Initialize game APIs
+  initializeGameAPIs();
+  
+  console.log("All features initialized");
+}
+
+// ========================================
+// Background Particles
+// ========================================
+function initializeParticles() {
+  const particlesContainer = document.getElementById('particles');
+  if (!particlesContainer) return;
+  
+  const particleCount = isMobile ? 5 : 30;
+  
+  for (let i = 0; i < particleCount; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    const size = isMobile ? Math.random() * 3 + 2 : Math.random() * 5 + 2;
+    particle.style.width = size + 'px';
+    particle.style.height = size + 'px';
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.top = Math.random() * 100 + '%';
+    
+    const colors = [
+      'rgba(139, 92, 246, 0.4)',
+      'rgba(99, 102, 241, 0.3)',
+      'rgba(167, 139, 250, 0.3)',
+      'rgba(196, 181, 253, 0.3)',
+      'rgba(236, 72, 153, 0.3)'
+    ];
+    particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+    particle.style.boxShadow = `0 0 ${size * 2}px ${particle.style.background}`;
+    particle.style.animationDelay = Math.random() * 5 + 's';
+    particle.style.animationDuration = (Math.random() * 5 + 8) + 's';
+    particlesContainer.appendChild(particle);
+  }
+}
+
+// ========================================
+// Music Player Setup
+// ========================================
+function setupMusicPlayer() {
+  const songs = [
+    {
+      title: "Time To love",
+      url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Time%20To%20Love.mp3"
+    },
+    {
+      title: "Had I Not Seen the Sun",
+      url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Had%20I%20Not%20Seen%20the%20Sun.mp3"
+    },
+    {
+      title: "if i can stop one heart from breaking",
+      url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3"
+    }
+  ];
+
+  let currentSongIndex = 0;
+  const audio = document.getElementById('audio');
+  const albumArt = document.getElementById('album-art');
+  const playPauseBtn = document.getElementById('play-pause');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+  const volumeSlider = document.getElementById('volume');
+  const songInfo = document.getElementById('song-info');
+  const musicControls = document.getElementById('music-controls');
+  
+  if (!audio) return;
+  
+  currentAudio = audio;
+  audio.volume = 0.5;
+  
+  function loadSong(index) {
+    const song = songs[index];
+    audio.src = song.url;
+    if (songInfo) songInfo.textContent = `♪ ${song.title}`;
+  }
+  
+  function playSong() {
+    const playPromise = audio.play();
+    
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        if (albumArt) albumArt.classList.add('playing');
+        if (playPauseBtn) playPauseBtn.textContent = '⏸ Pause';
+        if (songInfo) songInfo.classList.add('show');
+      }).catch(error => {
+        console.warn('Playback prevented:', error);
+      });
+    }
+  }
+  
+  function pauseSong() {
+    audio.pause();
+    if (albumArt) albumArt.classList.remove('playing');
+    if (playPauseBtn) playPauseBtn.textContent = '▶ Play';
+  }
+  
+  function playNextSong() {
+    currentSongIndex = (currentSongIndex + 1) % songs.length;
+    loadSong(currentSongIndex);
+    playSong();
+  }
+  
+  function playPrevSong() {
+    currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+    loadSong(currentSongIndex);
+    playSong();
+  }
+  
+  // Event listeners
+  if (audio) {
+    audio.addEventListener('ended', () => {
+      playNextSong();
+    });
+  }
+  
+  let menuOpen = false;
+  
+  if (albumArt) {
+    albumArt.addEventListener('click', (e) => {
+      e.stopPropagation();
       
-      // Use GSAP if available, otherwise use CSS
-      if (typeof gsap !== 'undefined') {
-        gsap.fromTo(profileBlock,
-          { opacity: 0, y: -50 },
-          { 
-            opacity: 1, 
-            y: 0, 
-            duration: 1, 
-            ease: 'power2.out',
-            onComplete: () => {
-              profileBlock.classList.add('profile-appear');
-              if (profileContainer) {
-                profileContainer.classList.add('orbit');
-              }
-            }
-          }
-        );
+      if (audio.paused) {
+        if (!audio.src) loadSong(currentSongIndex);
+        playSong();
       } else {
-        profileBlock.style.opacity = '1';
-        profileBlock.style.transform = 'translate(-50%, -50%)';
-        if (profileContainer) {
-          profileContainer.classList.add('orbit');
-        }
+        pauseSong();
       }
-    }
-    
-    // Initialize typewriter effects
-    typeWriterName();
-    typeWriterBio();
-    
-    // Initialize cursor trail (desktop only)
-    if (!isTouchDevice && typeof cursorTrailEffect !== 'undefined') {
-      try {
-        new cursorTrailEffect({
-          length: 10,
-          size: 8,
-          speed: 0.2
-        });
-      } catch (err) {
-        console.warn("Cursor trail initialization failed:", err);
-      }
-    }
-  }
-  
-  // Attach single event listener that works for both touch and click
-  startScreen.addEventListener('click', handleStartInteraction, { once: true });
-  
-  // For iOS Safari, also listen to touchend
-  if (isTouchDevice) {
-    startScreen.addEventListener('touchend', handleStartInteraction, { once: true, passive: false });
-  }
-}
-
-// ========================================
-// Typewriter Effects
-// ========================================
-function typeWriterName() {
-  const profileName = document.getElementById('profile-name');
-  if (!profileName) return;
-  
-  const name = "JAQLIV";
-  let nameText = '';
-  let nameIndex = 0;
-  let isNameDeleting = false;
-  let nameCursorVisible = true;
-
-  function type() {
-    if (!isNameDeleting && nameIndex < name.length) {
-      nameText = name.slice(0, nameIndex + 1);
-      nameIndex++;
-    } else if (isNameDeleting && nameIndex > 0) {
-      nameText = name.slice(0, nameIndex - 1);
-      nameIndex--;
-    } else if (nameIndex === name.length) {
-      isNameDeleting = true;
-      setTimeout(type, 10000);
-      return;
-    } else if (nameIndex === 0) {
-      isNameDeleting = false;
-    }
-    
-    profileName.textContent = nameText + (nameCursorVisible ? '|' : ' ');
-    
-    if (Math.random() < 0.1) {
-      profileName.classList.add('glitch');
-      setTimeout(() => profileName.classList.remove('glitch'), 200);
-    }
-    
-    setTimeout(type, isNameDeleting ? 150 : 300);
-  }
-
-  setInterval(() => {
-    nameCursorVisible = !nameCursorVisible;
-    profileName.textContent = nameText + (nameCursorVisible ? '|' : ' ');
-  }, 500);
-
-  type();
-}
-
-function typeWriterBio() {
-  const profileBio = document.getElementById('profile-bio');
-  if (!profileBio) return;
-  
-  const bioMessages = [
-    "Fu*k Guns.lol & Fakecrime.bio got banned too often, so I created my own.",
-    "\"Hello, World!\""
-  ];
-  
-  let bioText = '';
-  let bioIndex = 0;
-  let bioMessageIndex = 0;
-  let isBioDeleting = false;
-  let bioCursorVisible = true;
-
-  function type() {
-    if (!isBioDeleting && bioIndex < bioMessages[bioMessageIndex].length) {
-      bioText = bioMessages[bioMessageIndex].slice(0, bioIndex + 1);
-      bioIndex++;
-    } else if (isBioDeleting && bioIndex > 0) {
-      bioText = bioMessages[bioMessageIndex].slice(0, bioIndex - 1);
-      bioIndex--;
-    } else if (bioIndex === bioMessages[bioMessageIndex].length) {
-      isBioDeleting = true;
-      setTimeout(type, 2000);
-      return;
-    } else if (bioIndex === 0 && isBioDeleting) {
-      isBioDeleting = false;
-      bioMessageIndex = (bioMessageIndex + 1) % bioMessages.length;
-    }
-    
-    profileBio.textContent = bioText + (bioCursorVisible ? '|' : ' ');
-    
-    if (Math.random() < 0.1) {
-      profileBio.classList.add('glitch');
-      setTimeout(() => profileBio.classList.remove('glitch'), 200);
-    }
-    
-    setTimeout(type, isBioDeleting ? 75 : 150);
-  }
-
-  setInterval(() => {
-    bioCursorVisible = !bioCursorVisible;
-    profileBio.textContent = bioText + (bioCursorVisible ? '|' : ' ');
-  }, 500);
-
-  type();
-}
-
-// ========================================
-// Volume Controls
-// ========================================
-function setupVolumeControls() {
-  const volumeIcon = document.getElementById('volume-icon');
-  const volumeSlider = document.getElementById('volume-slider');
-  
-  if (!volumeIcon || !volumeSlider) return;
-  
-  function toggleMute(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    isMuted = !isMuted;
-    if (currentAudio) {
-      currentAudio.muted = isMuted;
-    }
-    
-    volumeIcon.innerHTML = isMuted
-      ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>`
-      : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>`;
-  }
-  
-  volumeIcon.addEventListener('click', toggleMute);
-  
-  if (isTouchDevice) {
-    volumeIcon.addEventListener('touchend', toggleMute, { passive: false });
-  }
-  
-  volumeSlider.addEventListener('input', () => {
-    if (currentAudio) {
-      currentAudio.volume = volumeSlider.value;
-      isMuted = false;
-      currentAudio.muted = false;
-      volumeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>`;
-    }
-  });
-}
-
-// ========================================
-// Transparency Controls
-// ========================================
-function setupTransparencyControls() {
-  const transparencySlider = document.getElementById('transparency-slider');
-  const profileBlock = document.getElementById('profile-block');
-  const skillsBlock = document.getElementById('skills-block');
-  const socialIcons = document.querySelectorAll('.social-icon');
-  const badges = document.querySelectorAll('.badge');
-  const profilePicture = document.querySelector('.profile-picture');
-  const profileName = document.getElementById('profile-name');
-  const profileBio = document.getElementById('profile-bio');
-  const visitorCount = document.getElementById('visitor-count');
-  
-  if (!transparencySlider) return;
-  
-  transparencySlider.addEventListener('input', () => {
-    const opacity = transparencySlider.value;
-    
-    if (opacity == 0) {
-      if (profileBlock) {
-        profileBlock.style.background = 'rgba(0, 0, 0, 0)';
-        profileBlock.style.borderColor = 'transparent';
-        profileBlock.style.backdropFilter = 'none';
-      }
-      if (skillsBlock) {
-        skillsBlock.style.background = 'rgba(0, 0, 0, 0)';
-        skillsBlock.style.borderColor = 'transparent';
-        skillsBlock.style.backdropFilter = 'none';
-      }
-    } else {
-      if (profileBlock) {
-        profileBlock.style.background = `rgba(0, 0, 0, ${opacity})`;
-        profileBlock.style.borderColor = '';
-        profileBlock.style.backdropFilter = `blur(${10 * opacity}px)`;
-      }
-      if (skillsBlock) {
-        skillsBlock.style.background = `rgba(0, 0, 0, ${opacity})`;
-        skillsBlock.style.borderColor = '';
-        skillsBlock.style.backdropFilter = `blur(${10 * opacity}px)`;
-      }
-    }
-    
-    // Keep interactive elements fully visible
-    [profilePicture, profileName, profileBio, visitorCount].forEach(el => {
-      if (el) el.style.opacity = '1';
-    });
-    
-    socialIcons.forEach(icon => {
-      icon.style.opacity = '1';
-      icon.style.pointerEvents = 'auto';
-    });
-    
-    badges.forEach(badge => {
-      badge.style.opacity = '1';
-      badge.style.pointerEvents = 'auto';
-    });
-  });
-}
-
-// ========================================
-// Theme Switching
-// ========================================
-function setupThemeSwitching() {
-  const backgroundVideo = document.getElementById('background');
-  const hackerOverlay = document.getElementById('hacker-overlay');
-  const snowOverlay = document.getElementById('snow-overlay');
-  const profileBlock = document.getElementById('profile-block');
-  const skillsBlock = document.getElementById('skills-block');
-  const volumeSlider = document.getElementById('volume-slider');
-  const profileContainer = document.querySelector('.profile-container');
-  
-  const backgroundMusic = document.getElementById('background-music');
-  const hackerMusic = document.getElementById('hacker-music');
-  const rainMusic = document.getElementById('rain-music');
-  const animeMusic = document.getElementById('anime-music');
-  const carMusic = document.getElementById('car-music');
-
-  function switchTheme(videoSrc, audio, themeClass, overlay = null, overlayOverProfile = false) {
-    let primaryColor;
-    switch (themeClass) {
-      case 'home-theme': primaryColor = '#00CED1'; break;
-      case 'hacker-theme': primaryColor = '#22C55E'; break;
-      case 'rain-theme': primaryColor = '#1E3A8A'; break;
-      case 'anime-theme': primaryColor = '#DC2626'; break;
-      case 'car-theme': primaryColor = '#EAB308'; break;
-      default: primaryColor = '#00CED1';
-    }
-    document.documentElement.style.setProperty('--primary-color', primaryColor);
-
-    if (typeof gsap !== 'undefined' && backgroundVideo) {
-      gsap.to(backgroundVideo, {
-        opacity: 0,
-        duration: 0.5,
-        ease: 'power2.in',
-        onComplete: () => {
-          backgroundVideo.src = videoSrc;
-
-          if (currentAudio) {
-            currentAudio.pause();
-            currentAudio.currentTime = 0;
-          }
-          currentAudio = audio;
-          if (volumeSlider) {
-            currentAudio.volume = volumeSlider.value;
-          }
-          currentAudio.muted = isMuted;
-          currentAudio.play().catch(err => console.warn("Theme music play failed:", err));
-
-          document.body.classList.remove('home-theme', 'hacker-theme', 'rain-theme', 'anime-theme', 'car-theme');
-          document.body.classList.add(themeClass);
-
-          if (hackerOverlay) hackerOverlay.classList.add('hidden');
-          if (snowOverlay) snowOverlay.classList.add('hidden');
-          
-          if (profileBlock) profileBlock.style.zIndex = overlayOverProfile ? 10 : 20;
-          if (skillsBlock) skillsBlock.style.zIndex = overlayOverProfile ? 10 : 20;
-          
-          if (overlay) {
-            overlay.classList.remove('hidden');
-          }
-
-          gsap.to(backgroundVideo, {
-            opacity: 1,
-            duration: 0.5,
-            ease: 'power2.out',
-            onComplete: () => {
-              if (profileContainer) {
-                profileContainer.classList.remove('orbit');
-                void profileContainer.offsetWidth;
-                profileContainer.classList.add('orbit');
-              }
-            }
-          });
-        }
-      });
-    }
-  }
-
-  // Theme button setup
-  const themes = [
-    { id: 'home-theme', video: 'assets/background.mp4', audio: backgroundMusic, class: 'home-theme' },
-    { id: 'hacker-theme', video: 'assets/hacker_background.mp4', audio: hackerMusic, class: 'hacker-theme', overlay: hackerOverlay },
-    { id: 'rain-theme', video: 'assets/rain_background.mov', audio: rainMusic, class: 'rain-theme', overlay: snowOverlay, overlayOver: true },
-    { id: 'anime-theme', video: 'assets/anime_background.mp4', audio: animeMusic, class: 'anime-theme' },
-    { id: 'car-theme', video: 'assets/car_background.mp4', audio: carMusic, class: 'car-theme' }
-  ];
-
-  themes.forEach(theme => {
-    const button = document.getElementById(theme.id);
-    if (button) {
-      button.addEventListener('click', () => {
-        switchTheme(theme.video, theme.audio, theme.class, theme.overlay, theme.overlayOver);
-      });
       
-      if (isTouchDevice) {
-        button.addEventListener('touchend', (e) => {
-          e.preventDefault();
-          switchTheme(theme.video, theme.audio, theme.class, theme.overlay, theme.overlayOver);
-        }, { passive: false });
+      if (isMobile && musicControls) {
+        menuOpen = !menuOpen;
+        if (menuOpen) {
+          musicControls.classList.add('show');
+        } else {
+          musicControls.classList.remove('show');
+        }
       }
-    }
-  });
-}
-
-// ========================================
-// Visitor Counter
-// ========================================
-function initializeVisitorCounter() {
-  const visitorCount = document.getElementById('visitor-count');
-  if (!visitorCount) return;
-  
-  let totalVisitors = localStorage.getItem('totalVisitorCount');
-  if (!totalVisitors) {
-    totalVisitors = 921234;
-    localStorage.setItem('totalVisitorCount', totalVisitors);
-  } else {
-    totalVisitors = parseInt(totalVisitors);
+    });
   }
-
-  const hasVisited = localStorage.getItem('hasVisited');
-  if (!hasVisited) {
-    totalVisitors++;
-    localStorage.setItem('totalVisitorCount', totalVisitors);
-    localStorage.setItem('hasVisited', 'true');
+  
+  if (playPauseBtn) {
+    playPauseBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (audio.paused) {
+        if (!audio.src) loadSong(currentSongIndex);
+        playSong();
+      } else {
+        pauseSong();
+      }
+    });
   }
-
-  visitorCount.textContent = totalVisitors.toLocaleString();
-}
-
-// ========================================
-// Profile Picture Interactions
-// ========================================
-function setupProfilePicture() {
-  const profilePicture = document.querySelector('.profile-picture');
-  const profileContainer = document.querySelector('.profile-container');
-  const glitchOverlay = document.querySelector('.glitch-overlay');
   
-  if (!profilePicture || !profileContainer) return;
+  if (prevBtn) {
+    prevBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      playPrevSong();
+    });
+  }
   
-  profilePicture.addEventListener('mouseenter', () => {
-    if (glitchOverlay) {
-      glitchOverlay.style.opacity = '1';
+  if (nextBtn) {
+    nextBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      playNextSong();
+    });
+  }
+  
+  if (volumeSlider) {
+    volumeSlider.addEventListener('input', (e) => {
+      e.stopPropagation();
+      audio.volume = volumeSlider.value;
+    });
+  }
+  
+  const closeButton = document.getElementById('close-controls');
+  if (closeButton && musicControls) {
+    closeButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menuOpen = false;
+      musicControls.classList.remove('show');
+    });
+  }
+  
+  // Desktop hover behavior
+  if (!isMobile && albumArt && musicControls) {
+    albumArt.addEventListener('mouseenter', () => {
       setTimeout(() => {
-        glitchOverlay.style.opacity = '0';
-      }, 500);
-    }
-  });
+        musicControls.classList.add('show');
+      }, 300);
+    });
 
-  function spinOrbit(e) {
-    e.preventDefault();
-    profileContainer.classList.remove('fast-orbit', 'orbit');
-    void profileContainer.offsetWidth;
-    profileContainer.classList.add('fast-orbit');
+    albumArt.addEventListener('mouseleave', () => {
+      setTimeout(() => {
+        if (!musicControls.matches(':hover')) {
+          musicControls.classList.remove('show');
+        }
+      }, 300);
+    });
+
+    musicControls.addEventListener('mouseleave', () => {
+      musicControls.classList.remove('show');
+    });
+  }
+}
+
+// ========================================
+// Scroll Animations
+// ========================================
+function setupScrollAnimations() {
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -100px 0px'
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll('.section-fade').forEach(el => {
+    observer.observe(el);
+  });
+}
+
+// ========================================
+// Discord Status (Lanyard API)
+// ========================================
+const DISCORD_ID = '1003100550700748871';
+
+async function fetchDiscordStatus() {
+  const statusContainer = document.getElementById('discord-status');
+  if (!statusContainer) return;
+  
+  try {
+    const response = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success && data.data) {
+      displayDiscordStatus(data.data);
+    } else {
+      throw new Error('Invalid response format');
+    }
+  } catch (error) {
+    console.warn('Discord status unavailable:', error.message);
+    statusContainer.innerHTML = `
+      <p style="color: rgba(255, 255, 255, 0.7); text-align: center; padding: 20px;">
+        Discord status currently unavailable
+      </p>
+    `;
+  }
+}
+
+function displayDiscordStatus(data) {
+  const statusContainer = document.getElementById('discord-status');
+  if (!statusContainer) return;
+  
+  const status = data.discord_status;
+  const user = data.discord_user;
+  const activities = data.activities || [];
+  
+  const statusConfig = {
+    online: { text: 'Online', color: '#43b581' },
+    idle: { text: 'Idle', color: '#faa61a' },
+    dnd: { text: 'Do Not Disturb', color: '#f04747' },
+    offline: { text: 'Offline', color: '#747f8d' }
+  };
+  
+  const currentStatus = statusConfig[status] || statusConfig.offline;
+  
+  const activity = activities.find(a => a.type !== 4);
+  
+  let activityHTML = '';
+  if (activity) {
+    const activityTypes = {
+      0: 'Playing',
+      1: 'Streaming', 
+      2: 'Listening to',
+      3: 'Watching',
+      5: 'Competing in'
+    };
+    
+    const activityTitle = activityTypes[activity.type] || 'Activity';
+    const activityName = activity.name;
+    const details = activity.details || '';
+    const state = activity.state || '';
+    
+    activityHTML = `
+      <div class="discord-activity">
+        <div class="discord-activity-title">${activityTitle}</div>
+        <div class="discord-activity-name">${activityName}</div>
+        ${details ? `<div class="discord-activity-details">${details}</div>` : ''}
+        ${state ? `<div class="discord-activity-details">${state}</div>` : ''}
+      </div>
+    `;
+  }
+  
+  const avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
+  
+  statusContainer.innerHTML = `
+    <div class="discord-info">
+      <div class="discord-avatar-container">
+        <img src="${avatarUrl}" alt="${user.username}" class="discord-avatar-img">
+        <div class="status-indicator ${status}" style="background: ${currentStatus.color};"></div>
+      </div>
+      <div class="discord-details">
+        <h3 class="discord-username">${user.global_name || user.username}</h3>
+        <div class="discord-status-badge" style="border-color: ${currentStatus.color};">
+          <span class="status-dot" style="background: ${currentStatus.color};"></span>
+          ${currentStatus.text}
+        </div>
+        ${activityHTML}
+      </div>
+    </div>
+  `;
+}
+
+// ========================================
+// Game APIs (Placeholder - add your existing code)
+// ========================================
+function initializeGameAPIs() {
+  // Add your HSR and ZZZ API code here
+  console.log("Game APIs initialized");
+}
+
+// ========================================
+// Copy UID functionality
+// ========================================
+function copyUID(uidText, buttonId) {
+  navigator.clipboard.writeText(uidText).then(() => {
+    const btn = document.getElementById(buttonId);
+    if (!btn) return;
+    
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '✓ Copied!';
+    btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
     
     setTimeout(() => {
-      profileContainer.classList.remove('fast-orbit');
-      void profileContainer.offsetWidth;
-      profileContainer.classList.add('orbit');
-    }, 500);
-  }
-  
-  profilePicture.addEventListener('click', spinOrbit);
-  
-  if (isTouchDevice) {
-    profilePicture.addEventListener('touchend', spinOrbit, { passive: false });
-  }
+      btn.innerHTML = originalText;
+      btn.style.background = '';
+    }, 2000);
+  }).catch(err => {
+    console.error('Failed to copy:', err);
+  });
 }
 
-// ========================================
-// 3D Tilt Effect
-// ========================================
-function setup3DTilt() {
-  const profileBlock = document.getElementById('profile-block');
-  const skillsBlock = document.getElementById('skills-block');
-  
-  if (typeof gsap === 'undefined') return;
-  
-  function handleTilt(e, element) {
-    const rect = element.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    let clientX, clientY;
+const copyHsrBtn = document.getElementById('copy-hsr-uid');
+if (copyHsrBtn) {
+  copyHsrBtn.addEventListener('click', function() {
+    const uidText = document.getElementById('player-uid')?.textContent;
+    if (uidText) copyUID(uidText, 'copy-hsr-uid');
+  });
+}
 
-    if (e.type === 'touchmove') {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
-    } else {
-      clientX = e.clientX;
-      clientY = e.clientY;
-    }
-
-    const mouseX = clientX - centerX;
-    const mouseY = clientY - centerY;
-
-    const maxTilt = 15;
-    const tiltX = (mouseY / rect.height) * maxTilt;
-    const tiltY = -(mouseX / rect.width) * maxTilt;
-
-    gsap.to(element, {
-      rotationX: tiltX,
-      rotationY: tiltY,
-      duration: 0.3,
-      ease: 'power2.out',
-      transformPerspective: 1000
-    });
-  }
-  
-  function resetTilt(element) {
-    gsap.to(element, {
-      rotationX: 0,
-      rotationY: 0,
-      duration: 0.5,
-      ease: 'power2.out'
-    });
-  }
-  
-  [profileBlock, skillsBlock].forEach(block => {
-    if (!block) return;
-    
-    block.addEventListener('mousemove', (e) => handleTilt(e, block));
-    block.addEventListener('mouseleave', () => resetTilt(block));
-    
-    if (isTouchDevice) {
-      block.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        handleTilt(e, block);
-      }, { passive: false });
-      
-      block.addEventListener('touchend', () => resetTilt(block), { passive: true });
-    }
+const copyZzzBtn = document.getElementById('copy-zzz-uid');
+if (copyZzzBtn) {
+  copyZzzBtn.addEventListener('click', function() {
+    const uidText = document.getElementById('zzz-player-uid')?.textContent;
+    if (uidText) copyUID(uidText, 'copy-zzz-uid');
   });
 }
 
 // ========================================
-// Results/Skills Toggle
-// ========================================
-function setupResultsToggle() {
-  const resultsButton = document.getElementById('results-theme');
-  const profileBlock = document.getElementById('profile-block');
-  const skillsBlock = document.getElementById('skills-block');
-  const resultsHint = document.getElementById('results-hint');
-  const pythonBar = document.getElementById('python-bar');
-  const cppBar = document.getElementById('cpp-bar');
-  const csharpBar = document.getElementById('csharp-bar');
-  
-  if (!resultsButton) return;
-  
-  let isShowingSkills = false;
-  
-  function toggleResults(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (typeof gsap === 'undefined') return;
-    
-    if (!isShowingSkills) {
-      gsap.to(profileBlock, {
-        x: -100,
-        opacity: 0,
-        duration: 0.5,
-        ease: 'power2.in',
-        onComplete: () => {
-          profileBlock.classList.add('hidden');
-          skillsBlock.classList.remove('hidden');
-          gsap.fromTo(skillsBlock,
-            { x: 100, opacity: 0 },
-            { x: 0, opacity: 1, duration: 0.5, ease: 'power2.out' }
-          );
-          if (pythonBar) gsap.to(pythonBar, { width: '87%', duration: 2, ease: 'power2.out' });
-          if (cppBar) gsap.to(cppBar, { width: '75%', duration: 2, ease: 'power2.out' });
-          if (csharpBar) gsap.to(csharpBar, { width: '80%', duration: 2, ease: 'power2.out' });
-        }
-      });
-      if (resultsHint) resultsHint.classList.remove('hidden');
-      isShowingSkills = true;
-    } else {
-      gsap.to(skillsBlock, {
-        x: 100,
-        opacity: 0,
-        duration: 0.5,
-        ease: 'power2.in',
-        onComplete: () => {
-          skillsBlock.classList.add('hidden');
-          profileBlock.classList.remove('hidden');
-          gsap.fromTo(profileBlock,
-            { x: -100, opacity: 0 },
-            { x: 0, opacity: 1, duration: 0.5, ease: 'power2.out' }
-          );
-        }
-      });
-      if (resultsHint) resultsHint.classList.add('hidden');
-      isShowingSkills = false;
-    }
-  }
-  
-  resultsButton.addEventListener('click', toggleResults);
-  
-  if (isTouchDevice) {
-    resultsButton.addEventListener('touchend', toggleResults, { passive: false });
-  }
-}
-
-// ========================================
-// Initialize Everything
+// Initialize on DOM Ready
 // ========================================
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("DOM Content Loaded - Initializing...");
+  console.log("DOM Content Loaded - Setting up...");
   
   // Initialize media
   initMedia();
   
-  // Setup all features
+  // Setup custom cursor
   setupCustomCursor();
-  setupStartScreen();
-  setupVolumeControls();
-  setupTransparencyControls();
-  setupThemeSwitching();
-  initializeVisitorCounter();
-  setupProfilePicture();
-  setup3DTilt();
-  setupResultsToggle();
   
-  console.log("Initialization complete");
+  // Setup loading and splash screens
+  setupLoadingAndSplash();
 });
 
-// Load event for any additional initialization
+// Additional load event
 window.addEventListener('load', () => {
-  console.log("Window loaded");
-  initMedia();
+  console.log("Window load event fired");
 });
