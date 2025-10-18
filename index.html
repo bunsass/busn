@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile</title>
+  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/bunsass/busn/refs/heads/main/asset/Sticker_PPG_24_Evernight_02.ico">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <!-- Cursor Trail -->
+  <canvas id="cursor-trail"></canvas>
+
+  <!-- Loading Screen -->
+  <div id="loading-screen">
+    <div class="loading-content">
+      <div class="loading-spinner-main"></div>
+      <p class="loading-text">Loading Experience...</p>
+      <div class="loading-bar">
+        <div class="loading-progress"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Splash Screen -->
+  <div id="splash-screen" class="hidden">
+    <div class="splash-content">
+      <p class="splash-text">Click to continue</p>
+    </div>
+  </div>
+
+  <!-- Animated Background -->
+  <div id="particles"></div>
+
+  <div class="container page-transition">
+    <h1 id="greeting" class="parallax-slow"></h1>
+    
+    <div style="text-align: center;">
+      <div class="glitch-text parallax-medium">バンサス</div>
+    </div>
+
+    <!-- About Me -->
+    <div class="card section-fade parallax-fast">
+      <h2>About Me</h2>
+      <p><strong>Name:</strong> Bui Minh Triet / buns</p>
+      <p><strong>Location:</strong> Da lat, Vietnam</p>
+      <p><strong>Birthday:</strong> 05/07/2011</p>
+    </div>
+
+    <!-- Discord Status Card -->
+    <div class="card section-fade parallax-fast" id="discord-status-card">
+      <h2>💬 Discord Status</h2>
+      <div id="discord-status">
+        <div class="discord-loading">
+          <div class="loading-spinner"></div>
+          <p>Loading Discord status...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact -->
+    <div class="card section-fade parallax-fast">
+      <h2>Contact Me</h2>
+      <ul class="contact-list">
+        <li><strong>Email:</strong> <a href="mailto:buminhtriet57@gmail.com" class="social-link">click here to email me❤️</a></li>
+        <li><strong>GitHub:</strong> <a href="https://github.com/bunsass" target="_blank" rel="noopener noreferrer" class="social-link">bunsass</a></li>
+        <li><strong>Discord:</strong> <a href='https://discord.com/users/1003100550700748871' target="_blank" rel="noopener noreferrer" class="social-link">click here or : bunshevid_oguri</a></li>
+        <li><strong>Facebook:</strong> <a href="https://www.facebook.com/bunsass/" target="_blank" rel="noopener noreferrer" class="social-link">bunsass</a></li>
+      </ul>
+    </div>
+
+    <!-- Biography -->
+    <div class="card section-fade parallax-fast">
+      <h2>My Bio(*^▽^*)┛</h2>
+      <p>Hello! I'm passionate about learning new stuffs, coding, and creating amazing experiences. I love learning new things and working on projects that make a difference. In my free time, I enjoy listening to music, playing games, and exploring new ideas. Let's connect and create something awesome together!</p>
+    </div>
+
+     <!-- Honkai Star Rail Section -->
+    <section class="card game-section hsr-section section-fade parallax-fast">
+      <h2>⭐ Honkai Star Rail Profile</h2>
+      
+      <div id="loading-indicator" class="hidden">
+        <div class="loading-spinner"></div>
+        <p>Loading player info...</p>
+      </div>
+      
+      <div id="error-message" class="hidden error-box">
+        <p id="error-text"></p>
+      </div>
+      
+      <div id="hsr-player-info" class="hidden">
+        <div class="player-basic-info">
+          <div class="player-layout-container">
+            <div class="player-left">
+              <img id="player-avatar" src="" alt="Player Avatar" class="player-avatar">
+              <div class="player-main-info">
+                <h3 id="player-nickname"></h3>
+                <div class="player-level-info">
+                  <span class="level-text">TL <span id="player-level"></span></span>
+                  <span class="eq-text">EQ <span id="world-level"></span></span>
+                </div>
+                <p class="player-signature" id="player-signature"></p>
+              </div>
+            </div>
+            
+            <div class="player-right">
+              <div class="achievement-info">
+                <span class="achievement-number" id="achievement-count"></span>
+                <div class="achievement-icon">🏆</div>
+                <span class="achievement-text">Achievements</span>
+              </div>
+              <div class="achievement-info">
+                <span class="achievement-number" id="su-stars"></span>
+                <div class="achievement-icon">⭐</div>
+                <span class="achievement-text">Simulated Universe</span>
+              </div>
+              <div class="achievement-info">
+                <span class="achievement-number" id="hsr-exploration"></span>
+                <div class="achievement-icon">🗺️</div>
+                <span class="achievement-text">Exploration</span>
+              </div>
+              <div class="uid-info">
+                <span class="uid-text">UID: <span id="player-uid"></span></span>
+                <button class="copy-uid-btn" id="copy-hsr-uid" aria-label="Copy HSR UID">📋 Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Zenless Zone Zero Section -->
+    <section class="card game-section zzz-section section-fade parallax-fast">
+      <h2>⚡ Zenless Zone Zero Profile</h2>
+      
+      <div id="zzz-loading-indicator" class="hidden">
+        <div class="loading-spinner"></div>
+        <p>Loading player info...</p>
+      </div>
+      
+      <div id="zzz-error-message" class="hidden error-box">
+        <p id="zzz-error-text"></p>
+      </div>
+      
+      <div id="zzz-player-info" class="hidden">
+        <div class="player-basic-info">
+          <div class="player-layout-container">
+            <div class="player-left">
+              <img id="zzz-player-avatar" src="" alt="Player Avatar" class="player-avatar">
+              <div class="player-main-info">
+                <h3 id="zzz-player-nickname"></h3>
+                <div class="player-level-info">
+                  <span class="level-text">Level <span id="zzz-player-level"></span></span>
+                </div>
+                <p class="player-signature" id="zzz-player-signature"></p>
+              </div>
+            </div>
+            
+            <div class="player-right">
+              <div class="achievement-info">
+                <span class="achievement-number" id="shiyu-defense"></span>
+                <div class="achievement-icon">🛡️</div>
+                <span class="achievement-text">Shiyu Defense</span>
+              </div>
+              <div class="achievement-info">
+                <span class="achievement-number" id="line-breaker"></span>
+                <div class="achievement-icon">⚔️</div>
+                <span class="achievement-text">Line Breaker</span>
+              </div>
+              <div class="achievement-info">
+                <span class="achievement-number" id="disintegration"></span>
+                <div class="achievement-icon">💥</div>
+                <span class="achievement-text">Disintegration</span>
+              </div>
+              <div class="uid-info">
+                <span class="uid-text">UID: <span id="zzz-player-uid"></span></span>
+                <button class="copy-uid-btn" id="copy-zzz-uid" aria-label="Copy ZZZ UID">📋 Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Spotify Profile -->
+    <div class="card section-fade parallax-fast">
+      <h2>🎧 Featured Playlists</h2>
+      <p>Check out my playlists:3 </p>
+      <div class="spotify-embed">
+        <iframe style="border-radius:12px" 
+                src="https://open.spotify.com/embed/playlist/7iG4O8ZnFchAoh81RXIwVH?utm_source=generator" 
+                width="100%" 
+                height="380" 
+                frameBorder="0" 
+                allowfullscreen="" 
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                loading="lazy"
+                title="Spotify Featured Playlist">
+        </iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Music Player -->
+  <div id="music-player">
+    <canvas id="visualizer"></canvas>
+    <div id="album-art-container">
+      <img id="album-art" src="https://cdn.discordapp.com/attachments/1416355899232223235/1428594030283067402/2229438d735a893d8f80cd69f4319678.png?ex=68f3115e&is=68f1bfde&hm=057e81965a0105dfcccc3332ed6256590129ffc2b7a1cf8387bed3f98d01c539&" alt="Album Art">
+    </div>
+  </div>
+
+  <div id="song-info"></div>
+
+  <div id="music-controls">
+    <div class="volume-control">
+      <label for="volume">🔊</label>
+      <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5" aria-label="Volume control">
+    </div>
+    <button class="control-btn" id="prev" aria-label="Previous song">⏮️ Previous</button>
+    <button class="control-btn" id="play-pause" aria-label="Play or pause">▶️ Play</button>
+    <button class="control-btn" id="next" aria-label="Next song">⏭️ Next</button>
+    <button class="control-btn close-btn" id="close-controls" aria-label="Close controls">✖ Close</button>
+  </div>
+
+  <audio id="audio" crossorigin="anonymous"></audio>
+
+  <img class="decorative-image image1 parallax-slow" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_3.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
+  <img class="decorative-image image2 parallax-slow" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_2.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
+  <img class="decorative-image image3 parallax-slow" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_6.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
+  <img class="decorative-image image4 parallax-slow" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_5.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
+  <img class="image5" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Sticker_PPG_24_Evernight_03.webp" alt="Central decorative character" loading="lazy" onerror="this.style.display='none'">
+</body>
+</html>
