@@ -152,9 +152,15 @@ document.querySelectorAll('.section-fade').forEach(el => {
 // Splash Screen & Autoplay
 // ========================================
 const splashScreen = document.getElementById('splash-screen');
+let splashInteracted = false;
 
 function handleSplashInteraction(e) {
+  if (splashInteracted) return; // Prevent multiple triggers
+  splashInteracted = true;
+  
   e.preventDefault();
+  e.stopPropagation();
+  
   splashScreen.classList.add('fade-out');
   
   // Show music player after splash interaction
@@ -181,8 +187,12 @@ function handleSplashInteraction(e) {
   }, 800);
 }
 
+// Add multiple event listeners for better compatibility
 splashScreen.addEventListener('click', handleSplashInteraction);
+splashScreen.addEventListener('touchstart', handleSplashInteraction);
 splashScreen.addEventListener('touchend', handleSplashInteraction);
+// For iOS Safari specifically
+splashScreen.addEventListener('pointerdown', handleSplashInteraction);
 
 // ========================================
 // Typewriter Effect for Greeting
@@ -1031,4 +1041,3 @@ document.getElementById('copy-zzz-uid').addEventListener('click', function() {
   const uidText = document.getElementById('zzz-player-uid').textContent;
   copyUID(uidText, 'copy-zzz-uid');
 });
-
