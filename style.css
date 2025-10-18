@@ -137,6 +137,7 @@ body:not(.splash-dismissed) .container {
 
 html {
   scroll-behavior: smooth;
+  height: -webkit-fill-available;
 }
 
 body {
@@ -149,6 +150,8 @@ body {
   position: relative;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: -webkit-fill-available;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Animated Background Particles */
