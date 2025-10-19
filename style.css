@@ -83,17 +83,13 @@
   width: 100%;
   height: 100%;
   background: #000000;
-  display: none;
+  display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999;
+  z-index: 10001;
   opacity: 1;
   transition: opacity 0.8s ease;
   cursor: pointer;
-}
-
-#splash-screen:not(.hidden) {
-  display: flex;
 }
 
 #splash-screen.fade-out {
@@ -101,15 +97,8 @@
   pointer-events: none;
 }
 
-@keyframes fadeInSplash {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.splash-content {
+  text-align: center;
 }
 
 .splash-text {
@@ -129,31 +118,14 @@
   }
 }
 
-/* Page Transitions */
-.page-transition {
-  animation: pageEnter 0.6s ease-out;
+/* Hide loading screen until splash is dismissed */
+body:not(.splash-dismissed) #loading-screen {
+  display: none;
 }
 
-@keyframes pageEnter {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.section-fade {
+body:not(.splash-dismissed) .container {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-
-.section-fade.visible {
-  opacity: 1;
-  transform: translateY(0);
+  visibility: hidden;
 }
 
 /* Reset & Base Styling */
@@ -165,6 +137,7 @@
 
 html {
   scroll-behavior: smooth;
+  height: -webkit-fill-available;
 }
 
 body {
@@ -174,9 +147,11 @@ body {
   color: #333;
   overflow-x: hidden;
   min-height: 100vh;
+  min-height: -webkit-fill-available;
   position: relative;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Animated Background Particles */
@@ -249,7 +224,7 @@ h1 {
   100% { color: #ff0080; text-shadow: 2px 2px #00ffff; }
 }
 
-/* Content Cards - iOS FIX */
+/* Content Cards */
 .container {
   max-width: 900px;
   margin: 0 auto;
@@ -258,13 +233,7 @@ h1 {
   z-index: 1;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.8s ease-in, visibility 0s 0.8s;
-}
-
-.container.visible {
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.8s ease-in, visibility 0s 0s;
+  transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
 }
 
 .card {
@@ -517,15 +486,19 @@ h1 {
   }
 }
 
-/* Music Player */
+/* Music Player - GUNS.LOL STYLE */
 #music-player {
   position: fixed;
   bottom: 30px;
   right: 30px;
   z-index: 1000;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
-/* Visualizer */
 #visualizer {
   position: absolute;
   bottom: -10px;
@@ -549,6 +522,11 @@ h1 {
   cursor: pointer;
   transition: transform 0.3s ease;
   position: relative;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 #album-art-container:hover {
@@ -563,6 +541,11 @@ h1 {
   box-shadow: 0 0 30px rgba(255, 255, 255, 0.6);
   object-fit: cover;
   display: block;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  pointer-events: none;
 }
 
 #album-art.playing {
@@ -619,6 +602,11 @@ h1 {
   cursor: pointer;
   font-weight: 600;
   transition: all 0.3s ease;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .control-btn:hover {
@@ -1161,23 +1149,15 @@ h1 {
   }
 }
 
-/* Prevent flash of content before splash screen */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #000000;
-  z-index: 9998;
-  pointer-events: none;
-  opacity: 1;
-  transition: opacity 0.8s ease;
+/* Prevent flash of content */
+body:not(.content-visible) .container {
+  opacity: 0;
+  visibility: hidden;
 }
 
-body.splash-ready::before {
-  opacity: 0;
+body.content-visible .container {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Hide decorative images initially */
@@ -1187,8 +1167,7 @@ body.splash-ready::before {
   transition: opacity 1s ease;
 }
 
-body.content-visible .decorative-image,
-body.content-visible .image5 {
+body.content-visible .decorative-image {
   opacity: 0.4 !important;
 }
 
