@@ -227,6 +227,7 @@ const nextBtn = document.getElementById('next');
 const volumeSlider = document.getElementById('volume');
 const songInfo = document.getElementById('song-info');
 const musicControls = document.getElementById('music-controls');
+const closeButton = document.getElementById('close-controls');
 const visualizerCanvas = document.getElementById('visualizer');
 const visualizerCtx = visualizerCanvas.getContext('2d');
 
@@ -331,39 +332,26 @@ function drawVisualizer() {
   }
 }
 
-// SIMPLE: Event handlers - ONE approach for all
-const handleAlbumClick = (e) => {
+// SIMPLE: Event handlers - guns.lol style (container gets clicks, not img)
+albumArt.parentElement.addEventListener('click', (e) => {
   e.preventDefault();
-  e.stopPropagation();
   togglePlay();
   if (isMobile) {
     menuOpen = !menuOpen;
     musicControls.classList.toggle('show', menuOpen);
   }
-};
+});
 
-// Attach to album art
-albumArt.addEventListener('click', handleAlbumClick);
-if (isTouchDevice) {
-  albumArt.addEventListener('touchend', handleAlbumClick);
-}
-
-albumArt.addEventListener('dblclick', (e) => {
+albumArt.parentElement.addEventListener('dblclick', (e) => {
   e.preventDefault();
   nextSong();
 });
 
-// Play/pause button
-const handlePlayPause = (e) => {
+// Play/pause button - simpler
+playPauseBtn.addEventListener('click', (e) => {
   e.preventDefault();
-  e.stopPropagation();
   togglePlay();
-};
-
-playPauseBtn.addEventListener('click', handlePlayPause);
-if (isTouchDevice) {
-  playPauseBtn.addEventListener('touchend', handlePlayPause);
-}
+});
 
 // Prev/Next
 prevBtn.addEventListener('click', (e) => {
@@ -425,20 +413,13 @@ if (isMobile) {
   }, 100), { passive: true });
 }
 
-// Close button
-const closeButton = document.getElementById('close-controls');
+// Close button - simpler
 if (closeButton) {
-  const handleClose = (e) => {
+  closeButton.addEventListener('click', (e) => {
     e.preventDefault();
-    e.stopPropagation();
     menuOpen = false;
     musicControls.classList.remove('show');
-  };
-  
-  closeButton.addEventListener('click', handleClose);
-  if (isTouchDevice) {
-    closeButton.addEventListener('touchend', handleClose);
-  }
+  });
 }
 
 // ========================================
@@ -549,28 +530,38 @@ class EnkaAPI {
 
     for (const proxy of this.proxies) {
       try {
+        console.log(`Trying ${this.game} with ${proxy.name}...`);
         const response = await fetch(proxy.url(`${this.baseURL}/${uid}`), {
           method: 'GET',
           headers: { 'Accept': 'application/json' }
         });
         
-        if (!response.ok) continue;
+        if (!response.ok) {
+          console.warn(`${proxy.name} failed: ${response.status}`);
+          continue;
+        }
         
         const data = await response.json();
         const apiData = proxy.parse(data);
         
-        if (!this.validateData(apiData)) continue;
+        if (!this.validateData(apiData)) {
+          console.warn(`${proxy.name} returned invalid data`);
+          continue;
+        }
         
+        console.log(`✅ ${this.game} loaded successfully with ${proxy.name}`);
         this.showLoading(false);
         this.hideError();
         this.displayPlayerData(apiData);
         this.showPlayerInfo();
         return;
       } catch (error) {
+        console.warn(`${proxy.name} error:`, error.message);
         continue;
       }
     }
     
+    console.error(`All ${this.game} proxies failed - using demo data`);
     this.showError('Unable to fetch live data. Displaying demo data.');
     this.showLoading(false);
     this.displayPlayerData(this.getMockData());
