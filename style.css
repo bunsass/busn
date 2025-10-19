@@ -203,36 +203,10 @@ h1 {
   border-color: rgba(236, 72, 153, 0.3);
 }
 
-/* Player Basic Info */
-.player-basic-info {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 24px;
-  margin: 20px 0;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.player-layout-container {
+.player-info {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 30px;
-  width: 100%;
-}
-
-.player-left {
-  display: flex;
-  align-items: center;
   gap: 20px;
-  flex: 1;
-}
-
-.player-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 12px;
-  min-width: 200px;
+  align-items: start;
 }
 
 .player-avatar {
@@ -241,106 +215,48 @@ h1 {
   border-radius: 50%;
   border: 3px solid #fff;
   object-fit: cover;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
-  transition: all 0.3s ease;
-  flex-shrink: 0;
 }
 
-.player-avatar:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.6);
-}
-
-.player-main-info {
+.player-details {
   flex: 1;
-  text-align: left;
 }
 
-.player-main-info h3 {
+.player-details h3 {
   margin: 0 0 8px 0;
-  font-size: 2rem;
-  color: #fff;
-  font-weight: 700;
+  font-size: 1.8rem;
 }
 
-.player-level-info {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 8px;
-}
-
-.level-text, .eq-text {
-  font-size: 1.1rem;
-  color: #fff;
-  font-weight: 600;
-}
-
-.level-text span, .eq-text span {
-  font-weight: 700;
+.label {
   color: #8b5cf6;
+  font-weight: 600;
 }
 
 .signature {
   font-style: italic;
-  color: rgba(255, 255, 255, 0.8) !important;
-  margin: 8px 0 0 0 !important;
-  font-size: 0.95rem;
   opacity: 0.8;
+  margin: 8px 0;
 }
 
-/* Achievement Info Cards */
-.achievement-info {
+.stats {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.15);
+  gap: 15px;
+  margin: 15px 0;
+  flex-wrap: wrap;
+}
+
+.stats span {
+  background: rgba(255, 255, 255, 0.1);
   padding: 8px 15px;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
-  min-width: 220px;
+  font-size: 0.95rem;
 }
 
-.achievement-info:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateX(-5px);
-}
-
-.achievement-number {
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: #fff;
-  min-width: 40px;
-  text-align: center;
-}
-
-.achievement-icon {
-  font-size: 1.2rem;
-  opacity: 0.8;
-}
-
-.achievement-text {
-  font-size: 0.9rem;
-  color: #fff;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.uid-info {
-  margin-top: 5px;
+.uid {
+  margin-top: 10px;
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.uid-text {
-  font-size: 1.1rem;
-  color: #fff;
-  opacity: 0.9;
-}
-
-.uid-text span {
-  font-weight: 600;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .copy-btn {
@@ -553,41 +469,17 @@ h1 {
     font-size: 1.5rem;
   }
   
-  .player-layout-container {
-    flex-direction: column;
-    gap: 20px;
-  }
-  
-  .player-left {
+  .player-info {
     flex-direction: column;
     text-align: center;
   }
   
-  .player-right {
-    align-items: center;
-    min-width: unset;
-    width: 100%;
+  .stats { 
+    justify-content: center; 
   }
   
-  .player-main-info {
-    text-align: center;
-  }
-
-  .player-main-info h3 {
-    font-size: 1.5rem;
-  }
-
-  .player-level-info {
-    justify-content: center;
-  }
-  
-  .achievement-info {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .uid-info {
-    justify-content: center;
+  .uid { 
+    justify-content: center; 
   }
   
   #music-player { 
@@ -637,16 +529,8 @@ h1 {
   .card { 
     padding: 15px; 
   }
-
-  .player-basic-info {
-    padding: 15px;
-  }
-
-  .achievement-text {
-    font-size: 0.8rem;
-  }
   
-  .player-main-info h3 { 
+  .player-details h3 { 
     font-size: 1.5rem; 
   }
   
