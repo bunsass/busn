@@ -1,485 +1,151 @@
-// ========================================
-// Utility Functions
-// ========================================
-const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth < 768;
-const particleCount = isMobile ? 10 : 30;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#1a1425">
+  <title>My Profile</title>
+  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/bunsass/busn/refs/heads/main/asset/Sticker_PPG_24_Evernight_02.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Background Particles -->
+  <div id="particles"></div>
 
-// ========================================
-// Greeting
-// ========================================
-function updateGreeting() {
-  const greetingEl = document.getElementById('greeting');
-  if (!greetingEl) return;
-  
-  const hour = new Date().getHours();
-  const greetings = {
-    morning: ['Good Morning, proxies!', 'Rise and Shine, Wanderer!', 'Good Morning, Trailblazer!'],
-    afternoon: ['Good Afternoon, Traveler!', 'Hello There, Wanderer!', 'Good Afternoon, proxies!'],
-    evening: ['Good Evening, Traveler!', 'Greetings, Night Wanderer!', 'Good Evening, proxies!'],
-    night: ['Good Night, Stargazer!', 'Welcome, Night Owl!', 'Good Night, proxies!']
-  };
-  
-  let timeOfDay = hour >= 5 && hour < 12 ? 'morning' : 
-                  hour >= 12 && hour < 17 ? 'afternoon' : 
-                  hour >= 17 && hour < 21 ? 'evening' : 'night';
-  
-  const options = greetings[timeOfDay];
-  greetingEl.textContent = options[Math.floor(Math.random() * options.length)];
-}
+  <!-- Main Container -->
+  <div class="container">
+    <h1 id="greeting"></h1>
+    <div class="subtitle">ブンサス</div>
 
-// ========================================
-// Particles
-// ========================================
-function createParticles() {
-  const container = document.getElementById('particles');
-  if (!container) return;
-  
-  for (let i = 0; i < particleCount; i++) {
-    const particle = document.createElement('div');
-    particle.className = 'particle';
-    const size = Math.random() * 4 + 2;
-    particle.style.width = size + 'px';
-    particle.style.height = size + 'px';
-    particle.style.left = Math.random() * 100 + '%';
-    particle.style.top = Math.random() * 100 + '%';
-    
-    const colors = ['rgba(139, 92, 246, 0.4)', 'rgba(99, 102, 241, 0.3)', 'rgba(167, 139, 250, 0.3)', 'rgba(236, 72, 153, 0.3)'];
-    particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-    particle.style.animationDelay = Math.random() * 5 + 's';
-    particle.style.animationDuration = (Math.random() * 5 + 8) + 's';
-    container.appendChild(particle);
-  }
-}
+    <!-- About Me -->
+    <div class="card">
+      <h2>About Me</h2>
+      <p><strong>Name:</strong> Bui Minh Triet / buns</p>
+      <p><strong>Location:</strong> Da lat, Vietnam</p>
+      <p><strong>Birthday:</strong> 05/07/2011</p>
+    </div>
 
-// ========================================
-// Discord Status
-// ========================================
-const DISCORD_ID = '1003100550700748871';
-
-async function fetchDiscordStatus() {
-  const container = document.getElementById('discord-status');
-  if (!container) return;
-  
-  try {
-    const response = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`);
-    const data = await response.json();
-    
-    if (data.success && data.data) {
-      displayDiscordStatus(data.data);
-    } else {
-      throw new Error('Invalid response');
-    }
-  } catch (error) {
-    console.warn('Discord status error:', error);
-    container.innerHTML = '<p style="color: rgba(255, 255, 255, 0.7); text-align: center; padding: 20px;">Discord status unavailable</p>';
-  }
-}
-
-function displayDiscordStatus(data) {
-  const container = document.getElementById('discord-status');
-  if (!container) return;
-  
-  const statusConfig = {
-    online: { text: 'Online', color: '#43b581' },
-    idle: { text: 'Idle', color: '#faa61a' },
-    dnd: { text: 'Do Not Disturb', color: '#f04747' },
-    offline: { text: 'Offline', color: '#747f8d' }
-  };
-  
-  const currentStatus = statusConfig[data.discord_status] || statusConfig.offline;
-  const user = data.discord_user;
-  const activity = (data.activities || []).find(a => a.type !== 4);
-  
-  let activityHTML = '';
-  if (activity) {
-    const activityTypes = { 0: 'Playing', 1: 'Streaming', 2: 'Listening to', 3: 'Watching', 5: 'Competing in' };
-    const activityTitle = activityTypes[activity.type] || 'Activity';
-    
-    activityHTML = `
-      <div class="discord-activity">
-        <strong>${activityTitle}</strong> ${activity.name}
-        ${activity.details ? `<div style="opacity: 0.8; margin-top: 4px;">${activity.details}</div>` : ''}
-      </div>
-    `;
-  }
-  
-  container.innerHTML = `
-    <div class="discord-info">
-      <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128" alt="${user.username}" class="discord-avatar">
-      <div class="discord-details">
-        <h3>${user.global_name || user.username}</h3>
-        <div class="discord-status">
-          <span class="status-dot" style="background: ${currentStatus.color};"></span>
-          ${currentStatus.text}
-        </div>
-        ${activityHTML}
+    <!-- Discord Status -->
+    <div class="card">
+      <h2>💬 Discord Status</h2>
+      <div id="discord-status">
+        <div class="loading">Loading Discord status...</div>
       </div>
     </div>
-  `;
-}
 
-// ========================================
-// Music Player
-// ========================================
-const songs = [
-  { title: "Time To Love", url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Time%20To%20Love.mp3" },
-  { title: "Had I Not Seen the Sun", url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Had%20I%20Not%20Seen%20the%20Sun.mp3" },
-  { title: "If I Can Stop One Heart From Breaking", url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3" }
-];
+    <!-- Contact -->
+    <div class="card">
+      <h2>Contact Me</h2>
+      <ul class="contact-list">
+        <li><strong>Email:</strong> <a href="mailto:buminhtriet57@gmail.com">click here to email me❤️</a></li>
+        <li><strong>GitHub:</strong> <a href="https://github.com/bunsass" target="_blank">bunsass</a></li>
+        <li><strong>Discord:</strong> <a href='https://discord.com/users/1003100550700748871' target="_blank">bunshevid_oguri</a></li>
+        <li><strong>Facebook:</strong> <a href="https://www.facebook.com/bunsass/" target="_blank">bunsass</a></li>
+      </ul>
+    </div>
 
-let currentSongIndex = 0;
-let menuOpen = false;
+    <!-- Biography -->
+    <div class="card">
+      <h2>My Bio (*^▽^*)┛</h2>
+      <p>Hello! I'm passionate about learning new stuffs, coding, and creating amazing experiences. I love learning new things and working on projects that make a difference. In my free time, I enjoy listening to music, playing games, and exploring new ideas. Let's connect and create something awesome together!</p>
+    </div>
 
-const audio = document.getElementById('audio');
-const albumArt = document.getElementById('album-art');
-const albumArtContainer = document.getElementById('album-art-container');
-const playPauseBtn = document.getElementById('play-pause');
-const prevBtn = document.getElementById('prev');
-const nextBtn = document.getElementById('next');
-const volumeSlider = document.getElementById('volume');
-const songInfo = document.getElementById('song-info');
-const musicControls = document.getElementById('music-controls');
-const closeButton = document.getElementById('close-controls');
+    <!-- Honkai Star Rail -->
+    <div class="card game-card hsr-card">
+      <h2>⭐ Honkai Star Rail Profile</h2>
+      <div id="hsr-loading" class="loading">Loading player info...</div>
+      <div id="hsr-error" class="error-box hidden"></div>
+      <div id="hsr-player-info" class="hidden">
+        <div class="player-info">
+          <img id="hsr-avatar" src="" alt="Avatar" class="player-avatar">
+          <div class="player-details">
+            <h3 id="hsr-nickname"></h3>
+            <p><span class="label">TL</span> <span id="hsr-level"></span> | <span class="label">EQ</span> <span id="hsr-world-level"></span></p>
+            <p class="signature" id="hsr-signature"></p>
+            <div class="stats">
+              <span>🏆 <span id="hsr-achievements"></span></span>
+              <span>⭐ <span id="hsr-su-stars"></span></span>
+              <span>⚡ <span id="hsr-lightcones"></span></span>
+            </div>
+            <div class="uid">
+              UID: <span id="hsr-uid"></span>
+              <button class="copy-btn" id="copy-hsr-uid">📋 Copy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-if (audio) audio.volume = 0.5;
+    <!-- Zenless Zone Zero -->
+    <div class="card game-card zzz-card">
+      <h2>⚡ Zenless Zone Zero Profile</h2>
+      <div id="zzz-loading" class="loading">Loading player info...</div>
+      <div id="zzz-error" class="error-box hidden"></div>
+      <div id="zzz-player-info" class="hidden">
+        <div class="player-info">
+          <img id="zzz-avatar" src="" alt="Avatar" class="player-avatar">
+          <div class="player-details">
+            <h3 id="zzz-nickname"></h3>
+            <p><span class="label">Level</span> <span id="zzz-level"></span></p>
+            <p class="signature" id="zzz-signature"></p>
+            <div class="stats">
+              <span>⚔️ <span id="zzz-line-breaker"></span></span>
+              <span>🛡️ <span id="zzz-shiyu"></span></span>
+              <span>💥 <span id="zzz-disintegration"></span></span>
+            </div>
+            <div class="uid">
+              UID: <span id="zzz-uid"></span>
+              <button class="copy-btn" id="copy-zzz-uid">📋 Copy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-function loadSong(index) {
-  if (!audio) return;
-  audio.src = songs[index].url;
-  if (songInfo) songInfo.textContent = `♪ ${songs[index].title}`;
-}
+    <!-- Spotify -->
+    <div class="card">
+      <h2>🎧 Featured Playlists</h2>
+      <p>Check out my playlists :3</p>
+      <iframe style="border-radius:12px; margin-top: 15px;" 
+              src="https://open.spotify.com/embed/playlist/7iG4O8ZnFchAoh81RXIwVH?utm_source=generator" 
+              width="100%" 
+              height="380" 
+              frameborder="0" 
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+              loading="lazy">
+      </iframe>
+    </div>
+  </div>
 
-function play() {
-  if (!audio) return;
-  audio.play().then(() => {
-    if (albumArt) albumArt.classList.add('playing');
-    if (playPauseBtn) playPauseBtn.textContent = '⏸ Pause';
-    if (songInfo) songInfo.classList.remove('hidden');
-  }).catch(err => console.warn('Play failed:', err));
-}
+  <!-- Music Player -->
+  <div id="music-player">
+    <div id="album-art-container">
+      <img id="album-art" src="https://cdn.discordapp.com/attachments/1416355899232223235/1428594030283067402/2229438d735a893d8f80cd69f4319678.png?ex=68f3115e&is=68f1bfde&hm=057e81965a0105dfcccc3332ed6256590129ffc2b7a1cf8387bed3f98d01c539&" alt="Album Art">
+    </div>
+    <div id="song-info" class="hidden"></div>
+    <div id="music-controls" class="hidden">
+      <div class="control-group">
+        <label>🔊</label>
+        <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
+      </div>
+      <button class="control-btn" id="prev">⏮️ Previous</button>
+      <button class="control-btn" id="play-pause">▶️ Play</button>
+      <button class="control-btn" id="next">⏭️ Next</button>
+      <button class="control-btn close-btn" id="close-controls">✖ Close</button>
+    </div>
+  </div>
 
-function pause() {
-  if (!audio) return;
-  audio.pause();
-  if (albumArt) albumArt.classList.remove('playing');
-  if (playPauseBtn) playPauseBtn.textContent = '▶ Play';
-}
+  <audio id="audio" crossorigin="anonymous"></audio>
 
-function togglePlay() {
-  if (!audio) return;
-  if (!audio.src) loadSong(currentSongIndex);
-  audio.paused ? play() : pause();
-}
+  <!-- Decorative Images -->
+  <img class="decorative-image image1" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_3.webp" alt="" loading="lazy" onerror="this.style.display='none'">
+  <img class="decorative-image image2" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_2.webp" alt="" loading="lazy" onerror="this.style.display='none'">
+  <img class="decorative-image image3" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_6.webp" alt="" loading="lazy" onerror="this.style.display='none'">
+  <img class="decorative-image image4" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_5.webp" alt="" loading="lazy" onerror="this.style.display='none'">
+  <img class="image5" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Sticker_PPG_24_Evernight_03.webp" alt="" loading="lazy" onerror="this.style.display='none'">
 
-function nextSong() {
-  currentSongIndex = (currentSongIndex + 1) % songs.length;
-  loadSong(currentSongIndex);
-  play();
-}
-
-function prevSong() {
-  currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
-  loadSong(currentSongIndex);
-  play();
-}
-
-// Event Listeners
-if (albumArtContainer) {
-  albumArtContainer.addEventListener('click', () => {
-    togglePlay();
-    if (isMobile && musicControls) {
-      menuOpen = !menuOpen;
-      musicControls.classList.toggle('hidden', !menuOpen);
-    }
-  });
-}
-
-if (playPauseBtn) playPauseBtn.addEventListener('click', togglePlay);
-if (prevBtn) prevBtn.addEventListener('click', prevSong);
-if (nextBtn) nextBtn.addEventListener('click', nextSong);
-if (volumeSlider) volumeSlider.addEventListener('input', (e) => { 
-  if (audio) audio.volume = e.target.value; 
-});
-if (audio) audio.addEventListener('ended', nextSong);
-if (closeButton) closeButton.addEventListener('click', () => {
-  menuOpen = false;
-  if (musicControls) musicControls.classList.add('hidden');
-});
-
-// Desktop hover
-if (!isMobile && albumArt && musicControls) {
-  let hoverTimeout;
-  albumArt.addEventListener('mouseenter', () => {
-    hoverTimeout = setTimeout(() => musicControls.classList.remove('hidden'), 300);
-  });
-  albumArt.addEventListener('mouseleave', () => {
-    clearTimeout(hoverTimeout);
-    setTimeout(() => {
-      if (!musicControls.matches(':hover')) musicControls.classList.add('hidden');
-    }, 300);
-  });
-  musicControls.addEventListener('mouseleave', () => musicControls.classList.add('hidden'));
-}
-
-// ========================================
-// Game APIs with CORS Proxy
-// ========================================
-
-// CORS Proxy helper
-async function fetchWithProxy(url) {
-  // Try direct first
-  try {
-    const response = await fetch(url);
-    if (response.ok) return await response.json();
-  } catch (e) {
-    console.log('Direct fetch failed, trying proxy...');
-  }
-  
-  // Try with AllOrigins proxy
-  try {
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-    const response = await fetch(proxyUrl);
-    if (response.ok) {
-      const data = await response.json();
-      return JSON.parse(data.contents);
-    }
-  } catch (e) {
-    console.warn('Proxy fetch failed:', e);
-  }
-  
-  throw new Error('All fetch attempts failed');
-}
-
-// ========================================
-// HSR API
-// ========================================
-class HSRAPI {
-  constructor() {
-    this.uid = '832796099';
-    this.apiUrl = 'https://enka.network/api/hsr/uid';
-    this.init();
-  }
-
-  async init() {
-    this.showLoading(true);
-    await this.fetchData();
-  }
-
-  showLoading(show) {
-    const el = document.getElementById('hsr-loading');
-    if (el) el.classList.toggle('hidden', !show);
-  }
-
-  showError(msg) {
-    const el = document.getElementById('hsr-error');
-    if (el) {
-      el.textContent = msg;
-      el.classList.remove('hidden');
-    }
-  }
-
-  showPlayerInfo(show) {
-    const el = document.getElementById('hsr-player-info');
-    if (el) el.classList.toggle('hidden', !show);
-  }
-
-  async fetchData() {
-    try {
-      const data = await fetchWithProxy(`${this.apiUrl}/${this.uid}`);
-      
-      if (data && (data.detailInfo || (data.uid && data.ttl))) {
-        this.showLoading(false);
-        this.displayData(data);
-        this.showPlayerInfo(true);
-      } else {
-        throw new Error('Invalid data');
-      }
-    } catch (error) {
-      console.warn('HSR API error:', error);
-      this.showLoading(false);
-      this.showError('Unable to load live data. Displaying demo data.');
-      this.displayData(this.getMockData());
-      this.showPlayerInfo(true);
-    }
-  }
-
-  getMockData() {
-    return {
-      uid: this.uid,
-      detailInfo: {
-        nickname: "Chamoi",
-        level: 70,
-        worldLevel: 6,
-        signature: "Demo data - API unavailable",
-        headIcon: 201409,
-        recordInfo: {
-          achievementCount: 10,
-          maxRogueChallengeScore: 90,
-          equipmentCount: 790
-        }
-      }
-    };
-  }
-
-  displayData(data) {
-    const info = data.detailInfo;
-    if (!info) return;
-
-    const set = (id, content) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = content;
-    };
-
-    const setAttr = (id, attr, value) => {
-      const el = document.getElementById(id);
-      if (el) el[attr] = value;
-    };
-
-    setAttr('hsr-avatar', 'src', info.headIcon ? 
-      `https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/${info.headIcon}.png` : 
-      'https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png'
-    );
-    set('hsr-nickname', info.nickname || 'Trailblazer');
-    set('hsr-level', info.level || 70);
-    set('hsr-world-level', info.worldLevel || 6);
-    set('hsr-signature', info.signature || 'May this journey lead us starward.');
-    set('hsr-achievements', info.recordInfo?.achievementCount || 0);
-    set('hsr-su-stars', info.recordInfo?.maxRogueChallengeScore || 0);
-    set('hsr-lightcones', info.recordInfo?.equipmentCount || 0);
-    set('hsr-uid', data.uid || this.uid);
-
-    const copyBtn = document.getElementById('copy-hsr-uid');
-    if (copyBtn) {
-      copyBtn.onclick = () => {
-        navigator.clipboard.writeText(data.uid || this.uid);
-        copyBtn.textContent = '✓ Copied!';
-        setTimeout(() => copyBtn.textContent = '📋 Copy', 2000);
-      };
-    }
-  }
-}
-
-// ========================================
-// ZZZ API
-// ========================================
-class ZZZAPI {
-  constructor() {
-    this.uid = '1302036813';
-    this.apiUrl = 'https://enka.network/api/zzz/uid';
-    this.init();
-  }
-
-  async init() {
-    this.showLoading(true);
-    await this.fetchData();
-  }
-
-  showLoading(show) {
-    const el = document.getElementById('zzz-loading');
-    if (el) el.classList.toggle('hidden', !show);
-  }
-
-  showError(msg) {
-    const el = document.getElementById('zzz-error');
-    if (el) {
-      el.textContent = msg;
-      el.classList.remove('hidden');
-    }
-  }
-
-  showPlayerInfo(show) {
-    const el = document.getElementById('zzz-player-info');
-    if (el) el.classList.toggle('hidden', !show);
-  }
-
-  async fetchData() {
-    try {
-      const data = await fetchWithProxy(`${this.apiUrl}/${this.uid}`);
-      
-      if (data && data.PlayerInfo && data.PlayerInfo.SocialDetail) {
-        this.showLoading(false);
-        this.displayData(data);
-        this.showPlayerInfo(true);
-      } else {
-        throw new Error('Invalid data');
-      }
-    } catch (error) {
-      console.warn('ZZZ API error:', error);
-      this.showLoading(false);
-      this.showError('Unable to load live data. Displaying demo data.');
-      this.displayData(this.getMockData());
-      this.showPlayerInfo(true);
-    }
-  }
-
-  getMockData() {
-    return {
-      uid: this.uid,
-      PlayerInfo: {
-        SocialDetail: {
-          ProfileDetail: {
-            Nickname: 'Buns',
-            Level: 60,
-            Uid: this.uid,
-            AvatarId: 2021
-          },
-          Desc: 'Welcome to New Eridu!',
-          MedalList: [
-            { MedalType: 3, Value: 0 },
-            { MedalType: 1, Value: 0 },
-            { MedalType: 7, Value: 0 }
-          ]
-        }
-      }
-    };
-  }
-
-  displayData(data) {
-    const socialDetail = data.PlayerInfo.SocialDetail;
-    const profileDetail = socialDetail.ProfileDetail;
-
-    const set = (id, content) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = content;
-    };
-
-    const setAttr = (id, attr, value) => {
-      const el = document.getElementById(id);
-      if (el) el[attr] = value;
-    };
-
-    setAttr('zzz-avatar', 'src', 'https://enka.network/ui/zzz/IconInterKnotRole0013.png');
-    set('zzz-nickname', profileDetail.Nickname || 'Proxy');
-    set('zzz-level', profileDetail.Level || 60);
-    set('zzz-signature', socialDetail.Desc || 'Welcome to New Eridu!');
-
-    const medals = socialDetail.MedalList || [];
-    set('zzz-line-breaker', medals.find(m => m.MedalType === 3)?.Value || 0);
-    set('zzz-shiyu', medals.find(m => m.MedalType === 1)?.Value || 0);
-    set('zzz-disintegration', medals.find(m => m.MedalType === 7)?.Value || 0);
-    set('zzz-uid', profileDetail.Uid || data.uid || this.uid);
-
-    const copyBtn = document.getElementById('copy-zzz-uid');
-    if (copyBtn) {
-      copyBtn.onclick = () => {
-        navigator.clipboard.writeText(profileDetail.Uid || data.uid || this.uid);
-        copyBtn.textContent = '✓ Copied!';
-        setTimeout(() => copyBtn.textContent = '📋 Copy', 2000);
-      };
-    }
-  }
-}
-
-// ========================================
-// Initialize Everything
-// ========================================
-document.addEventListener('DOMContentLoaded', () => {
-  updateGreeting();
-  createParticles();
-  fetchDiscordStatus();
-  new HSRAPI();
-  new ZZZAPI();
-  
-  // Refresh Discord status every 30 seconds
-  setInterval(fetchDiscordStatus, 30000);
-});
+  <script src="script.js"></script>
+</body>
+</html>
