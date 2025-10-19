@@ -1,134 +1,4 @@
-/* Loading Screen */
-#loading-screen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #0a0a0f 0%, #1a1425 50%, #4a2d63 100%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-  opacity: 1;
-  transition: opacity 0.8s ease;
-}
-
-#loading-screen.fade-out {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.loading-content {
-  text-align: center;
-}
-
-.loading-spinner-main {
-  width: 60px;
-  height: 60px;
-  border: 4px solid rgba(139, 92, 246, 0.2);
-  border-top: 4px solid #8b5cf6;
-  border-radius: 50%;
-  animation: spinLoader 1s linear infinite;
-  margin: 0 auto 20px;
-}
-
-.loading-text {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 1.2rem;
-  font-weight: 300;
-  letter-spacing: 2px;
-  margin-bottom: 20px;
-  animation: pulseText 2s ease-in-out infinite;
-}
-
-.loading-bar {
-  width: 200px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
-  margin: 0 auto;
-  overflow: hidden;
-}
-
-.loading-progress {
-  height: 100%;
-  background: linear-gradient(90deg, #8b5cf6, #ec4899);
-  border-radius: 2px;
-  animation: loadingProgress 2s ease-in-out;
-  width: 100%;
-}
-
-@keyframes loadingProgress {
-  0% { width: 0%; }
-  100% { width: 100%; }
-}
-
-/* Cursor Trail Canvas */
-#cursor-trail {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 9998;
-}
-
-/* Splash Screen */
-#splash-screen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #000000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10001;
-  opacity: 1;
-  transition: opacity 0.8s ease;
-  cursor: pointer;
-}
-
-#splash-screen.fade-out {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.splash-content {
-  text-align: center;
-}
-
-.splash-text {
-  font-size: 1.2rem;
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 300;
-  letter-spacing: 2px;
-  animation: pulseText 2s ease-in-out infinite;
-}
-
-@keyframes pulseText {
-  0%, 100% {
-    opacity: 0.7;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-/* Hide loading screen until splash is dismissed */
-body:not(.splash-dismissed) #loading-screen {
-  display: none;
-}
-
-body:not(.splash-dismissed) .container {
-  opacity: 0;
-  visibility: hidden;
-}
-
-/* Reset & Base Styling */
+/* Reset & Base */
 * {
   margin: 0;
   padding: 0;
@@ -137,25 +7,20 @@ body:not(.splash-dismissed) .container {
 
 html {
   scroll-behavior: smooth;
-  height: -webkit-fill-available;
 }
 
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: linear-gradient(135deg, #0a0a0f 0%, #1a1425 25%, #2d1b3d 50%, #3d2554 75%, #4a2d63 100%);
   background-attachment: fixed;
-  color: #333;
-  overflow-x: hidden;
+  color: #fff;
   min-height: 100vh;
-  min-height: -webkit-fill-available;
-  position: relative;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   -webkit-overflow-scrolling: touch;
-  -webkit-tap-highlight-color: transparent;
 }
 
-/* Animated Background Particles */
+/* Particles Background */
 #particles {
   position: fixed;
   top: 0;
@@ -169,13 +34,11 @@ body {
 .particle {
   position: absolute;
   border-radius: 50%;
-  pointer-events: none;
   opacity: 0.5;
-  animation: floatGlow 8s infinite ease-in-out;
-  will-change: transform, opacity;
+  animation: float 8s infinite ease-in-out;
 }
 
-@keyframes floatGlow {
+@keyframes float {
   0%, 100% { 
     transform: translateY(0);
     opacity: 0.5;
@@ -186,247 +49,64 @@ body {
   }
 }
 
-/* Header */
-h1 {
-  text-align: center;
-  font-size: 4rem;
-  font-family: 'Great Vibes', cursive;
-  background: linear-gradient(45deg, #fff, #f0f0f0);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin: 40px 0 20px;
-  text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
-  animation: glow 3s ease-in-out infinite;
-}
-
-@keyframes glow {
-  0%, 100% { filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.7)); }
-  50% { filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.9)); }
-}
-
-/* Glitch Text Effect */
-.glitch-text {
-  text-align: center;
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #fff;
-  margin: 20px 0;
-  position: relative;
-  display: inline-block;
-  animation: colorShift 5s infinite;
-}
-
-@keyframes colorShift {
-  0% { color: #ff0080; text-shadow: 2px 2px #00ffff; }
-  25% { color: #00ffff; text-shadow: -2px -2px #ff0080; }
-  50% { color: #ffff00; text-shadow: 2px -2px #ff0080; }
-  75% { color: #00ff00; text-shadow: -2px 2px #00ffff; }
-  100% { color: #ff0080; text-shadow: 2px 2px #00ffff; }
-}
-
-/* Content Cards */
+/* Container */
 .container {
   max-width: 900px;
   margin: 0 auto;
   padding: 20px;
   position: relative;
   z-index: 1;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
 }
 
+/* Headers */
+h1 {
+  text-align: center;
+  font-size: 3rem;
+  font-family: 'Great Vibes', cursive;
+  margin: 40px 0 20px;
+  background: linear-gradient(45deg, #fff, #f0f0f0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 2rem;
+  color: #8b5cf6;
+  margin-bottom: 30px;
+  font-weight: 600;
+}
+
+/* Cards */
 .card {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
   padding: 30px;
   margin: 20px 0;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  transition: all 0.4s ease;
-  position: relative;
-}
-
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 20px;
-  padding: 2px;
-  background: linear-gradient(135deg, transparent, rgba(139, 92, 246, 0.4), transparent);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  pointer-events: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .card:hover {
   transform: translateY(-5px);
   box-shadow: 0 12px 40px rgba(139, 92, 246, 0.3);
-  border-color: rgba(139, 92, 246, 0.4);
-}
-
-.card:hover::before {
-  opacity: 1;
 }
 
 .card h2 {
   color: #fff;
-  font-size: 2rem;
+  font-size: 1.8rem;
   margin-bottom: 15px;
-  font-family: 'Playfair Display', serif;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .card p, .card li {
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.9);
   line-height: 1.8;
   font-size: 1.05rem;
-}
-
-/* Discord Status */
-#discord-status {
-  min-height: 80px;
-}
-
-.discord-loading {
-  text-align: center;
-  padding: 20px;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.discord-info {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
-}
-
-.discord-info:hover {
-  background: rgba(255, 255, 255, 0.12);
-  transform: translateY(-2px);
-}
-
-.discord-avatar-container {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.discord-avatar-img {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  border: 3px solid rgba(255, 255, 255, 0.2);
-  transition: all 0.3s ease;
-}
-
-.discord-info:hover .discord-avatar-img {
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: scale(1.05);
-}
-
-.status-indicator {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 3px solid rgba(0, 0, 0, 0.9);
-  animation: statusPulse 2s ease-in-out infinite;
-}
-
-@keyframes statusPulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(67, 181, 129, 0.7);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(67, 181, 129, 0);
-  }
-}
-
-.discord-details {
-  flex: 1;
-  min-width: 0;
-}
-
-.discord-username {
-  color: #fff;
-  margin: 0 0 10px 0;
-  font-size: 1.3rem;
-  font-weight: 600;
-}
-
-.discord-status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 20px;
-  border: 2px solid;
-  font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
-  margin-bottom: 10px;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  animation: dotPulse 2s ease-in-out infinite;
-}
-
-@keyframes dotPulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.discord-activity {
-  background: rgba(139, 92, 246, 0.15);
-  padding: 12px 15px;
-  border-radius: 10px;
-  border-left: 3px solid #8b5cf6;
-  margin-top: 10px;
-}
-
-.discord-activity-title {
-  color: #a78bfa;
-  font-weight: 600;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 5px;
-}
-
-.discord-activity-name {
-  color: #fff;
-  font-weight: 600;
-  font-size: 1rem;
-  margin-bottom: 3px;
-}
-
-.discord-activity-details {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.85rem;
-  line-height: 1.4;
+  margin: 8px 0;
 }
 
 /* Contact List */
@@ -441,10 +121,10 @@ h1 {
 }
 
 .contact-list li::before {
-  content: "â–¹";
+  content: "▹";
   position: absolute;
   left: 0;
-  color: #fff;
+  color: #8b5cf6;
   font-weight: bold;
   font-size: 1.5rem;
 }
@@ -452,296 +132,78 @@ h1 {
 .contact-list a {
   color: #fff;
   text-decoration: none;
-  transition: all 0.3s ease;
   border-bottom: 2px solid transparent;
+  transition: all 0.3s ease;
 }
 
 .contact-list a:hover {
-  color: #ffeb3b;
-  border-bottom-color: #ffeb3b;
+  color: #8b5cf6;
+  border-bottom-color: #8b5cf6;
 }
 
-/* Social Links Animation */
-.social-link {
-  display: inline-block;
-  position: relative;
-  transition: all 0.3s ease;
-}
-
-.social-link:hover {
-  animation: socialBounce 0.6s ease;
-}
-
-@keyframes socialBounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  25% {
-    transform: translateY(-5px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-  75% {
-    transform: translateY(-5px);
-  }
-}
-
-/* Music Player - GUNS.LOL STYLE */
-#music-player {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  z-index: 1000;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-
-#visualizer {
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 120px;
-  height: 60px;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-#visualizer.active {
-  opacity: 1;
-}
-
-#album-art-container {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-  position: relative;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-
-#album-art-container:hover {
-  transform: scale(1.1);
-}
-
-#album-art {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  border: 4px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.6);
-  object-fit: cover;
-  display: block;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-  pointer-events: none;
-}
-
-#album-art.playing {
-  animation: spin 4s linear infinite;
-  will-change: transform;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Music Controls */
-#music-controls {
-  position: fixed;
-  bottom: 120px;
-  right: 30px;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  border-radius: 15px;
-  padding: 20px;
-  display: none;
-  flex-direction: column;
-  gap: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-  min-width: 250px;
-  z-index: 1001;
-}
-
-#music-controls.show {
-  display: flex;
-  animation: slideUp 0.3s ease-out;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.control-btn {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  border: none;
-  color: white;
-  padding: 10px 15px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-
-.control-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
-}
-
-.control-btn:active {
-  transform: translateY(0);
-}
-
-.close-btn {
-  background: linear-gradient(135deg, #ef4444, #b91c1c);
-  display: block;
-}
-
-.volume-control {
+/* Discord Status */
+.discord-info {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: white;
-}
-
-.volume-control input {
-  flex: 1;
-  cursor: pointer;
-}
-
-#song-info {
-  position: fixed;
-  bottom: 30px;
-  right: 120px;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
-  padding: 12px 20px;
-  border-radius: 30px;
-  color: white;
-  font-size: 0.95rem;
-  display: none;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  max-width: 280px;
-  z-index: 1000;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  font-weight: 500;
-}
-
-#song-info.show {
-  display: block;
-  animation: slideIn 0.5s ease-out;
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(20px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-/* Spotify Section */
-.spotify-embed {
-  margin: 20px 0;
+  gap: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 15px;
-  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Game Section Shared Styles */
-.game-section {
-  border: 1px solid rgba(255, 255, 255, 0.2);
+.discord-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.2);
 }
 
-/* HSR Section Styling */
-.hsr-section {
+.discord-details h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.3rem;
+}
+
+.discord-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.discord-activity {
+  background: rgba(139, 92, 246, 0.15);
+  padding: 12px;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+/* Game Cards */
+.game-card {
+  border: 2px solid rgba(139, 92, 246, 0.3);
+}
+
+.hsr-card {
   background: rgba(99, 102, 241, 0.12);
   border-color: rgba(139, 92, 246, 0.3);
-  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.2);
 }
 
-.hsr-section h2 {
-  color: #ffffff;
-  text-shadow: 0 0 20px rgba(139, 92, 246, 0.8);
-}
-
-.hsr-section:hover {
-  box-shadow: 0 12px 40px rgba(99, 102, 241, 0.3);
-}
-
-/* ZZZ Section Styling */
-.zzz-section {
+.zzz-card {
   background: rgba(236, 72, 153, 0.12);
   border-color: rgba(236, 72, 153, 0.3);
-  box-shadow: 0 8px 32px rgba(236, 72, 153, 0.2);
 }
 
-.zzz-section h2 {
-  color: #ffffff;
-  text-shadow: 0 0 20px rgba(236, 72, 153, 0.8);
-}
-
-.zzz-section:hover {
-  box-shadow: 0 12px 40px rgba(236, 72, 153, 0.3);
-}
-
-/* Loading Indicator */
-#loading-indicator, #zzz-loading-indicator {
-  text-align: center;
-  margin: 20px 0;
-  color: #ffffff;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(255, 255, 255, 0.2);
-  border-top: 3px solid #ffffff;
-  border-radius: 50%;
-  animation: spinLoader 1s linear infinite;
-  margin: 0 auto 10px;
-}
-
-@keyframes spinLoader {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Error Message */
-.error-box {
-  background: rgba(255, 107, 129, 0.15);
-  border: 1px solid rgba(255, 107, 129, 0.3);
-  border-radius: 8px;
-  padding: 15px;
-  margin: 20px 0;
-  color: #ffb3c1;
-}
-
-/* Player Info */
+/* Player Basic Info */
 .player-basic-info {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 12px;
@@ -777,8 +239,8 @@ h1 {
   width: 90px;
   height: 90px;
   border-radius: 50%;
-  border: 3px solid #ffffff;
-  background: rgba(255, 255, 255, 0.2);
+  border: 3px solid #fff;
+  object-fit: cover;
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
   transition: all 0.3s ease;
   flex-shrink: 0;
@@ -797,7 +259,7 @@ h1 {
 .player-main-info h3 {
   margin: 0 0 8px 0;
   font-size: 2rem;
-  color: #ffffff;
+  color: #fff;
   font-weight: 700;
 }
 
@@ -809,21 +271,24 @@ h1 {
 
 .level-text, .eq-text {
   font-size: 1.1rem;
-  color: #ffffff;
+  color: #fff;
   font-weight: 600;
 }
 
 .level-text span, .eq-text span {
   font-weight: 700;
+  color: #8b5cf6;
 }
 
-.player-signature {
+.signature {
   font-style: italic;
   color: rgba(255, 255, 255, 0.8) !important;
   margin: 8px 0 0 0 !important;
   font-size: 0.95rem;
+  opacity: 0.8;
 }
 
+/* Achievement Info Cards */
 .achievement-info {
   display: flex;
   align-items: center;
@@ -833,6 +298,7 @@ h1 {
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   transition: all 0.3s ease;
+  min-width: 220px;
 }
 
 .achievement-info:hover {
@@ -840,10 +306,10 @@ h1 {
   transform: translateX(-5px);
 }
 
-.achievement-number, #achievement-count {
+.achievement-number {
   font-size: 1.4rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #fff;
   min-width: 40px;
   text-align: center;
 }
@@ -855,7 +321,7 @@ h1 {
 
 .achievement-text {
   font-size: 0.9rem;
-  color: #ffffff;
+  color: #fff;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -869,7 +335,7 @@ h1 {
 
 .uid-text {
   font-size: 1.1rem;
-  color: #ffffff;
+  color: #fff;
   opacity: 0.9;
 }
 
@@ -877,33 +343,146 @@ h1 {
   font-weight: 600;
 }
 
-.copy-uid-btn {
+.copy-btn {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #fff;
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 0.85rem;
+  padding: 6px 12px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 0.85rem;
   transition: all 0.3s ease;
-  font-weight: 500;
-  z-index: 10;
-  position: relative;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.copy-uid-btn:hover {
+.copy-btn:hover, .copy-btn:active {
   background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
   transform: translateY(-1px);
 }
 
-.copy-uid-btn:active {
-  transform: translateY(0);
+/* Loading & Error */
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
-/* Hidden state */
+.error-box {
+  background: rgba(255, 107, 129, 0.15);
+  border: 1px solid rgba(255, 107, 129, 0.3);
+  border-radius: 8px;
+  padding: 15px;
+  color: #ffb3c1;
+  text-align: center;
+}
+
 .hidden {
   display: none !important;
+}
+
+/* Music Player */
+#music-player {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 1000;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#album-art-container {
+  width: 80px;
+  height: 80px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#album-art-container:hover {
+  transform: scale(1.1);
+}
+
+#album-art {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.6);
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+#album-art.playing {
+  animation: spin 4s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+#song-info {
+  position: fixed;
+  bottom: 30px;
+  right: 120px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  padding: 12px 20px;
+  border-radius: 30px;
+  color: white;
+  font-size: 0.95rem;
+  max-width: 280px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+#music-controls {
+  position: fixed;
+  bottom: 120px;
+  right: 30px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 250px;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+}
+
+.control-group input {
+  flex: 1;
+}
+
+.control-btn {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border: none;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.control-btn:hover, .control-btn:active {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+}
+
+.close-btn {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
 }
 
 /* Decorative Images */
@@ -914,29 +493,10 @@ h1 {
   pointer-events: none;
 }
 
-.image1 {
-  top: 5%;
-  left: 2%;
-  width: 450px;
-}
-
-.image2 {
-  top: 5%;
-  right: 2%;
-  width: 450px;
-}
-
-.image3 {
-  bottom: 5%;
-  left: 2%;
-  width: 450px;
-}
-
-.image4 {
-  bottom: 5%;
-  right: 2%;
-  width: 450px;
-}
+.image1 { top: 5%; left: 2%; width: 450px; }
+.image2 { top: 5%; right: 2%; width: 450px; }
+.image3 { bottom: 5%; left: 2%; width: 450px; }
+.image4 { bottom: 5%; right: 2%; width: 450px; }
 
 .image5 {
   position: fixed;
@@ -944,31 +504,28 @@ h1 {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  max-height: 100%;
   width: 600px;
   max-width: 80vw;
   opacity: 0.2;
   pointer-events: none;
-  margin: 0;
 }
 
-/* Mobile Optimizations */
+/* Mobile Responsive */
 @media (max-width: 1400px) {
-  .image1, .image2, .image3, .image4 {
-    width: 350px;
+  .image1, .image2, .image3, .image4 { 
+    width: 350px; 
   }
 }
 
 @media (max-width: 1100px) {
-  .image1, .image2, .image3, .image4 {
-    display: none !important;
+  .image1, .image2, .image3, .image4 { 
+    display: none !important; 
   }
   
-  .image5 {
-    display: block !important;
-    width: 700px;
-    max-width: 85vw;
-    opacity: 0.15;
+  .image5 { 
+    width: 700px; 
+    max-width: 85vw; 
+    opacity: 0.15; 
   }
 }
 
@@ -977,27 +534,17 @@ h1 {
     background-attachment: scroll;
   }
 
-  #cursor-trail {
-    display: none;
-  }
-
-  .splash-text, .loading-text {
-    font-size: 1rem;
-    letter-spacing: 1.5px;
-  }
-
   h1 { 
     font-size: 2.5rem; 
     margin: 20px 0 15px;
   }
   
-  .glitch-text { 
-    font-size: 1.8rem;
+  .subtitle { 
+    font-size: 1.8rem; 
   }
   
   .card { 
     padding: 20px; 
-    margin: 15px 0;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
   }
@@ -1005,60 +552,7 @@ h1 {
   .card h2 {
     font-size: 1.5rem;
   }
-
-  .card p, .card li {
-    font-size: 1rem;
-  }
-
-  .discord-info {
-    flex-direction: column;
-    text-align: center;
-    padding: 20px 15px;
-  }
-
-  .discord-avatar-img {
-    width: 60px;
-    height: 60px;
-  }
-
-  .discord-username {
-    font-size: 1.1rem;
-  }
-
-  .discord-activity {
-    width: 100%;
-  }
   
-  #music-player {
-    bottom: 15px;
-    right: 15px;
-  }
-
-  #visualizer {
-    width: 100px;
-    height: 50px;
-  }
-  
-  #album-art-container {
-    width: 60px;
-    height: 60px;
-  }
-  
-  #music-controls {
-    bottom: 85px;
-    right: 15px;
-    min-width: 200px;
-    padding: 15px;
-  }
-  
-  #song-info {
-    bottom: 15px;
-    right: 85px;
-    font-size: 0.85rem;
-    padding: 10px 16px;
-    max-width: 220px;
-  }
-
   .player-layout-container {
     flex-direction: column;
     gap: 20px;
@@ -1095,35 +589,53 @@ h1 {
   .uid-info {
     justify-content: center;
   }
+  
+  #music-player { 
+    bottom: 15px; 
+    right: 15px; 
+  }
+  
+  #album-art-container { 
+    width: 60px; 
+    height: 60px; 
+  }
+  
+  #music-controls { 
+    bottom: 85px; 
+    right: 15px; 
+    min-width: 200px; 
+  }
+  
+  #song-info { 
+    bottom: 15px; 
+    right: 85px; 
+    max-width: 200px; 
+    font-size: 0.85rem; 
+  }
+  
+  .discord-info {
+    flex-direction: column;
+    text-align: center;
+  }
 
-  .image5 {
-    display: block !important;
-    width: 550px;
-    max-width: 75vw;
-    opacity: 0.12;
+  .image5 { 
+    width: 550px; 
+    max-width: 75vw; 
+    opacity: 0.12; 
   }
 }
 
 @media (max-width: 480px) {
-  .container {
-    padding: 15px;
+  h1 { 
+    font-size: 2rem; 
   }
-
-  .splash-text, .loading-text {
-    font-size: 0.9rem;
-    letter-spacing: 1px;
+  
+  .subtitle { 
+    font-size: 1.5rem; 
   }
-
-  h1 {
-    font-size: 2rem;
-  }
-
-  .glitch-text {
-    font-size: 1.5rem;
-  }
-
-  .card {
-    padding: 15px;
+  
+  .card { 
+    padding: 15px; 
   }
 
   .player-basic-info {
@@ -1133,446 +645,14 @@ h1 {
   .achievement-text {
     font-size: 0.8rem;
   }
-
-  .discord-details h3 {
-    font-size: 1.2rem;
-  }
-
-  .discord-status-text {
-    font-size: 0.85rem;
+  
+  .player-main-info h3 { 
+    font-size: 1.5rem; 
   }
   
-  .image5 {
-    display: block !important;
-    width: 450px;
-    max-width: 70vw;
-    opacity: 0.1;
-  }
-}
-
-/* Prevent flash of content */
-body:not(.content-visible) .container {
-  opacity: 0;
-  visibility: hidden;
-}
-
-body.content-visible .container {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* Hide decorative images initially */
-.decorative-image,
-.image5 {
-  opacity: 0 !important;
-  transition: opacity 1s ease;
-}
-
-body.content-visible .decorative-image {
-  opacity: 0.4 !important;
-}
-
-body.content-visible .image5 {
-  opacity: 0.2 !important;
-}
-/* Add these iOS-specific fixes to your existing style.css */
-
-/* ========================================
-   iOS/iPad SPECIFIC FIXES
-   ======================================== */
-
-/* Fix backdrop-filter for iOS */
-@supports (-webkit-backdrop-filter: blur(12px)) or (backdrop-filter: blur(12px)) {
-  .card {
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-  }
-  
-  #music-controls {
-    -webkit-backdrop-filter: blur(15px);
-    backdrop-filter: blur(15px);
-  }
-  
-  #song-info {
-    -webkit-backdrop-filter: blur(15px);
-    backdrop-filter: blur(15px);
-  }
-  
-  .discord-info {
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-  }
-}
-
-/* iOS Safari fix for fixed positioning */
-@supports (-webkit-touch-callout: none) {
-  /* This targets iOS Safari specifically */
-  
-  body {
-    position: relative;
-    min-height: -webkit-fill-available;
-  }
-  
-  #music-player {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    z-index: 1000;
-    /* Force hardware acceleration */
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    will-change: transform;
-  }
-  
-  #album-art-container {
-    /* Ensure visibility on iOS */
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-  }
-  
-  #album-art {
-    /* Prevent iOS image loading issues */
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-  }
-  
-  #music-controls {
-    /* Ensure controls appear properly */
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-  }
-  
-  #song-info {
-    /* Ensure song info appears */
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-  }
-  
-  /* Fix decorative images on iOS */
-  .decorative-image,
-  .image5 {
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-  }
-}
-
-/* iOS touch improvements */
-@media (hover: none) and (pointer: coarse) {
-  /* This targets touch devices */
-  
-  * {
-    -webkit-tap-highlight-color: transparent;
-    -webkit-touch-callout: none;
-  }
-  
-  button,
-  a,
-  .control-btn,
-  #album-art-container {
-    cursor: pointer;
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-  }
-  
-  /* Larger touch targets for iOS */
-  .control-btn {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  .copy-uid-btn {
-    min-height: 44px;
-    padding: 8px 16px;
-  }
-}
-
-/* Fix for iOS viewport units */
-@supports (-webkit-touch-callout: none) {
-  html {
-    height: -webkit-fill-available;
-  }
-  
-  body {
-    min-height: 100vh;
-    min-height: -webkit-fill-available;
-  }
-}
-
-/* iOS-specific animation improvements */
-@media (prefers-reduced-motion: no-preference) {
-  @supports (-webkit-touch-callout: none) {
-    /* Smoother animations on iOS */
-    * {
-      -webkit-backface-visibility: hidden;
-      backface-visibility: hidden;
-      -webkit-perspective: 1000;
-      perspective: 1000;
-    }
-  }
-}
-
-/* Fix for iOS safe areas (notches) */
-@supports (padding: max(0px)) {
-  body {
-    padding-left: max(0px, env(safe-area-inset-left));
-    padding-right: max(0px, env(safe-area-inset-right));
-    padding-bottom: max(0px, env(safe-area-inset-bottom));
-  }
-  
-  #music-player {
-    right: max(30px, calc(30px + env(safe-area-inset-right)));
-    bottom: max(30px, calc(30px + env(safe-area-inset-bottom)));
-  }
-  
-  #music-controls {
-    right: max(30px, calc(30px + env(safe-area-inset-right)));
-  }
-  
-  #song-info {
-    right: max(120px, calc(120px + env(safe-area-inset-right)));
-    bottom: max(30px, calc(30px + env(safe-area-inset-bottom)));
-  }
-}
-
-/* iPad specific adjustments */
-@media only screen 
-  and (min-device-width: 768px) 
-  and (max-device-width: 1024px) 
-  and (-webkit-min-device-pixel-ratio: 2) {
-  
-  /* Ensure music player is visible */
-  #music-player {
-    position: fixed;
-    display: block;
-    opacity: 1;
-    visibility: visible;
-    z-index: 9999;
-  }
-  
-  #album-art-container {
-    display: block;
-    opacity: 1;
-    visibility: visible;
-  }
-  
-  #album-art {
-    display: block !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-  }
-  
-  /* Ensure decorative images load */
-  .decorative-image,
-  .image5 {
-    display: block !important;
-    opacity: 0.4 !important;
-  }
-  
-  body.content-visible .decorative-image {
-    opacity: 0.4 !important;
-  }
-  
-  body.content-visible .image5 {
-    opacity: 0.2 !important;
-  }
-}
-
-/* Fix gradient rendering on iOS */
-.card,
-h1,
-.glitch-text {
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-
-/* iOS-specific loading spinner */
-.loading-spinner,
-.loading-spinner-main {
-  /* Hardware acceleration */
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-  will-change: transform;
-}
-
-/* Fix for iOS scroll performance */
-body,
-.container {
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Ensure visibility of critical elements on iOS */
-#music-player,
-#album-art-container,
-#album-art {
-  display: block !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-/* iOS visualizer canvas fix */
-#visualizer {
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-}
-
-/* Fix for iOS button rendering */
-button,
-.control-btn,
-.copy-uid-btn {
-  -webkit-appearance: none;
-  appearance: none;
-  border: none;
-  outline: none;
-}
-
-/* iOS-specific touch feedback */
-@supports (-webkit-touch-callout: none) {
-  .control-btn:active,
-  #album-art-container:active,
-  .copy-uid-btn:active {
-    opacity: 0.7;
-    transform: scale(0.95);
-  }
-}
-
-/* Force image loading on iOS */
-img {
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-}
-
-#album-art {
-  content: url('https://cdn.discordapp.com/attachments/1416355899232223235/1428594030283067402/2229438d735a893d8f80cd69f4319678.png?ex=68f3115e&is=68f1bfde&hm=057e81965a0105dfcccc3332ed6256590129ffc2b7a1cf8387bed3f98d01c539&');
-}
-
-/* iOS Discord/API section fixes */
-.player-basic-info,
-.discord-info {
-  /* Ensure proper rendering */
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-}
-
-/* Fix iOS color rendering */
-@supports (-webkit-touch-callout: none) {
-  /* Ensure colors render properly */
-  body {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  
-  /* Fix for dark appearance on iOS */
-  @media (prefers-color-scheme: dark) {
-    /* Prevent iOS from making things too dark */
-    body {
-      background: linear-gradient(135deg, #0a0a0f 0%, #1a1425 25%, #2d1b3d 50%, #3d2554 75%, #4a2d63 100%) !important;
-    }
-  }
-}
-
-/* iOS specific media query adjustments */
-@media only screen and (max-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) {
-  /* iPad/iOS tablet fixes */
-  
-  #music-player {
-    bottom: 20px;
-    right: 20px;
-  }
-  
-  #music-controls {
-    bottom: 90px;
-    right: 20px;
-    min-width: 220px;
-  }
-  
-  #song-info {
-    bottom: 20px;
-    right: 95px;
-    max-width: 250px;
-  }
-  
-  /* Ensure touch targets are large enough */
-  .control-btn {
-    padding: 12px 18px;
-    font-size: 1rem;
-  }
-  
-  #album-art-container {
-    width: 70px;
-    height: 70px;
-  }
-}
-
-/* Emergency visibility fix for iOS */
-@supports (-webkit-touch-callout: none) {
-  #music-player * {
-    display: block !important;
-  }
-  
-  #album-art {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-}
-
-/* iOS keyboard handling */
-@supports (-webkit-touch-callout: none) {
-  input:focus,
-  textarea:focus {
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-}
-
-/* Fix for iOS rendering lag */
-.card,
-.player-basic-info,
-.discord-info {
-  will-change: transform;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-}
-
-/* iOS-specific z-index fixes */
-@supports (-webkit-touch-callout: none) {
-  #splash-screen {
-    z-index: 10001 !important;
-  }
-  
-  #loading-screen {
-    z-index: 10000 !important;
-  }
-  
-  #music-player {
-    z-index: 9999 !important;
-  }
-  
-  #music-controls {
-    z-index: 10000 !important;
-  }
-  
-  #song-info {
-    z-index: 9998 !important;
-  }
-}
-
-/* Prevent iOS from hiding elements during load */
-@supports (-webkit-touch-callout: none) {
-  body.content-visible #music-player {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-  
-  body.content-visible #album-art-container {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
+  .image5 { 
+    width: 450px; 
+    max-width: 70vw; 
+    opacity: 0.1; 
   }
 }
