@@ -1,721 +1,671 @@
-// ========================================
-// Utility Functions
-// ========================================
-const debounce = (func, wait) => {
-  let timeout;
-  return function executedFunction(...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
-  };
-};
-
-// ========================================
-// Mobile Detection & Performance
-// ========================================
-const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
-const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-const particleCount = isMobile ? 5 : 30;
-
-// ========================================
-// Global State
-// ========================================
 let hasUserInteracted = false;
 
-// ========================================
-// Loading Screen
-// ========================================
-window.addEventListener('load', () => {
-  const loadingScreen = document.getElementById('loading-screen');
-  setTimeout(() => {
-    if (loadingScreen) {
-      loadingScreen.classList.add('fade-out');
-      setTimeout(() => loadingScreen.style.display = 'none', 800);
-    }
-  }, 2000);
-});
-
-// ========================================
-// Splash Screen - SIMPLE APPROACH
-// ========================================
-document.addEventListener('DOMContentLoaded', () => {
-  const splashScreen = document.getElementById('splash-screen');
-  const container = document.querySelector('.container');
-  
-  if (!splashScreen) return;
-  
-  const dismissSplash = () => {
-    if (hasUserInteracted) return;
-    hasUserInteracted = true;
-    
-    document.body.classList.add('splash-dismissed', 'content-visible');
-    splashScreen.classList.add('fade-out');
-    if (container) container.classList.add('visible');
-    
-    setTimeout(() => splashScreen.style.display = 'none', 800);
-    setTimeout(() => typeWriterEffect(), 300);
-  };
-  
-  // Single universal handler
-  splashScreen.addEventListener('click', dismissSplash);
-  splashScreen.addEventListener('touchstart', dismissSplash);
-});
-
-// ========================================
-// Cursor Trail (Desktop Only)
-// ========================================
-if (!isMobile) {
-  const canvas = document.getElementById('cursor-trail');
-  const ctx = canvas.getContext('2d');
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-
-  const particles = [];
-  const maxParticles = 50;
-
-  class TrailParticle {
-    constructor(x, y) {
-      this.x = x;
-      this.y = y;
-      this.size = Math.random() * 3 + 1;
-      this.speedX = Math.random() * 2 - 1;
-      this.speedY = Math.random() * 2 - 1;
-      this.life = 1;
-      this.decay = Math.random() * 0.02 + 0.01;
-      this.color = `hsl(${Math.random() * 60 + 260}, 70%, 60%)`;
-    }
-
-    update() {
-      this.x += this.speedX;
-      this.y += this.speedY;
-      this.life -= this.decay;
-      this.size *= 0.98;
-    }
-
-    draw() {
-      ctx.fillStyle = this.color;
-      ctx.globalAlpha = this.life;
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  document.addEventListener('mousemove', (e) => {
-    for (let i = 0; i < 2; i++) {
-      particles.push(new TrailParticle(e.clientX, e.clientY));
-    }
-    if (particles.length > maxParticles) particles.splice(0, 2);
-  });
-
-  function animateTrail() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let i = particles.length - 1; i >= 0; i--) {
-      particles[i].update();
-      particles[i].draw();
-      if (particles[i].life <= 0 || particles[i].size <= 0.5) {
-        particles.splice(i, 1);
-      }
-    }
-    requestAnimationFrame(animateTrail);
-  }
-
-  animateTrail();
-  window.addEventListener('resize', () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-  });
-}
-
-// ========================================
-// Parallax Scrolling
-// ========================================
-window.addEventListener('scroll', () => {
-  const scrolled = window.pageYOffset;
-  document.querySelectorAll('.parallax-slow').forEach(el => {
-    el.style.transform = `translateY(${scrolled * 0.1}px)`;
-  });
-  document.querySelectorAll('.parallax-medium').forEach(el => {
-    el.style.transform = `translateY(${scrolled * 0.3}px)`;
-  });
-  document.querySelectorAll('.parallax-fast').forEach(el => {
-    el.style.transform = `translateY(${scrolled * -0.05}px)`;
-  });
-});
-
-// ========================================
-// Smooth Section Transitions
-// ========================================
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) entry.target.classList.add('visible');
-  });
-}, { threshold: 0.1, rootMargin: '0px 0px -100px 0px' });
-
-document.querySelectorAll('.section-fade').forEach(el => observer.observe(el));
-
-// ========================================
-// Typewriter Effect
-// ========================================
-function typeWriterEffect() {
-  const greetingEl = document.getElementById('greeting');
-  if (!greetingEl) return;
-  
-  const hour = new Date().getHours();
-  const greetings = {
-    morning: ['Good Morning, proxies!', 'Rise and Shine, Wanderer!', 'Good Morning, Trailblazer!'],
-    afternoon: ['Good Afternoon, Traveler!', 'Hello There, Wanderer!', 'Good Afternoon, Trailblazer!', 'Good Afternoon, proxies!'],
-    evening: ['Good Evening, Traveler!', 'Greetings, Night Wanderer!', 'Good Evening, Trailblazer!', 'Good Evening, proxies!'],
-    night: ['Good Night, Stargazer!', 'Welcome, Night Owl!', 'Greetings, Moonlit Wanderer!', 'Good Night, proxies!']
-  };
-  
-  let timeOfDay = hour >= 5 && hour < 12 ? 'morning' : hour >= 12 && hour < 17 ? 'afternoon' : hour >= 17 && hour < 21 ? 'evening' : 'night';
-  const text = greetings[timeOfDay][Math.floor(Math.random() * greetings[timeOfDay].length)];
-  
-  let index = 0;
-  greetingEl.textContent = '';
-  
-  function type() {
-    if (index < text.length) {
-      greetingEl.textContent += text.charAt(index);
-      index++;
-      setTimeout(type, 80);
-    }
-  }
-  type();
-}
-
-// ========================================
-// Background Particles
-// ========================================
-const particlesContainer = document.getElementById('particles');
-for (let i = 0; i < particleCount; i++) {
-  const particle = document.createElement('div');
-  particle.className = 'particle';
-  const size = isMobile ? Math.random() * 3 + 2 : Math.random() * 5 + 2;
-  particle.style.width = size + 'px';
-  particle.style.height = size + 'px';
-  particle.style.left = Math.random() * 100 + '%';
-  particle.style.top = Math.random() * 100 + '%';
-  
-  const colors = ['rgba(139, 92, 246, 0.4)', 'rgba(99, 102, 241, 0.3)', 'rgba(167, 139, 250, 0.3)', 'rgba(196, 181, 253, 0.3)', 'rgba(236, 72, 153, 0.3)'];
-  particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-  particle.style.boxShadow = `0 0 ${size * 2}px ${particle.style.background}`;
-  particle.style.animationDelay = Math.random() * 5 + 's';
-  particle.style.animationDuration = (Math.random() * 5 + 8) + 's';
-  particlesContainer.appendChild(particle);
-}
-
-// ========================================
-// MUSIC PLAYER - GUNS.LOL SIMPLE APPROACH
-// ========================================
-const songs = [
-  { title: "Time To love", url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Time%20To%20Love.mp3" },
-  { title: "Had I Not Seen the Sun", url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Had%20I%20Not%20Seen%20the%20Sun.mp3" },
-  { title: "if i can stop one heart from breaking", url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3" }
-];
-
-let currentSongIndex = 0;
-let menuOpen = false;
-
-// Get elements
-const audio = document.getElementById('audio');
-const albumArt = document.getElementById('album-art');
-const playPauseBtn = document.getElementById('play-pause');
-const prevBtn = document.getElementById('prev');
-const nextBtn = document.getElementById('next');
-const volumeSlider = document.getElementById('volume');
-const songInfo = document.getElementById('song-info');
-const musicControls = document.getElementById('music-controls');
-const closeButton = document.getElementById('close-controls');
-const visualizerCanvas = document.getElementById('visualizer');
-const visualizerCtx = visualizerCanvas.getContext('2d');
-
-visualizerCanvas.width = 120;
-visualizerCanvas.height = 60;
-
-let audioContext, analyser, sourceNode, dataArray, bufferLength;
-let isVisualizerActive = false;
-
-// SIMPLE: Just set volume
-audio.volume = 0.5;
-
-// SIMPLE: Load song
-function loadSong(index) {
-  audio.src = songs[index].url;
-  songInfo.textContent = `♪ ${songs[index].title}`;
-}
-
-// SIMPLE: Play
-function play() {
-  audio.play().then(() => {
-    albumArt.classList.add('playing');
-    playPauseBtn.textContent = '⏸ Pause';
-    songInfo.classList.add('show');
-    initVisualizer();
-  }).catch(err => console.warn('Play failed:', err));
-}
-
-// SIMPLE: Pause
-function pause() {
-  audio.pause();
-  albumArt.classList.remove('playing');
-  playPauseBtn.textContent = '▶ Play';
-  visualizerCanvas.classList.remove('active');
-  isVisualizerActive = false;
-}
-
-// SIMPLE: Toggle
-function togglePlay() {
-  if (!audio.src) loadSong(currentSongIndex);
-  audio.paused ? play() : pause();
-}
-
-// SIMPLE: Next/Prev
-function nextSong() {
-  currentSongIndex = (currentSongIndex + 1) % songs.length;
-  loadSong(currentSongIndex);
-  play();
-}
-
-function prevSong() {
-  currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
-  loadSong(currentSongIndex);
-  play();
-}
-
-// SIMPLE: Visualizer - only init once
-function initVisualizer() {
-  if (audioContext) {
-    visualizerCanvas.classList.add('active');
-    isVisualizerActive = true;
+function initMedia() {
+  console.log("initMedia called");
+  const backgroundMusic = document.getElementById('background-music');
+  const backgroundVideo = document.getElementById('background');
+  if (!backgroundMusic || !backgroundVideo) {
+    console.error("Media elements not found");
     return;
   }
+  backgroundMusic.volume = 0.3;
+  backgroundVideo.muted = true; 
+
   
-  try {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    analyser = audioContext.createAnalyser();
-    sourceNode = audioContext.createMediaElementSource(audio);
-    sourceNode.connect(analyser);
-    analyser.connect(audioContext.destination);
-    analyser.fftSize = 64;
-    bufferLength = analyser.frequencyBinCount;
-    dataArray = new Uint8Array(bufferLength);
+  backgroundVideo.play().catch(err => {
+    console.error("Failed to play background video:", err);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const startScreen = document.getElementById('start-screen');
+  const startText = document.getElementById('start-text');
+  const profileName = document.getElementById('profile-name');
+  const profileBio = document.getElementById('profile-bio');
+  const visitorCount = document.getElementById('visitor-count');
+  const backgroundMusic = document.getElementById('background-music');
+  const hackerMusic = document.getElementById('hacker-music');
+  const rainMusic = document.getElementById('rain-music');
+  const animeMusic = document.getElementById('anime-music');
+  const carMusic = document.getElementById('car-music');
+  const homeButton = document.getElementById('home-theme');
+  const hackerButton = document.getElementById('hacker-theme');
+  const rainButton = document.getElementById('rain-theme');
+  const animeButton = document.getElementById('anime-theme');
+  const carButton = document.getElementById('car-theme');
+  const resultsButtonContainer = document.getElementById('results-button-container');
+  const resultsButton = document.getElementById('results-theme');
+  const volumeIcon = document.getElementById('volume-icon');
+  const volumeSlider = document.getElementById('volume-slider');
+  const transparencySlider = document.getElementById('transparency-slider');
+  const backgroundVideo = document.getElementById('background');
+  const hackerOverlay = document.getElementById('hacker-overlay');
+  const snowOverlay = document.getElementById('snow-overlay');
+  const glitchOverlay = document.querySelector('.glitch-overlay');
+  const profileBlock = document.getElementById('profile-block');
+  const skillsBlock = document.getElementById('skills-block');
+  const pythonBar = document.getElementById('python-bar');
+  const cppBar = document.getElementById('cpp-bar');
+  const csharpBar = document.getElementById('csharp-bar');
+  const resultsHint = document.getElementById('results-hint');
+  const profilePicture = document.querySelector('.profile-picture');
+  const profileContainer = document.querySelector('.profile-container');
+  const socialIcons = document.querySelectorAll('.social-icon');
+  const badges = document.querySelectorAll('.badge');
+
+  
+  const cursor = document.querySelector('.custom-cursor');
+  const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
+
+  if (isTouchDevice) {
+    document.body.classList.add('touch-device');
     
-    visualizerCanvas.classList.add('active');
-    isVisualizerActive = true;
-    drawVisualizer();
-  } catch (e) {
-    console.warn('Visualizer failed:', e);
+    document.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      cursor.style.left = touch.clientX + 'px';
+      cursor.style.top = touch.clientY + 'px';
+      cursor.style.display = 'block';
+    });
+
+    document.addEventListener('touchmove', (e) => {
+      const touch = e.touches[0];
+      cursor.style.left = touch.clientX + 'px';
+      cursor.style.top = touch.clientY + 'px';
+      cursor.style.display = 'block';
+    });
+
+    document.addEventListener('touchend', () => {
+      cursor.style.display = 'none'; 
+    });
+  } else {
+
+    document.addEventListener('mousemove', (e) => {
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top = e.clientY + 'px';
+      cursor.style.display = 'block';
+    });
+
+    document.addEventListener('mousedown', () => {
+      cursor.style.transform = 'scale(0.8) translate(-50%, -50%)';
+    });
+
+    document.addEventListener('mouseup', () => {
+      cursor.style.transform = 'scale(1) translate(-50%, -50%)';
+    });
   }
-}
 
-function drawVisualizer() {
-  if (!isVisualizerActive || !analyser) return;
-  
-  requestAnimationFrame(drawVisualizer);
-  analyser.getByteFrequencyData(dataArray);
-  
-  visualizerCtx.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
-  
-  const barWidth = (visualizerCanvas.width / bufferLength) * 2;
-  let x = 0;
-  
-  for (let i = 0; i < bufferLength; i++) {
-    const barHeight = (dataArray[i] / 255) * visualizerCanvas.height * 0.8;
-    const gradient = visualizerCtx.createLinearGradient(0, visualizerCanvas.height, 0, 0);
-    gradient.addColorStop(0, '#8b5cf6');
-    gradient.addColorStop(1, '#ec4899');
-    visualizerCtx.fillStyle = gradient;
-    visualizerCtx.fillRect(x, visualizerCanvas.height - barHeight, barWidth - 1, barHeight);
-    x += barWidth + 1;
-  }
-}
 
-// SIMPLE: Event handlers - guns.lol style (container gets clicks, not img)
-albumArt.parentElement.addEventListener('click', (e) => {
-  e.preventDefault();
-  togglePlay();
-  if (isMobile) {
-    menuOpen = !menuOpen;
-    musicControls.classList.toggle('show', menuOpen);
-  }
-});
+  const startMessage = "Click here to see the motion baby";
+  let startTextContent = '';
+  let startIndex = 0;
+  let startCursorVisible = true;
 
-albumArt.parentElement.addEventListener('dblclick', (e) => {
-  e.preventDefault();
-  nextSong();
-});
-
-// Play/pause button - simpler
-playPauseBtn.addEventListener('click', (e) => {
-  e.preventDefault();
-  togglePlay();
-});
-
-// Prev/Next
-prevBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  prevSong();
-});
-
-nextBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  nextSong();
-});
-
-// Volume
-volumeSlider.addEventListener('input', (e) => {
-  audio.volume = e.target.value;
-});
-
-// Auto next
-audio.addEventListener('ended', nextSong);
-
-// Desktop hover
-if (!isMobile) {
-  let hoverTimeout;
-  albumArt.addEventListener('mouseenter', () => {
-    hoverTimeout = setTimeout(() => musicControls.classList.add('show'), 300);
-  });
-  
-  albumArt.addEventListener('mouseleave', () => {
-    clearTimeout(hoverTimeout);
-    setTimeout(() => {
-      if (!musicControls.matches(':hover')) musicControls.classList.remove('show');
-    }, 300);
-  });
-  
-  musicControls.addEventListener('mouseleave', () => {
-    musicControls.classList.remove('show');
-  });
-}
-
-// Mobile: close on outside click
-if (isMobile) {
-  const closeMenuOutside = (e) => {
-    if (!menuOpen) return;
-    const musicPlayer = document.getElementById('music-player');
-    if (!musicPlayer.contains(e.target) && !musicControls.contains(e.target)) {
-      menuOpen = false;
-      musicControls.classList.remove('show');
+  function typeWriterStart() {
+    if (startIndex < startMessage.length) {
+      startTextContent = startMessage.slice(0, startIndex + 1);
+      startIndex++;
     }
-  };
-  
-  document.addEventListener('touchstart', closeMenuOutside, true);
-  document.addEventListener('click', closeMenuOutside, true);
-  
-  window.addEventListener('scroll', debounce(() => {
-    if (menuOpen) {
-      menuOpen = false;
-      musicControls.classList.remove('show');
-    }
-  }, 100), { passive: true });
-}
+    startText.textContent = startTextContent + (startCursorVisible ? '|' : ' ');
+    setTimeout(typeWriterStart, 100);
+  }
 
-// Close button - simpler
-if (closeButton) {
-  closeButton.addEventListener('click', (e) => {
-    e.preventDefault();
-    menuOpen = false;
-    musicControls.classList.remove('show');
-  });
-}
 
-// ========================================
-// Discord Status
-// ========================================
-const DISCORD_ID = '1003100550700748871';
+  setInterval(() => {
+    startCursorVisible = !startCursorVisible;
+    startText.textContent = startTextContent + (startCursorVisible ? '|' : ' ');
+  }, 500);
 
-async function fetchDiscordStatus() {
-  const statusContainer = document.getElementById('discord-status');
-  
-  try {
-    const response = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    
-    const data = await response.json();
-    if (data.success && data.data) {
-      displayDiscordStatus(data.data);
+
+  function initializeVisitorCounter() {
+    let totalVisitors = localStorage.getItem('totalVisitorCount');
+    if (!totalVisitors) {
+      totalVisitors = 921234;
+      localStorage.setItem('totalVisitorCount', totalVisitors);
     } else {
-      throw new Error('Invalid response');
+      totalVisitors = parseInt(totalVisitors);
     }
-  } catch (error) {
-    console.warn('Discord unavailable:', error);
-    statusContainer.innerHTML = `
-      <p style="color: rgba(255, 255, 255, 0.7); text-align: center; padding: 20px;">
-        Discord status currently unavailable<br>
-        <small style="opacity: 0.6;">Make sure you're in the Lanyard Discord server</small>
-      </p>
-    `;
-  }
-}
 
-function displayDiscordStatus(data) {
-  const statusContainer = document.getElementById('discord-status');
-  const status = data.discord_status;
-  const user = data.discord_user;
-  const activities = data.activities || [];
-  
-  const statusConfig = {
-    online: { text: 'Online', color: '#43b581' },
-    idle: { text: 'Idle', color: '#faa61a' },
-    dnd: { text: 'Do Not Disturb', color: '#f04747' },
-    offline: { text: 'Offline', color: '#747f8d' }
-  };
-  
-  const currentStatus = statusConfig[status] || statusConfig.offline;
-  const activity = activities.find(a => a.type !== 4);
-  
-  let activityHTML = '';
-  if (activity) {
-    const activityTypes = { 0: 'Playing', 1: 'Streaming', 2: 'Listening to', 3: 'Watching', 5: 'Competing in' };
-    const activityTitle = activityTypes[activity.type] || 'Activity';
-    
-    activityHTML = `
-      <div class="discord-activity">
-        <div class="discord-activity-title">${activityTitle}</div>
-        <div class="discord-activity-name">${activity.name}</div>
-        ${activity.details ? `<div class="discord-activity-details">${activity.details}</div>` : ''}
-        ${activity.state ? `<div class="discord-activity-details">${activity.state}</div>` : ''}
-      </div>
-    `;
-  }
-  
-  statusContainer.innerHTML = `
-    <div class="discord-info">
-      <div class="discord-avatar-container">
-        <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128" alt="${user.username}" class="discord-avatar-img">
-        <div class="status-indicator ${status}" style="background: ${currentStatus.color};"></div>
-      </div>
-      <div class="discord-details">
-        <h3 class="discord-username">${user.global_name || user.username}</h3>
-        <div class="discord-status-badge" style="border-color: ${currentStatus.color};">
-          <span class="status-dot" style="background: ${currentStatus.color};"></span>
-          ${currentStatus.text}
-        </div>
-        ${activityHTML}
-      </div>
-    </div>
-  `;
-}
+    const hasVisited = localStorage.getItem('hasVisited');
+    if (!hasVisited) {
+      totalVisitors++;
+      localStorage.setItem('totalVisitorCount', totalVisitors);
+      localStorage.setItem('hasVisited', 'true');
+    }
 
-fetchDiscordStatus();
-setInterval(fetchDiscordStatus, 30000);
-
-// ========================================
-// Enka API
-// ========================================
-class EnkaAPI {
-  constructor(config) {
-    this.game = config.game;
-    this.baseURL = config.baseURL;
-    this.configuredUID = config.uid;
-    this.elementIds = config.elementIds;
-    this.proxies = [
-      { name: 'AllOrigins', url: (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`, parse: (d) => d.contents ? JSON.parse(d.contents) : d },
-      { name: 'Direct', url: (u) => u, parse: (d) => d }
-    ];
-    this.init();
+    visitorCount.textContent = totalVisitors.toLocaleString();
   }
 
-  init() {
-    this.fetchPlayerData(this.configuredUID);
-  }
 
-  async fetchPlayerData(uid) {
-    this.showLoading(true);
-    this.hideError();
-    this.hidePlayerInfo();
+  initializeVisitorCounter();
 
-    for (const proxy of this.proxies) {
+
+  startScreen.addEventListener('click', () => {
+    startScreen.classList.add('hidden');
+    backgroundMusic.muted = false;
+    backgroundMusic.play().catch(err => {
+      console.error("Failed to play music after start screen click:", err);
+    });
+    profileBlock.classList.remove('hidden');
+    gsap.fromTo(profileBlock,
+      { opacity: 0, y: -50 },
+      { opacity: 1, y: 0, duration: 1, ease: 'power2.out', onComplete: () => {
+        profileBlock.classList.add('profile-appear');
+        profileContainer.classList.add('orbit');
+      }}
+    );
+    if (!isTouchDevice) {
       try {
-        console.log(`Trying ${this.game} with ${proxy.name}...`);
-        const response = await fetch(proxy.url(`${this.baseURL}/${uid}`), {
-          method: 'GET',
-          headers: { 'Accept': 'application/json' }
+        new cursorTrailEffect({
+          length: 10,
+          size: 8,
+          speed: 0.2
         });
-        
-        if (!response.ok) {
-          console.warn(`${proxy.name} failed: ${response.status}`);
-          continue;
-        }
-        
-        const data = await response.json();
-        const apiData = proxy.parse(data);
-        
-        if (!this.validateData(apiData)) {
-          console.warn(`${proxy.name} returned invalid data`);
-          continue;
-        }
-        
-        console.log(`✅ ${this.game} loaded successfully with ${proxy.name}`);
-        this.showLoading(false);
-        this.hideError();
-        this.displayPlayerData(apiData);
-        this.showPlayerInfo();
-        return;
-      } catch (error) {
-        console.warn(`${proxy.name} error:`, error.message);
-        continue;
+        console.log("Cursor trail initialized");
+      } catch (err) {
+        console.error("Failed to initialize cursor trail effect:", err);
       }
     }
-    
-    console.error(`All ${this.game} proxies failed - using demo data`);
-    this.showError('Unable to fetch live data. Displaying demo data.');
-    this.showLoading(false);
-    this.displayPlayerData(this.getMockData());
-    this.showPlayerInfo();
-  }
+    typeWriterName();
+    typeWriterBio();
+  });
 
-  showLoading(show) {
-    const el = document.getElementById(this.elementIds.loading);
-    if (el) el.classList.toggle('hidden', !show);
-  }
-
-  showError(msg) {
-    const el = document.getElementById(this.elementIds.error);
-    const textEl = document.getElementById(this.elementIds.errorText);
-    if (el && textEl) {
-      textEl.textContent = msg;
-      el.classList.remove('hidden');
+  startScreen.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    startScreen.classList.add('hidden');
+    backgroundMusic.muted = false;
+    backgroundMusic.play().catch(err => {
+      console.error("Failed to play music after start screen touch:", err);
+    });
+    profileBlock.classList.remove('hidden');
+    gsap.fromTo(profileBlock,
+      { opacity: 0, y: -50 },
+      { opacity: 1, y: 0, duration: 1, ease: 'power2.out', onComplete: () => {
+        profileBlock.classList.add('profile-appear');
+        profileContainer.classList.add('orbit');
+      }}
+    );
+    if (!isTouchDevice) {
+      try {
+        new cursorTrailEffect({
+          length: 10,
+          size: 8,
+          speed: 0.2
+        });
+        console.log("Cursor trail initialized");
+      } catch (err) {
+        console.error("Failed to initialize cursor trail effect:", err);
+      }
     }
+    typeWriterName();
+    typeWriterBio();
+  });
+
+
+  const name = "JAQLIV";
+  let nameText = '';
+  let nameIndex = 0;
+  let isNameDeleting = false;
+  let nameCursorVisible = true;
+
+  function typeWriterName() {
+    if (!isNameDeleting && nameIndex < name.length) {
+      nameText = name.slice(0, nameIndex + 1);
+      nameIndex++;
+    } else if (isNameDeleting && nameIndex > 0) {
+      nameText = name.slice(0, nameIndex - 1);
+      nameIndex--;
+    } else if (nameIndex === name.length) {
+      isNameDeleting = true;
+      setTimeout(typeWriterName, 10000);
+      return;
+    } else if (nameIndex === 0) {
+      isNameDeleting = false;
+    }
+    profileName.textContent = nameText + (nameCursorVisible ? '|' : ' ');
+    if (Math.random() < 0.1) {
+      profileName.classList.add('glitch');
+      setTimeout(() => profileName.classList.remove('glitch'), 200);
+    }
+    setTimeout(typeWriterName, isNameDeleting ? 150 : 300);
   }
 
-  hideError() {
-    const el = document.getElementById(this.elementIds.error);
-    if (el) el.classList.add('hidden');
+  setInterval(() => {
+    nameCursorVisible = !nameCursorVisible;
+    profileName.textContent = nameText + (nameCursorVisible ? '|' : ' ');
+  }, 500);
+
+
+  const bioMessages = [
+    "Fu*k Guns.lol & Fakecrime.bio got banned too often, so I created my own.",
+    "\"Hello, World!\""
+  ];
+  let bioText = '';
+  let bioIndex = 0;
+  let bioMessageIndex = 0;
+  let isBioDeleting = false;
+  let bioCursorVisible = true;
+
+  function typeWriterBio() {
+    if (!isBioDeleting && bioIndex < bioMessages[bioMessageIndex].length) {
+      bioText = bioMessages[bioMessageIndex].slice(0, bioIndex + 1);
+      bioIndex++;
+    } else if (isBioDeleting && bioIndex > 0) {
+      bioText = bioMessages[bioMessageIndex].slice(0, bioIndex - 1);
+      bioIndex--;
+    } else if (bioIndex === bioMessages[bioMessageIndex].length) {
+      isBioDeleting = true;
+      setTimeout(typeWriterBio, 2000);
+      return;
+    } else if (bioIndex === 0 && isBioDeleting) {
+      isBioDeleting = false;
+      bioMessageIndex = (bioMessageIndex + 1) % bioMessages.length;
+    }
+    profileBio.textContent = bioText + (bioCursorVisible ? '|' : ' ');
+    if (Math.random() < 0.1) {
+      profileBio.classList.add('glitch');
+      setTimeout(() => profileBio.classList.remove('glitch'), 200);
+    }
+    setTimeout(typeWriterBio, isBioDeleting ? 75 : 150);
   }
 
-  showPlayerInfo() {
-    const el = document.getElementById(this.elementIds.playerInfo);
-    if (el) el.classList.remove('hidden');
-  }
+  setInterval(() => {
+    bioCursorVisible = !bioCursorVisible;
+    profileBio.textContent = bioText + (bioCursorVisible ? '|' : ' ');
+  }, 500);
 
-  hidePlayerInfo() {
-    const el = document.getElementById(this.elementIds.playerInfo);
-    if (el) el.classList.add('hidden');
-  }
-}
 
-// HSR
-class HSREnkaAPI extends EnkaAPI {
-  constructor() {
-    super({
-      game: 'HSR',
-      baseURL: 'https://enka.network/api/hsr/uid',
-      uid: '832796099',
-      elementIds: { loading: 'loading-indicator', error: 'error-message', errorText: 'error-text', playerInfo: 'hsr-player-info' }
+  let currentAudio = backgroundMusic;
+  let isMuted = false;
+
+  volumeIcon.addEventListener('click', () => {
+    isMuted = !isMuted;
+    currentAudio.muted = isMuted;
+    volumeIcon.innerHTML = isMuted
+      ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>`
+      : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>`;
+  });
+
+  volumeIcon.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    isMuted = !isMuted;
+    currentAudio.muted = isMuted;
+    volumeIcon.innerHTML = isMuted
+      ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>`
+      : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>`;
+  });
+
+  volumeSlider.addEventListener('input', () => {
+    currentAudio.volume = volumeSlider.value;
+    isMuted = false;
+    currentAudio.muted = false;
+    volumeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>`;
+  });
+
+
+  transparencySlider.addEventListener('input', () => {
+    const opacity = transparencySlider.value;
+    if (opacity == 0) {
+      profileBlock.style.background = 'rgba(0, 0, 0, 0)';
+      profileBlock.style.borderOpacity = '0';
+      profileBlock.style.borderColor = 'transparent';
+      profileBlock.style.backdropFilter = 'none';
+      skillsBlock.style.background = 'rgba(0, 0, 0, 0)';
+      skillsBlock.style.borderOpacity = '0';
+      skillsBlock.style.borderColor = 'transparent';
+      skillsBlock.style.backdropFilter = 'none';
+   
+      profileBlock.style.pointerEvents = 'auto';
+      socialIcons.forEach(icon => {
+        icon.style.pointerEvents = 'auto';
+        icon.style.opacity = '1';
+      });
+      badges.forEach(badge => {
+        badge.style.pointerEvents = 'auto';
+        badge.style.opacity = '1';
+      });
+      profilePicture.style.pointerEvents = 'auto';
+      profilePicture.style.opacity = '1';
+      profileName.style.opacity = '1';
+      profileBio.style.opacity = '1';
+      visitorCount.style.opacity = '1';
+    } else {
+      profileBlock.style.background = `rgba(0, 0, 0, ${opacity})`;
+      profileBlock.style.borderOpacity = opacity;
+      profileBlock.style.borderColor = '';
+      profileBlock.style.backdropFilter = `blur(${10 * opacity}px)`;
+      skillsBlock.style.background = `rgba(0, 0, 0, ${opacity})`;
+      skillsBlock.style.borderOpacity = opacity;
+      skillsBlock.style.borderColor = '';
+      skillsBlock.style.backdropFilter = `blur(${10 * opacity}px)`;
+      profileBlock.style.pointerEvents = 'auto';
+      socialIcons.forEach(icon => {
+        icon.style.pointerEvents = 'auto';
+        icon.style.opacity = '1';
+      });
+      badges.forEach(badge => {
+        badge.style.pointerEvents = 'auto';
+        badge.style.opacity = '1';
+      });
+      profilePicture.style.pointerEvents = 'auto';
+      profilePicture.style.opacity = '1';
+      profileName.style.opacity = '1';
+      profileBio.style.opacity = '1';
+      visitorCount.style.opacity = '1';
+    }
+  });
+
+
+  function switchTheme(videoSrc, audio, themeClass, overlay = null, overlayOverProfile = false) {
+    let primaryColor;
+    switch (themeClass) {
+      case 'home-theme':
+        primaryColor = '#00CED1';
+        break;
+      case 'hacker-theme':
+        primaryColor = '#22C55E';
+        break;
+      case 'rain-theme':
+        primaryColor = '#1E3A8A';
+        break;
+      case 'anime-theme':
+        primaryColor = '#DC2626';
+        break;
+      case 'car-theme':
+        primaryColor = '#EAB308';
+        break;
+      default:
+        primaryColor = '#00CED1';
+    }
+    document.documentElement.style.setProperty('--primary-color', primaryColor);
+
+    gsap.to(backgroundVideo, {
+      opacity: 0,
+      duration: 0.5,
+      ease: 'power2.in',
+      onComplete: () => {
+        backgroundVideo.src = videoSrc;
+
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio.currentTime = 0;
+        }
+        currentAudio = audio;
+        currentAudio.volume = volumeSlider.value;
+        currentAudio.muted = isMuted;
+        currentAudio.play().catch(err => console.error("Failed to play theme music:", err));
+
+        document.body.classList.remove('home-theme', 'hacker-theme', 'rain-theme', 'anime-theme', 'car-theme');
+        document.body.classList.add(themeClass);
+
+        hackerOverlay.classList.add('hidden');
+        snowOverlay.classList.add('hidden');
+        profileBlock.style.zIndex = overlayOverProfile ? 10 : 20;
+        skillsBlock.style.zIndex = overlayOverProfile ? 10 : 20;
+        if (overlay) {
+          overlay.classList.remove('hidden');
+        }
+
+        if (themeClass === 'hacker-theme') {
+          resultsButtonContainer.classList.remove('hidden');
+        } else {
+          resultsButtonContainer.classList.add('hidden');
+          skillsBlock.classList.add('hidden');
+          resultsHint.classList.add('hidden');
+          profileBlock.classList.remove('hidden');
+          gsap.to(profileBlock, { x: 0, opacity: 1, duration: 0.5, ease: 'power2.out' });
+        }
+
+        gsap.to(backgroundVideo, {
+          opacity: 1,
+          duration: 0.5,
+          ease: 'power2.out',
+          onComplete: () => {
+            profileContainer.classList.remove('orbit');
+            void profileContainer.offsetWidth;
+            profileContainer.classList.add('orbit');
+          }
+        });
+      }
     });
   }
 
-  getMockData() {
-    return {
-      uid: this.configuredUID,
-      detailInfo: {
-        nickname: "Chamoi", level: 70, worldLevel: 6,
-        signature: "Demo data - API unavailable", headIcon: 201409,
-        recordInfo: { achievementCount: 10, maxRogueChallengeScore: 90, equipmentCount: 790 }
-      }
-    };
-  }
 
-  validateData(data) {
-    return (data && data.detailInfo) || (data && data.uid && data.ttl);
-  }
+  homeButton.addEventListener('click', () => {
+    switchTheme('assets/background.mp4', backgroundMusic, 'home-theme');
+  });
+  homeButton.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    switchTheme('assets/background.mp4', backgroundMusic, 'home-theme');
+  });
 
-  displayPlayerData(data) {
-    const info = data.detailInfo;
-    if (!info) return;
-    
-    const set = (id, prop, val) => {
-      const el = document.getElementById(id);
-      if (el) el[prop] = val;
-    };
-    
-    set('player-avatar', 'src', info.headIcon ? `https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/${info.headIcon}.png` : 'https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png');
-    set('player-nickname', 'textContent', info.nickname || 'Trailblazer');
-    set('player-level', 'textContent', info.level || 70);
-    set('world-level', 'textContent', info.worldLevel || 6);
-    set('player-signature', 'textContent', info.signature || 'May this journey lead us starward.');
-    set('achievement-count', 'textContent', info.recordInfo?.achievementCount || 0);
-    set('su-stars', 'textContent', info.recordInfo?.maxRogueChallengeScore || 0);
-    set('lightcones-count', 'textContent', info.recordInfo?.equipmentCount || 0);
-    set('player-uid', 'textContent', data.uid || this.configuredUID);
-    
-    const copyBtn = document.getElementById('copy-hsr-uid');
-    if (copyBtn) {
-      copyBtn.onclick = () => {
-        navigator.clipboard.writeText(data.uid || this.configuredUID);
-        copyBtn.textContent = '✓ Copied!';
-        setTimeout(() => copyBtn.textContent = '📋 Copy', 2000);
-      };
+  hackerButton.addEventListener('click', () => {
+    switchTheme('assets/hacker_background.mp4', hackerMusic, 'hacker-theme', hackerOverlay, false);
+  });
+  hackerButton.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    switchTheme('assets/hacker_background.mp4', hackerMusic, 'hacker-theme', hackerOverlay, false);
+  });
+
+  rainButton.addEventListener('click', () => {
+    switchTheme('assets/rain_background.mov', rainMusic, 'rain-theme', snowOverlay, true);
+  });
+  rainButton.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    switchTheme('assets/rain_background.mov', rainMusic, 'rain-theme', snowOverlay, true);
+  });
+
+  animeButton.addEventListener('click', () => {
+    switchTheme('assets/anime_background.mp4', animeMusic, 'anime-theme');
+  });
+  animeButton.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    switchTheme('assets/anime_background.mp4', animeMusic, 'anime-theme');
+  });
+
+  carButton.addEventListener('click', () => {
+    switchTheme('assets/car_background.mp4', carMusic, 'car-theme');
+  });
+  carButton.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    switchTheme('assets/car_background.mp4', carMusic, 'car-theme');
+  });
+
+ 
+  function handleTilt(e, element) {
+    const rect = element.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    let clientX, clientY;
+
+    if (e.type === 'touchmove') {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
     }
-    
-    this.showPlayerInfo();
-  }
-}
 
-// ZZZ
-class ZZZEnkaAPI extends EnkaAPI {
-  constructor() {
-    super({
-      game: 'ZZZ',
-      baseURL: 'https://enka.network/api/zzz/uid',
-      uid: '1302036813',
-      elementIds: { loading: 'zzz-loading-indicator', error: 'zzz-error-message', errorText: 'zzz-error-text', playerInfo: 'zzz-player-info' }
+    const mouseX = clientX - centerX;
+    const mouseY = clientY - centerY;
+
+    const maxTilt = 15;
+    const tiltX = (mouseY / rect.height) * maxTilt;
+    const tiltY = -(mouseX / rect.width) * maxTilt;
+
+    gsap.to(element, {
+      rotationX: tiltX,
+      rotationY: tiltY,
+      duration: 0.3,
+      ease: 'power2.out',
+      transformPerspective: 1000
     });
   }
 
-  getMockData() {
-    return {
-      uid: this.configuredUID,
-      PlayerInfo: {
-        SocialDetail: {
-          ProfileDetail: { Nickname: 'Buns', Level: 60, Uid: this.configuredUID, AvatarId: 2021 },
-          Desc: 'skibidi',
-          MedalList: [{ MedalType: 3, Value: 0 }, { MedalType: 1, Value: 0 }, { MedalType: 7, Value: 0 }]
+  profileBlock.addEventListener('mousemove', (e) => handleTilt(e, profileBlock));
+  profileBlock.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    handleTilt(e, profileBlock);
+  });
+
+  skillsBlock.addEventListener('mousemove', (e) => handleTilt(e, skillsBlock));
+  skillsBlock.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    handleTilt(e, skillsBlock);
+  });
+
+  profileBlock.addEventListener('mouseleave', () => {
+    gsap.to(profileBlock, {
+      rotationX: 0,
+      rotationY: 0,
+      duration: 0.5,
+      ease: 'power2.out'
+    });
+  });
+  profileBlock.addEventListener('touchend', () => {
+    gsap.to(profileBlock, {
+      rotationX: 0,
+      rotationY: 0,
+      duration: 0.5,
+      ease: 'power2.out'
+    });
+  });
+
+  skillsBlock.addEventListener('mouseleave', () => {
+    gsap.to(skillsBlock, {
+      rotationX: 0,
+      rotationY: 0,
+      duration: 0.5,
+      ease: 'power2.out'
+    });
+  });
+  skillsBlock.addEventListener('touchend', () => {
+    gsap.to(skillsBlock, {
+      rotationX: 0,
+      rotationY: 0,
+      duration: 0.5,
+      ease: 'power2.out'
+    });
+  });
+
+
+  profilePicture.addEventListener('mouseenter', () => {
+    glitchOverlay.style.opacity = '1';
+    setTimeout(() => {
+      glitchOverlay.style.opacity = '0';
+    }, 500);
+  });
+
+
+  profilePicture.addEventListener('click', () => {
+    profileContainer.classList.remove('fast-orbit');
+    profileContainer.classList.remove('orbit');
+    void profileContainer.offsetWidth;
+    profileContainer.classList.add('fast-orbit');
+    setTimeout(() => {
+      profileContainer.classList.remove('fast-orbit');
+      void profileContainer.offsetWidth;
+      profileContainer.classList.add('orbit');
+    }, 500);
+  });
+
+  profilePicture.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    profileContainer.classList.remove('fast-orbit');
+    profileContainer.classList.remove('orbit');
+    void profileContainer.offsetWidth;
+    profileContainer.classList.add('fast-orbit');
+    setTimeout(() => {
+      profileContainer.classList.remove('fast-orbit');
+      void profileContainer.offsetWidth;
+      profileContainer.classList.add('orbit');
+    }, 500);
+  });
+
+ 
+  let isShowingSkills = false;
+  resultsButton.addEventListener('click', () => {
+    if (!isShowingSkills) {
+      gsap.to(profileBlock, {
+        x: -100,
+        opacity: 0,
+        duration: 0.5,
+        ease: 'power2.in',
+        onComplete: () => {
+          profileBlock.classList.add('hidden');
+          skillsBlock.classList.remove('hidden');
+          gsap.fromTo(skillsBlock,
+            { x: 100, opacity: 0 },
+            { x: 0, opacity: 1, duration: 0.5, ease: 'power2.out' }
+          );
+          gsap.to(pythonBar, { width: '87%', duration: 2, ease: 'power2.out' });
+          gsap.to(cppBar, { width: '75%', duration: 2, ease: 'power2.out' });
+          gsap.to(csharpBar, { width: '80%', duration: 2, ease: 'power2.out' });
         }
-      }
-    };
-  }
-
-  validateData(data) {
-    return (data && data.PlayerInfo && data.PlayerInfo.SocialDetail) || (data && data.uid && data.ttl);
-  }
-
-  displayPlayerData(data) {
-    const socialDetail = data.PlayerInfo.SocialDetail;
-    const profileDetail = socialDetail.ProfileDetail;
-    
-    const set = (id, prop, val) => {
-      const el = document.getElementById(id);
-      if (el) el[prop] = val;
-    };
-    
-    set('zzz-player-avatar', 'src', 'https://enka.network/ui/zzz/IconInterKnotRole0013.png');
-    set('zzz-player-nickname', 'textContent', profileDetail.Nickname || 'Proxy');
-    set('zzz-player-level', 'textContent', profileDetail.Level || 60);
-    set('zzz-player-signature', 'textContent', socialDetail.Desc || 'Welcome to New Eridu!');
-    
-    const medals = socialDetail.MedalList || [];
-    set('line-breaker', 'textContent', medals.find(m => m.MedalType === 3)?.Value || 0);
-    set('shiyu-defense', 'textContent', medals.find(m => m.MedalType === 1)?.Value || 0);
-    set('disintegration', 'textContent', medals.find(m => m.MedalType === 7)?.Value || 0);
-    set('zzz-player-uid', 'textContent', profileDetail.Uid || data.uid || this.configuredUID);
-    
-    const copyBtn = document.getElementById('copy-zzz-uid');
-    if (copyBtn) {
-      copyBtn.onclick = () => {
-        navigator.clipboard.writeText(profileDetail.Uid || data.uid || this.configuredUID);
-        copyBtn.textContent = '✓ Copied!';
-        setTimeout(() => copyBtn.textContent = '📋 Copy', 2000);
-      };
+      });
+      resultsHint.classList.remove('hidden');
+      isShowingSkills = true;
+    } else {
+      gsap.to(skillsBlock, {
+        x: 100,
+        opacity: 0,
+        duration: 0.5,
+        ease: 'power2.in',
+        onComplete: () => {
+          skillsBlock.classList.add('hidden');
+          profileBlock.classList.remove('hidden');
+          gsap.fromTo(profileBlock,
+            { x: -100, opacity: 0 },
+            { x: 0, opacity: 1, duration: 0.5, ease: 'power2.out' }
+          );
+        }
+      });
+      resultsHint.classList.add('hidden');
+      isShowingSkills = false;
     }
-    
-    this.showPlayerInfo();
-  }
-}
+  });
 
-new HSREnkaAPI();
-new ZZZEnkaAPI();
+  resultsButton.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (!isShowingSkills) {
+      gsap.to(profileBlock, {
+        x: -100,
+        opacity: 0,
+        duration: 0.5,
+        ease: 'power2.in',
+        onComplete: () => {
+          profileBlock.classList.add('hidden');
+          skillsBlock.classList.remove('hidden');
+          gsap.fromTo(skillsBlock,
+            { x: 100, opacity: 0 },
+            { x: 0, opacity: 1, duration: 0.5, ease: 'power2.out' }
+          );
+          gsap.to(pythonBar, { width: '87%', duration: 2, ease: 'power2.out' });
+          gsap.to(cppBar, { width: '75%', duration: 2, ease: 'power2.out' });
+          gsap.to(csharpBar, { width: '80%', duration: 2, ease: 'power2.out' });
+        }
+      });
+      resultsHint.classList.remove('hidden');
+      isShowingSkills = true;
+    } else {
+      gsap.to(skillsBlock, {
+        x: 100,
+        opacity: 0,
+        duration: 0.5,
+        ease: 'power2.in',
+        onComplete: () => {
+          skillsBlock.classList.add('hidden');
+          profileBlock.classList.remove('hidden');
+          gsap.fromTo(profileBlock,
+            { x: -100, opacity: 0 },
+            { x: 0, opacity: 1, duration: 0.5, ease: 'power2.out' }
+          );
+        }
+      });
+      resultsHint.classList.add('hidden');
+      isShowingSkills = false;
+    }
+  });
+
+
+  typeWriterStart();
+});
