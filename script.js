@@ -21,6 +21,7 @@ const particleCount = isMobile ? 5 : 30;
 // Global State
 // ========================================
 let hasUserInteracted = false;
+let audioContextUnlocked = false;
 
 // ========================================
 // Loading Screen
@@ -36,7 +37,7 @@ window.addEventListener('load', () => {
 });
 
 // ========================================
-// Splash Screen - SIMPLE APPROACH
+// Splash Screen - iOS FIXED
 // ========================================
 document.addEventListener('DOMContentLoaded', () => {
   const splashScreen = document.getElementById('splash-screen');
@@ -44,9 +45,15 @@ document.addEventListener('DOMContentLoaded', () => {
   
   if (!splashScreen) return;
   
-  const dismissSplash = () => {
+  const dismissSplash = (e) => {
     if (hasUserInteracted) return;
     hasUserInteracted = true;
+    
+    // Prevent default for iOS
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     
     document.body.classList.add('splash-dismissed', 'content-visible');
     splashScreen.classList.add('fade-out');
@@ -54,11 +61,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     setTimeout(() => splashScreen.style.display = 'none', 800);
     setTimeout(() => typeWriterEffect(), 300);
+    
+    // Unlock audio context on iOS
+    if (isIOS) {
+      unlockAudioContext();
+    }
   };
   
-  // Single universal handler
-  splashScreen.addEventListener('click', dismissSplash);
-  splashScreen.addEventListener('touchstart', dismissSplash);
+  // Multiple event listeners for iOS compatibility
+  splashScreen.addEventListener('click', dismissSplash, { passive: false });
+  splashScreen.addEventListener('touchstart', dismissSplash, { passive: false });
+  splashScreen.addEventListener('touchend', dismissSplash, { passive: false });
 });
 
 // ========================================
@@ -141,7 +154,7 @@ window.addEventListener('scroll', () => {
   document.querySelectorAll('.parallax-fast').forEach(el => {
     el.style.transform = `translateY(${scrolled * -0.05}px)`;
   });
-});
+}, { passive: true });
 
 // ========================================
 // Smooth Section Transitions
@@ -207,7 +220,7 @@ for (let i = 0; i < particleCount; i++) {
 }
 
 // ========================================
-// MUSIC PLAYER - GUNS.LOL SIMPLE APPROACH
+// MUSIC PLAYER - iOS FIXED
 // ========================================
 const songs = [
   { title: "Time To love", url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Time%20To%20Love.mp3" },
@@ -218,9 +231,9 @@ const songs = [
 let currentSongIndex = 0;
 let menuOpen = false;
 
-// Get elements
 const audio = document.getElementById('audio');
 const albumArt = document.getElementById('album-art');
+const albumArtContainer = document.getElementById('album-art-container');
 const playPauseBtn = document.getElementById('play-pause');
 const prevBtn = document.getElementById('prev');
 const nextBtn = document.getElementById('next');
@@ -229,49 +242,91 @@ const songInfo = document.getElementById('song-info');
 const musicControls = document.getElementById('music-controls');
 const closeButton = document.getElementById('close-controls');
 const visualizerCanvas = document.getElementById('visualizer');
-const visualizerCtx = visualizerCanvas.getContext('2d');
+const visualizerCtx = visualizerCanvas ? visualizerCanvas.getContext('2d') : null;
 
-visualizerCanvas.width = 120;
-visualizerCanvas.height = 60;
+if (visualizerCanvas) {
+  visualizerCanvas.width = 120;
+  visualizerCanvas.height = 60;
+}
 
 let audioContext, analyser, sourceNode, dataArray, bufferLength;
 let isVisualizerActive = false;
 
-// SIMPLE: Just set volume
-audio.volume = 0.5;
+// iOS Audio Context Unlock
+function unlockAudioContext() {
+  if (audioContextUnlocked) return;
+  
+  try {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    if (audioContext.state === 'suspended') {
+      audioContext.resume().then(() => {
+        console.log('AudioContext unlocked on iOS');
+        audioContextUnlocked = true;
+      });
+    } else {
+      audioContextUnlocked = true;
+    }
+  } catch (e) {
+    console.warn('Audio context unlock failed:', e);
+  }
+}
 
-// SIMPLE: Load song
+// Set initial volume
+if (audio) {
+  audio.volume = 0.5;
+  if (volumeSlider) volumeSlider.value = 0.5;
+}
+
 function loadSong(index) {
+  if (!audio) return;
   audio.src = songs[index].url;
-  songInfo.textContent = `♪ ${songs[index].title}`;
+  if (songInfo) songInfo.textContent = `♪ ${songs[index].title}`;
 }
 
-// SIMPLE: Play
 function play() {
-  audio.play().then(() => {
-    albumArt.classList.add('playing');
-    playPauseBtn.textContent = '⏸ Pause';
-    songInfo.classList.add('show');
-    initVisualizer();
-  }).catch(err => console.warn('Play failed:', err));
+  if (!audio) return;
+  
+  // iOS requires user gesture
+  if (isIOS && !audioContextUnlocked) {
+    unlockAudioContext();
+  }
+  
+  const playPromise = audio.play();
+  
+  if (playPromise !== undefined) {
+    playPromise.then(() => {
+      if (albumArt) albumArt.classList.add('playing');
+      if (playPauseBtn) playPauseBtn.textContent = '⏸ Pause';
+      if (songInfo) songInfo.classList.add('show');
+      initVisualizer();
+    }).catch(err => {
+      console.warn('Play failed:', err);
+      // Show user-friendly message on iOS
+      if (isIOS && playPauseBtn) {
+        playPauseBtn.textContent = '▶ Tap to Play';
+      }
+    });
+  }
 }
 
-// SIMPLE: Pause
 function pause() {
+  if (!audio) return;
   audio.pause();
-  albumArt.classList.remove('playing');
-  playPauseBtn.textContent = '▶ Play';
-  visualizerCanvas.classList.remove('active');
+  if (albumArt) albumArt.classList.remove('playing');
+  if (playPauseBtn) playPauseBtn.textContent = '▶ Play';
+  if (visualizerCanvas) visualizerCanvas.classList.remove('active');
   isVisualizerActive = false;
 }
 
-// SIMPLE: Toggle
 function togglePlay() {
+  if (!audio) return;
   if (!audio.src) loadSong(currentSongIndex);
   audio.paused ? play() : pause();
 }
 
-// SIMPLE: Next/Prev
 function nextSong() {
   currentSongIndex = (currentSongIndex + 1) % songs.length;
   loadSong(currentSongIndex);
@@ -284,10 +339,11 @@ function prevSong() {
   play();
 }
 
-// SIMPLE: Visualizer - only init once
 function initVisualizer() {
+  if (!visualizerCanvas || !visualizerCtx) return;
+  
   if (audioContext) {
-    visualizerCanvas.classList.add('active');
+    if (visualizerCanvas) visualizerCanvas.classList.add('active');
     isVisualizerActive = true;
     return;
   }
@@ -295,14 +351,19 @@ function initVisualizer() {
   try {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
     analyser = audioContext.createAnalyser();
-    sourceNode = audioContext.createMediaElementSource(audio);
-    sourceNode.connect(analyser);
+    
+    // Check if source already exists
+    if (!sourceNode) {
+      sourceNode = audioContext.createMediaElementSource(audio);
+      sourceNode.connect(analyser);
+    }
+    
     analyser.connect(audioContext.destination);
     analyser.fftSize = 64;
     bufferLength = analyser.frequencyBinCount;
     dataArray = new Uint8Array(bufferLength);
     
-    visualizerCanvas.classList.add('active');
+    if (visualizerCanvas) visualizerCanvas.classList.add('active');
     isVisualizerActive = true;
     drawVisualizer();
   } catch (e) {
@@ -311,7 +372,7 @@ function initVisualizer() {
 }
 
 function drawVisualizer() {
-  if (!isVisualizerActive || !analyser) return;
+  if (!isVisualizerActive || !analyser || !visualizerCanvas || !visualizerCtx) return;
   
   requestAnimationFrame(drawVisualizer);
   analyser.getByteFrequencyData(dataArray);
@@ -332,63 +393,100 @@ function drawVisualizer() {
   }
 }
 
-// SIMPLE: Event handlers - guns.lol style (container gets clicks, not img)
-albumArt.parentElement.addEventListener('click', (e) => {
-  e.preventDefault();
-  togglePlay();
-  if (isMobile) {
-    menuOpen = !menuOpen;
-    musicControls.classList.toggle('show', menuOpen);
-  }
-});
+// Event handlers - iOS compatible
+if (albumArtContainer) {
+  // Click handler
+  albumArtContainer.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    togglePlay();
+    if (isMobile && musicControls) {
+      menuOpen = !menuOpen;
+      musicControls.classList.toggle('show', menuOpen);
+    }
+  }, { passive: false });
 
-albumArt.parentElement.addEventListener('dblclick', (e) => {
-  e.preventDefault();
-  nextSong();
-});
+  // Touch handlers for iOS
+  let touchStartTime = 0;
+  
+  albumArtContainer.addEventListener('touchstart', (e) => {
+    touchStartTime = Date.now();
+  }, { passive: true });
+  
+  albumArtContainer.addEventListener('touchend', (e) => {
+    const touchDuration = Date.now() - touchStartTime;
+    
+    // Double tap detection
+    if (touchDuration < 300) {
+      const now = Date.now();
+      if (window.lastTapTime && (now - window.lastTapTime) < 300) {
+        e.preventDefault();
+        nextSong();
+        window.lastTapTime = 0;
+      } else {
+        window.lastTapTime = now;
+      }
+    }
+  }, { passive: false });
+}
 
-// Play/pause button - simpler
-playPauseBtn.addEventListener('click', (e) => {
-  e.preventDefault();
-  togglePlay();
-});
+if (playPauseBtn) {
+  playPauseBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    togglePlay();
+  }, { passive: false });
+}
 
-// Prev/Next
-prevBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  prevSong();
-});
+if (prevBtn) {
+  prevBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    prevSong();
+  }, { passive: false });
+}
 
-nextBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  nextSong();
-});
+if (nextBtn) {
+  nextBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    nextSong();
+  }, { passive: false });
+}
 
-// Volume
-volumeSlider.addEventListener('input', (e) => {
-  audio.volume = e.target.value;
-});
+if (volumeSlider) {
+  volumeSlider.addEventListener('input', (e) => {
+    if (audio) audio.volume = e.target.value;
+  });
+}
 
-// Auto next
-audio.addEventListener('ended', nextSong);
+if (audio) {
+  audio.addEventListener('ended', nextSong);
+}
 
 // Desktop hover
-if (!isMobile) {
+if (!isMobile && albumArt) {
   let hoverTimeout;
   albumArt.addEventListener('mouseenter', () => {
-    hoverTimeout = setTimeout(() => musicControls.classList.add('show'), 300);
+    hoverTimeout = setTimeout(() => {
+      if (musicControls) musicControls.classList.add('show');
+    }, 300);
   });
   
   albumArt.addEventListener('mouseleave', () => {
     clearTimeout(hoverTimeout);
     setTimeout(() => {
-      if (!musicControls.matches(':hover')) musicControls.classList.remove('show');
+      if (musicControls && !musicControls.matches(':hover')) {
+        musicControls.classList.remove('show');
+      }
     }, 300);
   });
   
-  musicControls.addEventListener('mouseleave', () => {
-    musicControls.classList.remove('show');
-  });
+  if (musicControls) {
+    musicControls.addEventListener('mouseleave', () => {
+      musicControls.classList.remove('show');
+    });
+  }
 }
 
 // Mobile: close on outside click
@@ -396,30 +494,29 @@ if (isMobile) {
   const closeMenuOutside = (e) => {
     if (!menuOpen) return;
     const musicPlayer = document.getElementById('music-player');
-    if (!musicPlayer.contains(e.target) && !musicControls.contains(e.target)) {
+    if (musicPlayer && musicControls && !musicPlayer.contains(e.target) && !musicControls.contains(e.target)) {
       menuOpen = false;
       musicControls.classList.remove('show');
     }
   };
   
-  document.addEventListener('touchstart', closeMenuOutside, true);
-  document.addEventListener('click', closeMenuOutside, true);
+  document.addEventListener('touchstart', closeMenuOutside, { capture: true, passive: true });
+  document.addEventListener('click', closeMenuOutside, { capture: true, passive: true });
   
   window.addEventListener('scroll', debounce(() => {
-    if (menuOpen) {
+    if (menuOpen && musicControls) {
       menuOpen = false;
       musicControls.classList.remove('show');
     }
   }, 100), { passive: true });
 }
 
-// Close button - simpler
 if (closeButton) {
   closeButton.addEventListener('click', (e) => {
     e.preventDefault();
     menuOpen = false;
-    musicControls.classList.remove('show');
-  });
+    if (musicControls) musicControls.classList.remove('show');
+  }, { passive: false });
 }
 
 // ========================================
@@ -429,6 +526,7 @@ const DISCORD_ID = '1003100550700748871';
 
 async function fetchDiscordStatus() {
   const statusContainer = document.getElementById('discord-status');
+  if (!statusContainer) return;
   
   try {
     const response = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`);
@@ -453,6 +551,8 @@ async function fetchDiscordStatus() {
 
 function displayDiscordStatus(data) {
   const statusContainer = document.getElementById('discord-status');
+  if (!statusContainer) return;
+  
   const status = data.discord_status;
   const user = data.discord_user;
   const activities = data.activities || [];
@@ -500,11 +600,18 @@ function displayDiscordStatus(data) {
   `;
 }
 
-fetchDiscordStatus();
-setInterval(fetchDiscordStatus, 30000);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchDiscordStatus();
+    setInterval(fetchDiscordStatus, 30000);
+  });
+} else {
+  fetchDiscordStatus();
+  setInterval(fetchDiscordStatus, 30000);
+}
 
 // ========================================
-// Enka API
+// Enka API - iOS FIXED
 // ========================================
 class EnkaAPI {
   constructor(config) {
@@ -516,7 +623,13 @@ class EnkaAPI {
       { name: 'AllOrigins', url: (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`, parse: (d) => d.contents ? JSON.parse(d.contents) : d },
       { name: 'Direct', url: (u) => u, parse: (d) => d }
     ];
-    this.init();
+    
+    // Delay init on iOS to ensure DOM is ready
+    if (isIOS) {
+      setTimeout(() => this.init(), 500);
+    } else {
+      this.init();
+    }
   }
 
   init() {
@@ -533,7 +646,8 @@ class EnkaAPI {
         console.log(`Trying ${this.game} with ${proxy.name}...`);
         const response = await fetch(proxy.url(`${this.baseURL}/${uid}`), {
           method: 'GET',
-          headers: { 'Accept': 'application/json' }
+          headers: { 'Accept': 'application/json' },
+          mode: 'cors'
         });
         
         if (!response.ok) {
@@ -633,7 +747,7 @@ class HSREnkaAPI extends EnkaAPI {
       if (el) el[prop] = val;
     };
     
-    set('player-avatar', 'src',  'https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png');
+    set('player-avatar', 'src', 'https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png');
     set('player-nickname', 'textContent', info.nickname || 'Trailblazer');
     set('player-level', 'textContent', info.level || 70);
     set('world-level', 'textContent', info.worldLevel || 6);
@@ -717,5 +831,13 @@ class ZZZEnkaAPI extends EnkaAPI {
   }
 }
 
-new HSREnkaAPI();
-new ZZZEnkaAPI();
+// Initialize APIs
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    new HSREnkaAPI();
+    new ZZZEnkaAPI();
+  });
+} else {
+  new HSREnkaAPI();
+  new ZZZEnkaAPI();
+}
