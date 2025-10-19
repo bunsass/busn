@@ -1,151 +1,807 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#1a1425">
-  <title>My Profile</title>
-  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/bunsass/busn/refs/heads/main/asset/Sticker_PPG_24_Evernight_02.ico">
-  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <!-- Background Particles -->
-  <div id="particles"></div>
+// ========================================
+// Utility Functions
+// ========================================
+const debounce = (func, wait) => {
+  let timeout;
+  return function executedFunction(...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+};
 
-  <!-- Main Container -->
-  <div class="container">
-    <h1 id="greeting"></h1>
-    <div class="subtitle">ブンサス</div>
+// ========================================
+// Mobile Detection & Performance
+// ========================================
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+const particleCount = isMobile ? 5 : 30;
 
-    <!-- About Me -->
-    <div class="card">
-      <h2>About Me</h2>
-      <p><strong>Name:</strong> Bui Minh Triet / buns</p>
-      <p><strong>Location:</strong> Da lat, Vietnam</p>
-      <p><strong>Birthday:</strong> 05/07/2011</p>
-    </div>
+// ========================================
+// Global State
+// ========================================
+let hasUserInteracted = false;
 
-    <!-- Discord Status -->
-    <div class="card">
-      <h2>💬 Discord Status</h2>
-      <div id="discord-status">
-        <div class="loading">Loading Discord status...</div>
+// ========================================
+// Splash Screen with Auto Music Play
+// ========================================
+document.addEventListener('DOMContentLoaded', () => {
+  const splashScreen = document.getElementById('splash-screen');
+  const container = document.querySelector('.container');
+  const audio = document.getElementById('audio');
+  
+  if (!splashScreen) return;
+  
+  const dismissSplash = () => {
+    if (hasUserInteracted) return;
+    hasUserInteracted = true;
+    
+    // Mark content as visible
+    document.body.classList.add('splash-dismissed', 'content-visible');
+    splashScreen.classList.add('fade-out');
+    if (container) container.classList.add('visible');
+    
+    // Auto-play music after user interaction
+    if (audio && songs.length > 0) {
+      loadSong(currentSongIndex);
+      setTimeout(() => {
+        play();
+      }, 500);
+    }
+    
+    setTimeout(() => splashScreen.style.display = 'none', 800);
+    setTimeout(() => typeWriterEffect(), 300);
+  };
+  
+  // Universal click/touch handler
+  splashScreen.addEventListener('click', dismissSplash);
+  splashScreen.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    dismissSplash();
+  });
+});
+
+// ========================================
+// Cursor Trail (Desktop Only)
+// ========================================
+if (!isMobile) {
+  const canvas = document.getElementById('cursor-trail');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = [];
+  const maxParticles = 50;
+
+  class TrailParticle {
+    constructor(x, y) {
+      this.x = x;
+      this.y = y;
+      this.size = Math.random() * 3 + 1;
+      this.speedX = Math.random() * 2 - 1;
+      this.speedY = Math.random() * 2 - 1;
+      this.life = 1;
+      this.decay = Math.random() * 0.02 + 0.01;
+      this.color = `hsl(${Math.random() * 60 + 260}, 70%, 60%)`;
+    }
+
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+      this.life -= this.decay;
+      this.size *= 0.98;
+    }
+
+    draw() {
+      ctx.fillStyle = this.color;
+      ctx.globalAlpha = this.life;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  document.addEventListener('mousemove', (e) => {
+    for (let i = 0; i < 2; i++) {
+      particles.push(new TrailParticle(e.clientX, e.clientY));
+    }
+    if (particles.length > maxParticles) particles.splice(0, 2);
+  });
+
+  function animateTrail() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = particles.length - 1; i >= 0; i--) {
+      particles[i].update();
+      particles[i].draw();
+      if (particles[i].life <= 0 || particles[i].size <= 0.5) {
+        particles.splice(i, 1);
+      }
+    }
+    requestAnimationFrame(animateTrail);
+  }
+
+  animateTrail();
+  
+  window.addEventListener('resize', debounce(() => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }, 250));
+}
+
+// ========================================
+// Parallax Scrolling
+// ========================================
+window.addEventListener('scroll', () => {
+  const scrolled = window.pageYOffset;
+  document.querySelectorAll('.parallax-slow').forEach(el => {
+    el.style.transform = `translateY(${scrolled * 0.1}px)`;
+  });
+  document.querySelectorAll('.parallax-medium').forEach(el => {
+    el.style.transform = `translateY(${scrolled * 0.3}px)`;
+  });
+  document.querySelectorAll('.parallax-fast').forEach(el => {
+    el.style.transform = `translateY(${scrolled * -0.05}px)`;
+  });
+});
+
+// ========================================
+// Smooth Section Transitions
+// ========================================
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.classList.add('visible');
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -100px 0px' });
+
+document.querySelectorAll('.section-fade').forEach(el => observer.observe(el));
+
+// ========================================
+// Typewriter Effect
+// ========================================
+function typeWriterEffect() {
+  const greetingEl = document.getElementById('greeting');
+  if (!greetingEl) return;
+  
+  const hour = new Date().getHours();
+  const greetings = {
+    morning: ['Good Morning, proxies!', 'Rise and Shine, Wanderer!', 'Good Morning, Trailblazer!'],
+    afternoon: ['Good Afternoon, Traveler!', 'Hello There, Wanderer!', 'Good Afternoon, Trailblazer!', 'Good Afternoon, proxies!'],
+    evening: ['Good Evening, Traveler!', 'Greetings, Night Wanderer!', 'Good Evening, Trailblazer!', 'Good Evening, proxies!'],
+    night: ['Good Night, Stargazer!', 'Welcome, Night Owl!', 'Greetings, Moonlit Wanderer!', 'Good Night, proxies!']
+  };
+  
+  let timeOfDay = hour >= 5 && hour < 12 ? 'morning' : hour >= 12 && hour < 17 ? 'afternoon' : hour >= 17 && hour < 21 ? 'evening' : 'night';
+  const text = greetings[timeOfDay][Math.floor(Math.random() * greetings[timeOfDay].length)];
+  
+  let index = 0;
+  greetingEl.textContent = '';
+  
+  function type() {
+    if (index < text.length) {
+      greetingEl.textContent += text.charAt(index);
+      index++;
+      setTimeout(type, 80);
+    }
+  }
+  type();
+}
+
+// ========================================
+// Background Particles
+// ========================================
+const particlesContainer = document.getElementById('particles');
+for (let i = 0; i < particleCount; i++) {
+  const particle = document.createElement('div');
+  particle.className = 'particle';
+  const size = isMobile ? Math.random() * 3 + 2 : Math.random() * 5 + 2;
+  particle.style.width = size + 'px';
+  particle.style.height = size + 'px';
+  particle.style.left = Math.random() * 100 + '%';
+  particle.style.top = Math.random() * 100 + '%';
+  
+  const colors = ['rgba(139, 92, 246, 0.4)', 'rgba(99, 102, 241, 0.3)', 'rgba(167, 139, 250, 0.3)', 'rgba(196, 181, 253, 0.3)', 'rgba(236, 72, 153, 0.3)'];
+  particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+  particle.style.boxShadow = `0 0 ${size * 2}px ${particle.style.background}`;
+  particle.style.animationDelay = Math.random() * 5 + 's';
+  particle.style.animationDuration = (Math.random() * 5 + 8) + 's';
+  particlesContainer.appendChild(particle);
+}
+
+// ========================================
+// MUSIC PLAYER
+// ========================================
+const songs = [
+  { title: "Time To love", url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Time%20To%20Love.mp3" },
+  { title: "Had I Not Seen the Sun", url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Had%20I%20Not%20Seen%20the%20Sun.mp3" },
+  { title: "if i can stop one heart from breaking", url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3" }
+];
+
+let currentSongIndex = 0;
+let menuOpen = false;
+
+// Get elements
+const audio = document.getElementById('audio');
+const albumArt = document.getElementById('album-art');
+const playPauseBtn = document.getElementById('play-pause');
+const prevBtn = document.getElementById('prev');
+const nextBtn = document.getElementById('next');
+const volumeSlider = document.getElementById('volume');
+const songInfo = document.getElementById('song-info');
+const musicControls = document.getElementById('music-controls');
+const closeButton = document.getElementById('close-controls');
+const visualizerCanvas = document.getElementById('visualizer');
+const visualizerCtx = visualizerCanvas.getContext('2d');
+
+visualizerCanvas.width = 120;
+visualizerCanvas.height = 60;
+
+let audioContext, analyser, sourceNode, dataArray, bufferLength;
+let isVisualizerActive = false;
+
+// Set volume
+audio.volume = 0.5;
+
+// Load song
+function loadSong(index) {
+  audio.src = songs[index].url;
+  songInfo.textContent = `♪ ${songs[index].title}`;
+}
+
+// Play
+function play() {
+  audio.play().then(() => {
+    albumArt.classList.add('playing');
+    playPauseBtn.textContent = '⏸ Pause';
+    songInfo.classList.add('show');
+    initVisualizer();
+  }).catch(err => console.warn('Play failed:', err));
+}
+
+// Pause
+function pause() {
+  audio.pause();
+  albumArt.classList.remove('playing');
+  playPauseBtn.textContent = '▶ Play';
+  visualizerCanvas.classList.remove('active');
+  isVisualizerActive = false;
+}
+
+// Toggle
+function togglePlay() {
+  if (!audio.src) loadSong(currentSongIndex);
+  audio.paused ? play() : pause();
+}
+
+// Next/Prev
+function nextSong() {
+  currentSongIndex = (currentSongIndex + 1) % songs.length;
+  loadSong(currentSongIndex);
+  play();
+}
+
+function prevSong() {
+  currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+  loadSong(currentSongIndex);
+  play();
+}
+
+// Visualizer - only init once
+function initVisualizer() {
+  if (audioContext) {
+    visualizerCanvas.classList.add('active');
+    isVisualizerActive = true;
+    return;
+  }
+  
+  try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioContext.createAnalyser();
+    sourceNode = audioContext.createMediaElementSource(audio);
+    sourceNode.connect(analyser);
+    analyser.connect(audioContext.destination);
+    analyser.fftSize = 64;
+    bufferLength = analyser.frequencyBinCount;
+    dataArray = new Uint8Array(bufferLength);
+    
+    visualizerCanvas.classList.add('active');
+    isVisualizerActive = true;
+    drawVisualizer();
+  } catch (e) {
+    console.warn('Visualizer failed:', e);
+  }
+}
+
+function drawVisualizer() {
+  if (!isVisualizerActive || !analyser) return;
+  
+  requestAnimationFrame(drawVisualizer);
+  analyser.getByteFrequencyData(dataArray);
+  
+  visualizerCtx.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
+  
+  const barWidth = (visualizerCanvas.width / bufferLength) * 2;
+  let x = 0;
+  
+  for (let i = 0; i < bufferLength; i++) {
+    const barHeight = (dataArray[i] / 255) * visualizerCanvas.height * 0.8;
+    const gradient = visualizerCtx.createLinearGradient(0, visualizerCanvas.height, 0, 0);
+    gradient.addColorStop(0, '#8b5cf6');
+    gradient.addColorStop(1, '#ec4899');
+    visualizerCtx.fillStyle = gradient;
+    visualizerCtx.fillRect(x, visualizerCanvas.height - barHeight, barWidth - 1, barHeight);
+    x += barWidth + 1;
+  }
+}
+
+// Event handlers
+albumArt.parentElement.addEventListener('click', (e) => {
+  e.preventDefault();
+  togglePlay();
+  if (isMobile) {
+    menuOpen = !menuOpen;
+    musicControls.classList.toggle('show', menuOpen);
+  }
+});
+
+albumArt.parentElement.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  togglePlay();
+  if (isMobile) {
+    menuOpen = !menuOpen;
+    musicControls.classList.toggle('show', menuOpen);
+  }
+});
+
+albumArt.parentElement.addEventListener('dblclick', (e) => {
+  e.preventDefault();
+  nextSong();
+});
+
+// Play/pause button
+playPauseBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  togglePlay();
+});
+
+// Prev/Next
+prevBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  prevSong();
+});
+
+nextBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  nextSong();
+});
+
+// Volume
+volumeSlider.addEventListener('input', (e) => {
+  audio.volume = e.target.value;
+});
+
+// Auto next
+audio.addEventListener('ended', nextSong);
+
+// Desktop hover
+if (!isMobile) {
+  let hoverTimeout;
+  albumArt.parentElement.addEventListener('mouseenter', () => {
+    hoverTimeout = setTimeout(() => musicControls.classList.add('show'), 300);
+  });
+  
+  albumArt.parentElement.addEventListener('mouseleave', () => {
+    clearTimeout(hoverTimeout);
+    setTimeout(() => {
+      if (!musicControls.matches(':hover')) musicControls.classList.remove('show');
+    }, 300);
+  });
+  
+  musicControls.addEventListener('mouseleave', () => {
+    musicControls.classList.remove('show');
+  });
+}
+
+// Mobile: close on outside click
+if (isMobile) {
+  const closeMenuOutside = (e) => {
+    if (!menuOpen) return;
+    const musicPlayer = document.getElementById('music-player');
+    if (!musicPlayer.contains(e.target) && !musicControls.contains(e.target)) {
+      menuOpen = false;
+      musicControls.classList.remove('show');
+    }
+  };
+  
+  document.addEventListener('touchstart', closeMenuOutside, true);
+  document.addEventListener('click', closeMenuOutside, true);
+  
+  window.addEventListener('scroll', debounce(() => {
+    if (menuOpen) {
+      menuOpen = false;
+      musicControls.classList.remove('show');
+    }
+  }, 100), { passive: true });
+}
+
+// Close button
+if (closeButton) {
+  closeButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    menuOpen = false;
+    musicControls.classList.remove('show');
+  });
+}
+
+// ========================================
+// Discord Status
+// ========================================
+const DISCORD_ID = '1003100550700748871';
+
+async function fetchDiscordStatus() {
+  const statusContainer = document.getElementById('discord-status');
+  
+  try {
+    const response = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    
+    const data = await response.json();
+    if (data.success && data.data) {
+      displayDiscordStatus(data.data);
+    } else {
+      throw new Error('Invalid response');
+    }
+  } catch (error) {
+    console.warn('Discord unavailable:', error);
+    statusContainer.innerHTML = `
+      <p style="color: rgba(255, 255, 255, 0.7); text-align: center; padding: 20px;">
+        Discord status currently unavailable<br>
+        <small style="opacity: 0.6;">Make sure you're in the Lanyard Discord server</small>
+      </p>
+    `;
+  }
+}
+
+function displayDiscordStatus(data) {
+  const statusContainer = document.getElementById('discord-status');
+  const status = data.discord_status;
+  const user = data.discord_user;
+  const activities = data.activities || [];
+  
+  const statusConfig = {
+    online: { text: 'Online', color: '#43b581' },
+    idle: { text: 'Idle', color: '#faa61a' },
+    dnd: { text: 'Do Not Disturb', color: '#f04747' },
+    offline: { text: 'Offline', color: '#747f8d' }
+  };
+  
+  const currentStatus = statusConfig[status] || statusConfig.offline;
+  const activity = activities.find(a => a.type !== 4);
+  
+  let activityHTML = '';
+  if (activity) {
+    const activityTypes = { 0: 'Playing', 1: 'Streaming', 2: 'Listening to', 3: 'Watching', 5: 'Competing in' };
+    const activityTitle = activityTypes[activity.type] || 'Activity';
+    
+    activityHTML = `
+      <div class="discord-activity">
+        <div class="discord-activity-title">${activityTitle}</div>
+        <div class="discord-activity-name">${activity.name}</div>
+        ${activity.details ? `<div class="discord-activity-details">${activity.details}</div>` : ''}
+        ${activity.state ? `<div class="discord-activity-details">${activity.state}</div>` : ''}
       </div>
-    </div>
-
-    <!-- Contact -->
-    <div class="card">
-      <h2>Contact Me</h2>
-      <ul class="contact-list">
-        <li><strong>Email:</strong> <a href="mailto:buminhtriet57@gmail.com">click here to email me❤️</a></li>
-        <li><strong>GitHub:</strong> <a href="https://github.com/bunsass" target="_blank">bunsass</a></li>
-        <li><strong>Discord:</strong> <a href='https://discord.com/users/1003100550700748871' target="_blank">bunshevid_oguri</a></li>
-        <li><strong>Facebook:</strong> <a href="https://www.facebook.com/bunsass/" target="_blank">bunsass</a></li>
-      </ul>
-    </div>
-
-    <!-- Biography -->
-    <div class="card">
-      <h2>My Bio (*^▽^*)┛</h2>
-      <p>Hello! I'm passionate about learning new stuffs, coding, and creating amazing experiences. I love learning new things and working on projects that make a difference. In my free time, I enjoy listening to music, playing games, and exploring new ideas. Let's connect and create something awesome together!</p>
-    </div>
-
-    <!-- Honkai Star Rail -->
-    <div class="card game-card hsr-card">
-      <h2>⭐ Honkai Star Rail Profile</h2>
-      <div id="hsr-loading" class="loading">Loading player info...</div>
-      <div id="hsr-error" class="error-box hidden"></div>
-      <div id="hsr-player-info" class="hidden">
-        <div class="player-info">
-          <img id="hsr-avatar" src="" alt="Avatar" class="player-avatar">
-          <div class="player-details">
-            <h3 id="hsr-nickname"></h3>
-            <p><span class="label">TL</span> <span id="hsr-level"></span> | <span class="label">EQ</span> <span id="hsr-world-level"></span></p>
-            <p class="signature" id="hsr-signature"></p>
-            <div class="stats">
-              <span>🏆 <span id="hsr-achievements"></span></span>
-              <span>⭐ <span id="hsr-su-stars"></span></span>
-              <span>⚡ <span id="hsr-lightcones"></span></span>
-            </div>
-            <div class="uid">
-              UID: <span id="hsr-uid"></span>
-              <button class="copy-btn" id="copy-hsr-uid">📋 Copy</button>
-            </div>
-          </div>
+    `;
+  }
+  
+  statusContainer.innerHTML = `
+    <div class="discord-info">
+      <div class="discord-avatar-container">
+        <img src="https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128" alt="${user.username}" class="discord-avatar-img">
+        <div class="status-indicator ${status}" style="background: ${currentStatus.color};"></div>
+      </div>
+      <div class="discord-details">
+        <h3 class="discord-username">${user.global_name || user.username}</h3>
+        <div class="discord-status-badge" style="border-color: ${currentStatus.color};">
+          <span class="status-dot" style="background: ${currentStatus.color};"></span>
+          ${currentStatus.text}
         </div>
+        ${activityHTML}
       </div>
     </div>
+  `;
+}
 
-    <!-- Zenless Zone Zero -->
-    <div class="card game-card zzz-card">
-      <h2>⚡ Zenless Zone Zero Profile</h2>
-      <div id="zzz-loading" class="loading">Loading player info...</div>
-      <div id="zzz-error" class="error-box hidden"></div>
-      <div id="zzz-player-info" class="hidden">
-        <div class="player-info">
-          <img id="zzz-avatar" src="" alt="Avatar" class="player-avatar">
-          <div class="player-details">
-            <h3 id="zzz-nickname"></h3>
-            <p><span class="label">Level</span> <span id="zzz-level"></span></p>
-            <p class="signature" id="zzz-signature"></p>
-            <div class="stats">
-              <span>⚔️ <span id="zzz-line-breaker"></span></span>
-              <span>🛡️ <span id="zzz-shiyu"></span></span>
-              <span>💥 <span id="zzz-disintegration"></span></span>
-            </div>
-            <div class="uid">
-              UID: <span id="zzz-uid"></span>
-              <button class="copy-btn" id="copy-zzz-uid">📋 Copy</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+fetchDiscordStatus();
+setInterval(fetchDiscordStatus, 30000);
 
-    <!-- Spotify -->
-    <div class="card">
-      <h2>🎧 Featured Playlists</h2>
-      <p>Check out my playlists :3</p>
-      <iframe style="border-radius:12px; margin-top: 15px;" 
-              src="https://open.spotify.com/embed/playlist/7iG4O8ZnFchAoh81RXIwVH?utm_source=generator" 
-              width="100%" 
-              height="380" 
-              frameborder="0" 
-              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-              loading="lazy">
-      </iframe>
-    </div>
-  </div>
+// ========================================
+// Enka API - Improved with Timeout & Hardcoded Avatars
+// ========================================
+class EnkaAPI {
+  constructor(config) {
+    this.game = config.game;
+    this.baseURL = config.baseURL;
+    this.configuredUID = config.uid;
+    this.elementIds = config.elementIds;
+    this.hardcodedAvatar = config.hardcodedAvatar;
+    this.proxies = [
+      { 
+        name: 'AllOrigins', 
+        url: (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`, 
+        parse: (d) => {
+          if (d.contents) {
+            try {
+              return JSON.parse(d.contents);
+            } catch (e) {
+              console.warn('AllOrigins parse error:', e);
+              return d;
+            }
+          }
+          return d;
+        }
+      },
+      { 
+        name: 'Direct', 
+        url: (u) => u, 
+        parse: (d) => d 
+      }
+    ];
+    this.init();
+  }
 
-  <!-- Music Player -->
-  <div id="music-player">
-    <div id="album-art-container">
-      <img id="album-art" src="https://cdn.discordapp.com/attachments/1416355899232223235/1428594030283067402/2229438d735a893d8f80cd69f4319678.png?ex=68f3115e&is=68f1bfde&hm=057e81965a0105dfcccc3332ed6256590129ffc2b7a1cf8387bed3f98d01c539&" alt="Album Art">
-    </div>
-    <div id="song-info" class="hidden"></div>
-    <div id="music-controls" class="hidden">
-      <div class="control-group">
-        <label>🔊</label>
-        <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5">
-      </div>
-      <button class="control-btn" id="prev">⏮️ Previous</button>
-      <button class="control-btn" id="play-pause">▶️ Play</button>
-      <button class="control-btn" id="next">⏭️ Next</button>
-      <button class="control-btn close-btn" id="close-controls">✖ Close</button>
-    </div>
-  </div>
+  init() {
+    this.fetchPlayerData(this.configuredUID);
+  }
 
-  <audio id="audio" crossorigin="anonymous"></audio>
+  async fetchPlayerData(uid) {
+    this.showLoading(true);
+    this.hideError();
+    this.hidePlayerInfo();
 
-  <!-- Decorative Images -->
-  <img class="decorative-image image1" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_3.webp" alt="" loading="lazy" onerror="this.style.display='none'">
-  <img class="decorative-image image2" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_2.webp" alt="" loading="lazy" onerror="this.style.display='none'">
-  <img class="decorative-image image3" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_6.webp" alt="" loading="lazy" onerror="this.style.display='none'">
-  <img class="decorative-image image4" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_5.webp" alt="" loading="lazy" onerror="this.style.display='none'">
-  <img class="image5" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Sticker_PPG_24_Evernight_03.webp" alt="" loading="lazy" onerror="this.style.display='none'">
+    // Try each proxy with timeout
+    for (const proxy of this.proxies) {
+      try {
+        console.log(`Trying ${this.game} with ${proxy.name}...`);
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        
+        const response = await fetch(proxy.url(`${this.baseURL}/${uid}`), {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' },
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          console.warn(`${proxy.name} failed: ${response.status}`);
+          continue;
+        }
+        
+        const data = await response.json();
+        const apiData = proxy.parse(data);
+        
+        if (!this.validateData(apiData)) {
+          console.warn(`${proxy.name} returned invalid data`);
+          continue;
+        }
+        
+        console.log(`✅ ${this.game} loaded successfully with ${proxy.name}`);
+        this.showLoading(false);
+        this.hideError();
+        this.displayPlayerData(apiData);
+        this.showPlayerInfo();
+        return;
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          console.warn(`${proxy.name} timeout`);
+        } else {
+          console.warn(`${proxy.name} error:`, error.message);
+        }
+        continue;
+      }
+    }
+    
+    // All proxies failed - show static data silently
+    console.log(`${this.game} API unavailable - showing static data`);
+    this.showLoading(false);
+    this.hideError();
+    this.displayPlayerData(this.getMockData());
+    this.showPlayerInfo();
+  }
 
-  <script src="script.js"></script>
-</body>
-</html>
+  showLoading(show) {
+    const el = document.getElementById(this.elementIds.loading);
+    if (el) el.classList.toggle('hidden', !show);
+  }
+
+  showError(msg) {
+    const el = document.getElementById(this.elementIds.error);
+    const textEl = document.getElementById(this.elementIds.errorText);
+    if (el && textEl) {
+      textEl.textContent = msg;
+      el.classList.remove('hidden');
+    }
+  }
+
+  hideError() {
+    const el = document.getElementById(this.elementIds.error);
+    if (el) el.classList.add('hidden');
+  }
+
+  showPlayerInfo() {
+    const el = document.getElementById(this.elementIds.playerInfo);
+    if (el) el.classList.remove('hidden');
+  }
+
+  hidePlayerInfo() {
+    const el = document.getElementById(this.elementIds.playerInfo);
+    if (el) el.classList.add('hidden');
+  }
+}
+
+// HSR
+class HSREnkaAPI extends EnkaAPI {
+  constructor() {
+    super({
+      game: 'HSR',
+      baseURL: 'https://enka.network/api/hsr/uid',
+      uid: '832796099',
+      elementIds: { 
+        loading: 'loading-indicator', 
+        error: 'error-message', 
+        errorText: 'error-text', 
+        playerInfo: 'hsr-player-info' 
+      },
+      hardcodedAvatar: 'https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png'
+    });
+  }
+
+  getMockData() {
+    return {
+      uid: this.configuredUID,
+      detailInfo: {
+        nickname: "Chamoi", 
+        level: 70, 
+        worldLevel: 6,
+        signature: "May this journey lead us starward.", 
+        headIcon: 201409,
+        recordInfo: { 
+          achievementCount: 10, 
+          maxRogueChallengeScore: 90, 
+          equipmentCount: 790 
+        }
+      }
+    };
+  }
+
+  validateData(data) {
+    return data && (data.detailInfo || (data.uid && data.ttl));
+  }
+
+  displayPlayerData(data) {
+    const info = data.detailInfo;
+    if (!info) {
+      console.warn('No detailInfo found, using mock data');
+      this.displayPlayerData(this.getMockData());
+      return;
+    }
+    
+    const set = (id, prop, val) => {
+      const el = document.getElementById(id);
+      if (el) el[prop] = val;
+    };
+    
+    // Always use hardcoded avatar
+    set('player-avatar', 'src', this.hardcodedAvatar);
+    set('player-nickname', 'textContent', info.nickname || 'Trailblazer');
+    set('player-level', 'textContent', info.level || 70);
+    set('world-level', 'textContent', info.worldLevel || 6);
+    set('player-signature', 'textContent', info.signature || 'May this journey lead us starward.');
+    set('achievement-count', 'textContent', info.recordInfo?.achievementCount || 0);
+    set('su-stars', 'textContent', info.recordInfo?.maxRogueChallengeScore || 0);
+    set('lightcones-count', 'textContent', info.recordInfo?.equipmentCount || 0);
+    set('player-uid', 'textContent', data.uid || this.configuredUID);
+    
+    const copyBtn = document.getElementById('copy-hsr-uid');
+    if (copyBtn) {
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(data.uid || this.configuredUID);
+        copyBtn.textContent = '✓ Copied!';
+        setTimeout(() => copyBtn.textContent = '📋 Copy', 2000);
+      };
+    }
+    
+    this.showPlayerInfo();
+  }
+}
+
+// ZZZ
+class ZZZEnkaAPI extends EnkaAPI {
+  constructor() {
+    super({
+      game: 'ZZZ',
+      baseURL: 'https://enka.network/api/zzz/uid',
+      uid: '1302036813',
+      elementIds: { 
+        loading: 'zzz-loading-indicator', 
+        error: 'zzz-error-message', 
+        errorText: 'zzz-error-text', 
+        playerInfo: 'zzz-player-info' 
+      },
+      hardcodedAvatar: 'https://enka.network/ui/zzz/IconInterKnotRole0013.png'
+    });
+  }
+
+  getMockData() {
+    return {
+      uid: this.configuredUID,
+      PlayerInfo: {
+        SocialDetail: {
+          ProfileDetail: { 
+            Nickname: 'Buns', 
+            Level: 60, 
+            Uid: this.configuredUID, 
+            AvatarId: 2021 
+          },
+          Desc: 'Welcome to New Eridu!',
+          MedalList: [
+            { MedalType: 3, Value: 0 }, 
+            { MedalType: 1, Value: 0 }, 
+            { MedalType: 7, Value: 0 }
+          ]
+        }
+      }
+    };
+  }
+
+  validateData(data) {
+    return data && (
+      (data.PlayerInfo && data.PlayerInfo.SocialDetail) || 
+      (data.uid && data.ttl)
+    );
+  }
+
+  displayPlayerData(data) {
+    if (!data.PlayerInfo || !data.PlayerInfo.SocialDetail) {
+      console.warn('No PlayerInfo found, using mock data');
+      this.displayPlayerData(this.getMockData());
+      return;
+    }
+
+    const socialDetail = data.PlayerInfo.SocialDetail;
+    const profileDetail = socialDetail.ProfileDetail;
+    
+    const set = (id, prop, val) => {
+      const el = document.getElementById(id);
+      if (el) el[prop] = val;
+    };
+    
+    // Always use hardcoded avatar
+    set('zzz-player-avatar', 'src', this.hardcodedAvatar);
+    set('zzz-player-nickname', 'textContent', profileDetail.Nickname || 'Proxy');
+    set('zzz-player-level', 'textContent', profileDetail.Level || 60);
+    set('zzz-player-signature', 'textContent', socialDetail.Desc || 'Welcome to New Eridu!');
+    
+    const medals = socialDetail.MedalList || [];
+    set('line-breaker', 'textContent', medals.find(m => m.MedalType === 3)?.Value || 0);
+    set('shiyu-defense', 'textContent', medals.find(m => m.MedalType === 1)?.Value || 0);
+    set('disintegration', 'textContent', medals.find(m => m.MedalType === 7)?.Value || 0);
+    set('zzz-player-uid', 'textContent', profileDetail.Uid || data.uid || this.configuredUID);
+    
+    const copyBtn = document.getElementById('copy-zzz-uid');
+    if (copyBtn) {
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(profileDetail.Uid || data.uid || this.configuredUID);
+        copyBtn.textContent = '✓ Copied!';
+        setTimeout(() => copyBtn.textContent = '📋 Copy', 2000);
+      };
+    }
+    
+    this.showPlayerInfo();
+  }
+}
+
+// Initialize APIs
+new HSREnkaAPI();
+new ZZZEnkaAPI();
