@@ -16,28 +16,17 @@
   <!-- Cursor Trail -->
   <canvas id="cursor-trail"></canvas>
 
-  <!-- Loading Screen -->
-  <div id="loading-screen">
-    <div class="loading-content">
-      <div class="loading-spinner-main"></div>
-      <p class="loading-text">Loading Experience...</p>
-      <div class="loading-bar">
-        <div class="loading-progress"></div>
-      </div>
+  <!-- Splash Screen -->
+  <div id="splash-screen">
+    <div class="splash-content">
+      <p class="splash-text">Click anywhere to enter</p>
     </div>
   </div>
-
-  <!-- Splash Screen - REPLACE the existing splash-screen div -->
-<div id="splash-screen">
-  <div class="splash-content">
-    <p class="splash-text">Click anywhere to enter</p>
-  </div>
-</div>
 
   <!-- Animated Background -->
   <div id="particles"></div>
 
-  <div class="container page-transition">
+  <div class="container">
     <h1 id="greeting" class="parallax-slow"></h1>
     
     <div style="text-align: center;">
@@ -208,7 +197,6 @@
 
   <!-- Music Player -->
   <div id="music-player">
-    <canvas id="visualizer"></canvas>
     <div id="album-art-container">
       <img id="album-art" src="https://cdn.discordapp.com/attachments/1416355899232223235/1428594030283067402/2229438d735a893d8f80cd69f4319678.png?ex=68f3115e&is=68f1bfde&hm=057e81965a0105dfcccc3332ed6256590129ffc2b7a1cf8387bed3f98d01c539&" alt="Album Art">
     </div>
@@ -221,18 +209,12 @@
       <label for="volume">🔊</label>
       <input type="range" id="volume" min="0" max="1" step="0.01" value="0.5" aria-label="Volume control">
     </div>
-    <button class="control-btn" id="prev" aria-label="Previous song">⮜️ Previous</button>
+    <button class="control-btn" id="prev" aria-label="Previous song">⏮️ Previous</button>
     <button class="control-btn" id="play-pause" aria-label="Play or pause">▶️ Play</button>
-    <button class="control-btn" id="next" aria-label="Next song">⭢️ Next</button>
+    <button class="control-btn" id="next" aria-label="Next song">⏭️ Next</button>
     <button class="control-btn close-btn" id="close-controls" aria-label="Close controls">✖ Close</button>
   </div>
 
   <audio id="audio" crossorigin="anonymous"></audio>
-
-  <img class="decorative-image image1 parallax-slow" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_3.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
-  <img class="decorative-image image2 parallax-slow" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_2.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
-  <img class="decorative-image image3 parallax-slow" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_6.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
-  <img class="decorative-image image4 parallax-slow" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Character_Evernight_Eidolon_5.webp" alt="Decorative character art" loading="lazy" onerror="this.style.display='none'">
-  <img class="image5" src="https://raw.githubusercontent.com/bunsass/busn/main/asset/Sticker_PPG_24_Evernight_03.webp" alt="Central decorative character" loading="lazy" onerror="this.style.display='none'">
 </body>
 </html>
