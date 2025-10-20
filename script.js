@@ -58,12 +58,19 @@ document.addEventListener('DOMContentLoaded', () => {
       el.style.transform = 'translateY(0)';
     });
     
-    // Auto-play music after user interaction
+    // Safari requires IMMEDIATE play on user gesture
     if (audio && songs.length > 0) {
       loadSong(currentSongIndex);
-      setTimeout(() => {
-        play();
-      }, 100);
+      // Try to play immediately - Safari requires this
+      audio.play().then(() => {
+        console.log('Music started successfully');
+        albumArt.classList.add('playing');
+        playPauseBtn.textContent = '⏸ Pause';
+        songInfo.classList.add('show');
+      }).catch(err => {
+        console.warn('Autoplay blocked by Safari:', err);
+        // Don't show error to user, just leave it paused
+      });
     }
     
     // Start typewriter
@@ -242,6 +249,14 @@ const volumeSlider = document.getElementById('volume');
 const songInfo = document.getElementById('song-info');
 const musicControls = document.getElementById('music-controls');
 const closeButton = document.getElementById('close-controls');
+
+// Safari fix: Ensure album art loads
+if (albumArt) {
+  albumArt.addEventListener('error', () => {
+    console.warn('Album art failed to load, using fallback');
+    albumArt.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect fill="%238b5cf6" width="80" height="80"/><text x="50%" y="50%" fill="white" font-size="40" text-anchor="middle" dominant-baseline="middle">♪</text></svg>';
+  });
+}
 // Set volume
 audio.volume = 0.5;
 
@@ -394,7 +409,19 @@ async function fetchDiscordStatus() {
   const statusContainer = document.getElementById('discord-status');
   
   try {
-    const response = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    
+    const response = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`, {
+      signal: controller.signal,
+      mode: 'cors',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    clearTimeout(timeoutId);
+    
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     
     const data = await response.json();
@@ -408,7 +435,7 @@ async function fetchDiscordStatus() {
     statusContainer.innerHTML = `
       <p style="color: rgba(255, 255, 255, 0.7); text-align: center; padding: 20px;">
         Discord status currently unavailable<br>
-        <small style="opacity: 0.6;">Make sure you're in the Lanyard Discord server</small>
+        <small style="opacity: 0.6;">Refresh to try again</small>
       </p>
     `;
   }
@@ -516,11 +543,15 @@ class EnkaAPI {
         console.log(`Trying ${this.game} with ${proxy.name}...`);
         
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout for Safari
         
         const response = await fetch(proxy.url(`${this.baseURL}/${uid}`), {
           method: 'GET',
-          headers: { 'Accept': 'application/json' },
+          headers: { 
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          mode: 'cors',
           signal: controller.signal
         });
         
