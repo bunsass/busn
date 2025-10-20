@@ -44,34 +44,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if (hasUserInteracted) return;
     hasUserInteracted = true;
     
-    // Mark content as visible
+    // Immediately hide splash and show content
+    splashScreen.style.display = 'none';
     document.body.classList.add('splash-dismissed', 'content-visible');
-    splashScreen.classList.add('fade-out');
-    if (container) container.classList.add('visible');
-    
-    // Force repaint on iOS
-    if (isIOS) {
-      document.body.style.transform = 'translateZ(0)';
-      container.style.transform = 'translateZ(0)';
+    if (container) {
+      container.style.opacity = '1';
+      container.style.visibility = 'visible';
     }
+    
+    // Make all sections visible immediately
+    document.querySelectorAll('.section-fade').forEach(el => {
+      el.style.opacity = '1';
+      el.style.transform = 'translateY(0)';
+    });
     
     // Auto-play music after user interaction
     if (audio && songs.length > 0) {
       loadSong(currentSongIndex);
       setTimeout(() => {
         play();
-      }, 500);
+      }, 100);
     }
     
-    setTimeout(() => splashScreen.style.display = 'none', 800);
-    setTimeout(() => {
-      typeWriterEffect();
-      // Force scroll recalculation on iOS
-      if (isIOS) {
-        window.scrollTo(0, 1);
-        setTimeout(() => window.scrollTo(0, 0), 10);
-      }
-    }, 300);
+    // Start typewriter
+    setTimeout(() => typeWriterEffect(), 100);
   };
   
   // Universal click/touch handler
@@ -150,31 +146,27 @@ if (!isMobile) {
 }
 
 // ========================================
-// Parallax Scrolling
+// Parallax Scrolling - DISABLED FOR iOS
 // ========================================
-window.addEventListener('scroll', () => {
-  const scrolled = window.pageYOffset;
-  document.querySelectorAll('.parallax-slow').forEach(el => {
-    el.style.transform = `translateY(${scrolled * 0.1}px)`;
+if (!isMobile && !isIOS) {
+  window.addEventListener('scroll', () => {
+    const scrolled = window.pageYOffset;
+    document.querySelectorAll('.parallax-slow').forEach(el => {
+      el.style.transform = `translateY(${scrolled * 0.1}px)`;
+    });
+    document.querySelectorAll('.parallax-medium').forEach(el => {
+      el.style.transform = `translateY(${scrolled * 0.3}px)`;
+    });
+    document.querySelectorAll('.parallax-fast').forEach(el => {
+      el.style.transform = `translateY(${scrolled * -0.05}px)`;
+    });
   });
-  document.querySelectorAll('.parallax-medium').forEach(el => {
-    el.style.transform = `translateY(${scrolled * 0.3}px)`;
-  });
-  document.querySelectorAll('.parallax-fast').forEach(el => {
-    el.style.transform = `translateY(${scrolled * -0.05}px)`;
-  });
-});
+}
 
 // ========================================
-// Smooth Section Transitions
+// Smooth Section Transitions - REMOVED FOR iOS
 // ========================================
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) entry.target.classList.add('visible');
-  });
-}, { threshold: 0.1, rootMargin: '0px 0px -100px 0px' });
-
-document.querySelectorAll('.section-fade').forEach(el => observer.observe(el));
+// Removed IntersectionObserver to prevent iOS rendering issues
 
 // ========================================
 // Typewriter Effect
