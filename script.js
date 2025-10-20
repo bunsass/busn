@@ -23,24 +23,12 @@ const particleCount = isMobile ? 5 : 30;
 let hasUserInteracted = false;
 
 // ========================================
-// Loading Screen
-// ========================================
-window.addEventListener('load', () => {
-  const loadingScreen = document.getElementById('loading-screen');
-  setTimeout(() => {
-    if (loadingScreen) {
-      loadingScreen.classList.add('fade-out');
-      setTimeout(() => loadingScreen.style.display = 'none', 800);
-    }
-  }, 2000);
-});
-
-// ========================================
-// Splash Screen - SIMPLE APPROACH
+// Splash Screen with Auto Music Play
 // ========================================
 document.addEventListener('DOMContentLoaded', () => {
   const splashScreen = document.getElementById('splash-screen');
   const container = document.querySelector('.container');
+  const audio = document.getElementById('audio');
   
   if (!splashScreen) return;
   
@@ -48,17 +36,29 @@ document.addEventListener('DOMContentLoaded', () => {
     if (hasUserInteracted) return;
     hasUserInteracted = true;
     
+    // Mark content as visible
     document.body.classList.add('splash-dismissed', 'content-visible');
     splashScreen.classList.add('fade-out');
     if (container) container.classList.add('visible');
+    
+    // Auto-play music after user interaction
+    if (audio && songs.length > 0) {
+      loadSong(currentSongIndex);
+      setTimeout(() => {
+        play();
+      }, 500);
+    }
     
     setTimeout(() => splashScreen.style.display = 'none', 800);
     setTimeout(() => typeWriterEffect(), 300);
   };
   
-  // Single universal handler
+  // Universal click/touch handler
   splashScreen.addEventListener('click', dismissSplash);
-  splashScreen.addEventListener('touchstart', dismissSplash);
+  splashScreen.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    dismissSplash();
+  });
 });
 
 // ========================================
@@ -121,10 +121,11 @@ if (!isMobile) {
   }
 
   animateTrail();
-  window.addEventListener('resize', () => {
+  
+  window.addEventListener('resize', debounce(() => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-  });
+  }, 250));
 }
 
 // ========================================
@@ -207,7 +208,7 @@ for (let i = 0; i < particleCount; i++) {
 }
 
 // ========================================
-// MUSIC PLAYER - GUNS.LOL SIMPLE APPROACH
+// MUSIC PLAYER
 // ========================================
 const songs = [
   { title: "Time To love", url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Time%20To%20Love.mp3" },
@@ -228,50 +229,38 @@ const volumeSlider = document.getElementById('volume');
 const songInfo = document.getElementById('song-info');
 const musicControls = document.getElementById('music-controls');
 const closeButton = document.getElementById('close-controls');
-const visualizerCanvas = document.getElementById('visualizer');
-const visualizerCtx = visualizerCanvas.getContext('2d');
-
-visualizerCanvas.width = 120;
-visualizerCanvas.height = 60;
-
-let audioContext, analyser, sourceNode, dataArray, bufferLength;
-let isVisualizerActive = false;
-
-// SIMPLE: Just set volume
+// Set volume
 audio.volume = 0.5;
 
-// SIMPLE: Load song
+// Load song
 function loadSong(index) {
   audio.src = songs[index].url;
   songInfo.textContent = `♪ ${songs[index].title}`;
 }
 
-// SIMPLE: Play
+// Play
 function play() {
   audio.play().then(() => {
     albumArt.classList.add('playing');
     playPauseBtn.textContent = '⏸ Pause';
     songInfo.classList.add('show');
-    initVisualizer();
   }).catch(err => console.warn('Play failed:', err));
 }
 
-// SIMPLE: Pause
+// Pause
 function pause() {
   audio.pause();
   albumArt.classList.remove('playing');
   playPauseBtn.textContent = '▶ Play';
-  visualizerCanvas.classList.remove('active');
-  isVisualizerActive = false;
 }
 
-// SIMPLE: Toggle
+// Toggle
 function togglePlay() {
   if (!audio.src) loadSong(currentSongIndex);
   audio.paused ? play() : pause();
 }
 
-// SIMPLE: Next/Prev
+// Next/Prev
 function nextSong() {
   currentSongIndex = (currentSongIndex + 1) % songs.length;
   loadSong(currentSongIndex);
@@ -284,56 +273,17 @@ function prevSong() {
   play();
 }
 
-// SIMPLE: Visualizer - only init once
-function initVisualizer() {
-  if (audioContext) {
-    visualizerCanvas.classList.add('active');
-    isVisualizerActive = true;
-    return;
-  }
-  
-  try {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    analyser = audioContext.createAnalyser();
-    sourceNode = audioContext.createMediaElementSource(audio);
-    sourceNode.connect(analyser);
-    analyser.connect(audioContext.destination);
-    analyser.fftSize = 64;
-    bufferLength = analyser.frequencyBinCount;
-    dataArray = new Uint8Array(bufferLength);
-    
-    visualizerCanvas.classList.add('active');
-    isVisualizerActive = true;
-    drawVisualizer();
-  } catch (e) {
-    console.warn('Visualizer failed:', e);
-  }
-}
-
-function drawVisualizer() {
-  if (!isVisualizerActive || !analyser) return;
-  
-  requestAnimationFrame(drawVisualizer);
-  analyser.getByteFrequencyData(dataArray);
-  
-  visualizerCtx.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
-  
-  const barWidth = (visualizerCanvas.width / bufferLength) * 2;
-  let x = 0;
-  
-  for (let i = 0; i < bufferLength; i++) {
-    const barHeight = (dataArray[i] / 255) * visualizerCanvas.height * 0.8;
-    const gradient = visualizerCtx.createLinearGradient(0, visualizerCanvas.height, 0, 0);
-    gradient.addColorStop(0, '#8b5cf6');
-    gradient.addColorStop(1, '#ec4899');
-    visualizerCtx.fillStyle = gradient;
-    visualizerCtx.fillRect(x, visualizerCanvas.height - barHeight, barWidth - 1, barHeight);
-    x += barWidth + 1;
-  }
-}
-
-// SIMPLE: Event handlers - guns.lol style (container gets clicks, not img)
+// Event handlers
 albumArt.parentElement.addEventListener('click', (e) => {
+  e.preventDefault();
+  togglePlay();
+  if (isMobile) {
+    menuOpen = !menuOpen;
+    musicControls.classList.toggle('show', menuOpen);
+  }
+});
+
+albumArt.parentElement.addEventListener('touchstart', (e) => {
   e.preventDefault();
   togglePlay();
   if (isMobile) {
@@ -347,7 +297,7 @@ albumArt.parentElement.addEventListener('dblclick', (e) => {
   nextSong();
 });
 
-// Play/pause button - simpler
+// Play/pause button
 playPauseBtn.addEventListener('click', (e) => {
   e.preventDefault();
   togglePlay();
@@ -375,11 +325,11 @@ audio.addEventListener('ended', nextSong);
 // Desktop hover
 if (!isMobile) {
   let hoverTimeout;
-  albumArt.addEventListener('mouseenter', () => {
+  albumArt.parentElement.addEventListener('mouseenter', () => {
     hoverTimeout = setTimeout(() => musicControls.classList.add('show'), 300);
   });
   
-  albumArt.addEventListener('mouseleave', () => {
+  albumArt.parentElement.addEventListener('mouseleave', () => {
     clearTimeout(hoverTimeout);
     setTimeout(() => {
       if (!musicControls.matches(':hover')) musicControls.classList.remove('show');
@@ -413,7 +363,7 @@ if (isMobile) {
   }, 100), { passive: true });
 }
 
-// Close button - simpler
+// Close button
 if (closeButton) {
   closeButton.addEventListener('click', (e) => {
     e.preventDefault();
@@ -504,7 +454,7 @@ fetchDiscordStatus();
 setInterval(fetchDiscordStatus, 30000);
 
 // ========================================
-// Enka API
+// Enka API - Improved with Timeout & Hardcoded Avatars
 // ========================================
 class EnkaAPI {
   constructor(config) {
@@ -512,9 +462,28 @@ class EnkaAPI {
     this.baseURL = config.baseURL;
     this.configuredUID = config.uid;
     this.elementIds = config.elementIds;
+    this.hardcodedAvatar = config.hardcodedAvatar;
     this.proxies = [
-      { name: 'AllOrigins', url: (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`, parse: (d) => d.contents ? JSON.parse(d.contents) : d },
-      { name: 'Direct', url: (u) => u, parse: (d) => d }
+      { 
+        name: 'AllOrigins', 
+        url: (u) => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`, 
+        parse: (d) => {
+          if (d.contents) {
+            try {
+              return JSON.parse(d.contents);
+            } catch (e) {
+              console.warn('AllOrigins parse error:', e);
+              return d;
+            }
+          }
+          return d;
+        }
+      },
+      { 
+        name: 'Direct', 
+        url: (u) => u, 
+        parse: (d) => d 
+      }
     ];
     this.init();
   }
@@ -528,13 +497,21 @@ class EnkaAPI {
     this.hideError();
     this.hidePlayerInfo();
 
+    // Try each proxy with timeout
     for (const proxy of this.proxies) {
       try {
         console.log(`Trying ${this.game} with ${proxy.name}...`);
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+        
         const response = await fetch(proxy.url(`${this.baseURL}/${uid}`), {
           method: 'GET',
-          headers: { 'Accept': 'application/json' }
+          headers: { 'Accept': 'application/json' },
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
         
         if (!response.ok) {
           console.warn(`${proxy.name} failed: ${response.status}`);
@@ -556,14 +533,19 @@ class EnkaAPI {
         this.showPlayerInfo();
         return;
       } catch (error) {
-        console.warn(`${proxy.name} error:`, error.message);
+        if (error.name === 'AbortError') {
+          console.warn(`${proxy.name} timeout`);
+        } else {
+          console.warn(`${proxy.name} error:`, error.message);
+        }
         continue;
       }
     }
     
-    console.error(`All ${this.game} proxies failed - using demo data`);
-    this.showError('Unable to fetch live data. Displaying demo data.');
+    // All proxies failed - show static data silently
+    console.log(`${this.game} API unavailable - showing static data`);
     this.showLoading(false);
+    this.hideError();
     this.displayPlayerData(this.getMockData());
     this.showPlayerInfo();
   }
@@ -605,7 +587,13 @@ class HSREnkaAPI extends EnkaAPI {
       game: 'HSR',
       baseURL: 'https://enka.network/api/hsr/uid',
       uid: '832796099',
-      elementIds: { loading: 'loading-indicator', error: 'error-message', errorText: 'error-text', playerInfo: 'hsr-player-info' }
+      elementIds: { 
+        loading: 'loading-indicator', 
+        error: 'error-message', 
+        errorText: 'error-text', 
+        playerInfo: 'hsr-player-info' 
+      },
+      hardcodedAvatar: 'https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png'
     });
   }
 
@@ -613,27 +601,39 @@ class HSREnkaAPI extends EnkaAPI {
     return {
       uid: this.configuredUID,
       detailInfo: {
-        nickname: "Chamoi", level: 70, worldLevel: 6,
-        signature: "Demo data - API unavailable", headIcon: 201409,
-        recordInfo: { achievementCount: 10, maxRogueChallengeScore: 90, equipmentCount: 790 }
+        nickname: "Chamoi", 
+        level: 70, 
+        worldLevel: 6,
+        signature: "May this journey lead us starward.", 
+        headIcon: 201409,
+        recordInfo: { 
+          achievementCount: 10, 
+          maxRogueChallengeScore: 90, 
+          equipmentCount: 790 
+        }
       }
     };
   }
 
   validateData(data) {
-    return (data && data.detailInfo) || (data && data.uid && data.ttl);
+    return data && (data.detailInfo || (data.uid && data.ttl));
   }
 
   displayPlayerData(data) {
     const info = data.detailInfo;
-    if (!info) return;
+    if (!info) {
+      console.warn('No detailInfo found, using mock data');
+      this.displayPlayerData(this.getMockData());
+      return;
+    }
     
     const set = (id, prop, val) => {
       const el = document.getElementById(id);
       if (el) el[prop] = val;
     };
     
-    set('player-avatar', 'src', info.headIcon ? `https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/${info.headIcon}.png` : 'https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Avatar/1409.png');
+    // Always use hardcoded avatar
+    set('player-avatar', 'src', this.hardcodedAvatar);
     set('player-nickname', 'textContent', info.nickname || 'Trailblazer');
     set('player-level', 'textContent', info.level || 70);
     set('world-level', 'textContent', info.worldLevel || 6);
@@ -663,7 +663,13 @@ class ZZZEnkaAPI extends EnkaAPI {
       game: 'ZZZ',
       baseURL: 'https://enka.network/api/zzz/uid',
       uid: '1302036813',
-      elementIds: { loading: 'zzz-loading-indicator', error: 'zzz-error-message', errorText: 'zzz-error-text', playerInfo: 'zzz-player-info' }
+      elementIds: { 
+        loading: 'zzz-loading-indicator', 
+        error: 'zzz-error-message', 
+        errorText: 'zzz-error-text', 
+        playerInfo: 'zzz-player-info' 
+      },
+      hardcodedAvatar: 'https://enka.network/ui/zzz/IconInterKnotRole0013.png'
     });
   }
 
@@ -672,19 +678,37 @@ class ZZZEnkaAPI extends EnkaAPI {
       uid: this.configuredUID,
       PlayerInfo: {
         SocialDetail: {
-          ProfileDetail: { Nickname: 'Buns', Level: 60, Uid: this.configuredUID, AvatarId: 2021 },
-          Desc: 'skibidi',
-          MedalList: [{ MedalType: 3, Value: 0 }, { MedalType: 1, Value: 0 }, { MedalType: 7, Value: 0 }]
+          ProfileDetail: { 
+            Nickname: 'Buns', 
+            Level: 60, 
+            Uid: this.configuredUID, 
+            AvatarId: 2021 
+          },
+          Desc: 'Welcome to New Eridu!',
+          MedalList: [
+            { MedalType: 3, Value: 0 }, 
+            { MedalType: 1, Value: 0 }, 
+            { MedalType: 7, Value: 0 }
+          ]
         }
       }
     };
   }
 
   validateData(data) {
-    return (data && data.PlayerInfo && data.PlayerInfo.SocialDetail) || (data && data.uid && data.ttl);
+    return data && (
+      (data.PlayerInfo && data.PlayerInfo.SocialDetail) || 
+      (data.uid && data.ttl)
+    );
   }
 
   displayPlayerData(data) {
+    if (!data.PlayerInfo || !data.PlayerInfo.SocialDetail) {
+      console.warn('No PlayerInfo found, using mock data');
+      this.displayPlayerData(this.getMockData());
+      return;
+    }
+
     const socialDetail = data.PlayerInfo.SocialDetail;
     const profileDetail = socialDetail.ProfileDetail;
     
@@ -693,7 +717,8 @@ class ZZZEnkaAPI extends EnkaAPI {
       if (el) el[prop] = val;
     };
     
-    set('zzz-player-avatar', 'src', 'https://enka.network/ui/zzz/IconInterKnotRole0013.png');
+    // Always use hardcoded avatar
+    set('zzz-player-avatar', 'src', this.hardcodedAvatar);
     set('zzz-player-nickname', 'textContent', profileDetail.Nickname || 'Proxy');
     set('zzz-player-level', 'textContent', profileDetail.Level || 60);
     set('zzz-player-signature', 'textContent', socialDetail.Desc || 'Welcome to New Eridu!');
@@ -717,5 +742,6 @@ class ZZZEnkaAPI extends EnkaAPI {
   }
 }
 
+// Initialize APIs
 new HSREnkaAPI();
 new ZZZEnkaAPI();
