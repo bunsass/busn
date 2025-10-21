@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/bunsass/busn/refs/heads/main/asset/Sticker_PPG_24_Evernight_02.ico">
-  <title>My Profile</title>
+  <title>Evernight Profile</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:wght@300;400;600&display=swap" rel="stylesheet" />
@@ -30,7 +29,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      z-index: -1;
+      z-index: -3;
       background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
     }
 
@@ -255,6 +254,8 @@
       bottom: 30px;
       right: 30px;
       z-index: 1000;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
 
     .moon-disk {
@@ -273,16 +274,31 @@
       justify-content: center;
       font-size: 2rem;
       position: relative;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     .moon-disk::before {
-      content: '🌙';
+      content: '';
+      width: 100%;
+      height: 100%;
+      background-image: url('https://raw.githubusercontent.com/bunsass/busn/main/asset/2229438d735a893d8f80cd69f4319678.png');
+      background-size: cover;
+      background-position: center;
+      border-radius: 50%;
+      display: block;
       animation: moonGlow 3s ease-in-out infinite;
     }
 
     @keyframes moonGlow {
-      0%, 100% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
-      50% { text-shadow: 0 0 25px rgba(167, 139, 250, 0.8); }
+      0%, 100% { 
+        filter: brightness(1) drop-shadow(0 0 10px rgba(255, 255, 255, 0.5)); 
+      }
+      50% { 
+        filter: brightness(1.2) drop-shadow(0 0 25px rgba(167, 139, 250, 0.8)); 
+      }
     }
 
     .moon-disk.playing {
@@ -529,9 +545,28 @@
         display: none;
       }
 
+      .music-player {
+        bottom: 20px;
+        right: 20px;
+      }
+
+      .moon-disk {
+        width: 65px;
+        height: 65px;
+      }
+
       .music-controls {
-        right: 10px;
-        min-width: 220px;
+        right: 95px;
+        bottom: 20px;
+        min-width: 200px;
+        padding: 15px;
+      }
+
+      .song-info {
+        bottom: 95px;
+        right: 20px;
+        max-width: 250px;
+        font-size: 0.85rem;
       }
 
       .decoration-img:not(.center) {
@@ -583,18 +618,18 @@
 
     <!-- Profile Info Card -->
     <div class="card">
-      <h2 class="card-title">⚡ Profile Details</h2>
+      <h2 class="card-title">🌙 My Personal Info</h2>
       <p><strong>Name:</strong> Bui Minh Triet, Buns</p>
       <p><strong>Birth Date:</strong> 05/07/2011</p>
-      <p><strong>Location:</strong> Dalat , Vietnam</p>
+      <p><strong>Location:</strong> Dalat, Vietnam</p>
     </div>
 
     <!-- Contact Card -->
     <div class="card">
-      <h2 class="card-title">Contact Me</h2>
+      <h2 class="card-title">💬 Contact Me</h2>
       <ul class="contact-list">
         <li><strong>Discord:</strong> <a href="https://discord.com/users/1003100550700748871">bunshevid_oguri</a></li>
-        <li><strong>Email:</strong> <a href="mailto:buiminhtriet57@gmail.com">click to email me:).</a></li>
+        <li><strong>Email:</strong> <a href="mailto:buiminhtriet57@gmail.com">click to email me :)</a></li>
         <li><strong>GitHub:</strong> <a href="https://github.com/bunsass">@Bunsass</a></li>
         <li><strong>Facebook:</strong> <a href="https://www.facebook.com/bunsass/">@ブンサス</a></li>
       </ul>
@@ -653,6 +688,7 @@
        src="https://github.com/bunsass/busn/raw/main/asset/Sticker_PPG_24_Evernight_03.webp" 
        alt="Center Background" />
 
+
   <script>
     // Starfield Generation
     const starfield = document.getElementById('starfield');
@@ -694,10 +730,19 @@
 
     // Music Player System
     const songs = [
-  { title: "Time To love", url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Time%20To%20Love.mp3" },
-  { title: "Had I Not Seen the Sun", url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Had%20I%20Not%20Seen%20the%20Sun.mp3" },
-  { title: "if i can stop one heart from breaking", url: "https://raw.githubusercontent.com/bunsass/busn/main/asset/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3" }
-];
+      {
+        name: "Time To Love",
+        src: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Time%20To%20Love.mp3"
+      },
+      {
+        name: "Had I Not Seen the Sun",
+        src: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Had%20I%20Not%20Seen%20the%20Sun.mp3"
+      },
+      {
+        name: "If I Can Stop One Heart From Breaking",
+        src: "https://raw.githubusercontent.com/bunsass/busn/main/asset/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3"
+      }
+    ];
 
     let currentSong = 0;
     const audio = document.getElementById('bgMusic');
@@ -712,13 +757,20 @@
 
     audio.volume = 0.7;
 
+    // Mobile detection
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    let lastTap = 0;
+    let tapTimeout = null;
+
     function loadSong(index) {
       audio.src = songs[index].src;
       songName.textContent = songs[index].name;
     }
 
     function playSong() {
-      audio.play();
+      audio.play().catch(err => {
+        console.log('Play error:', err);
+      });
       moonDisk.classList.add('playing');
       songInfo.classList.add('show');
     }
@@ -728,22 +780,97 @@
       moonDisk.classList.remove('playing');
     }
 
-    moonDisk.addEventListener('click', () => {
+    function togglePlay() {
       if (audio.paused) {
         if (!audio.src) loadSong(currentSong);
         playSong();
       } else {
         pauseSong();
       }
-    });
+    }
 
-    moonDisk.addEventListener('dblclick', (e) => {
-      e.preventDefault();
+    function nextSong() {
       currentSong = (currentSong + 1) % songs.length;
       loadSong(currentSong);
       playSong();
-    });
+    }
 
+    // Enhanced mobile tap handling
+    if (isMobile) {
+      moonDisk.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        
+        clearTimeout(tapTimeout);
+        
+        if (tapLength < 500 && tapLength > 0) {
+          // Double tap detected
+          nextSong();
+        } else {
+          // Single tap - wait to see if double tap coming
+          tapTimeout = setTimeout(() => {
+            togglePlay();
+          }, 300);
+        }
+        
+        lastTap = currentTime;
+      }, { passive: false });
+
+      // Show controls on long press
+      let longPressTimer;
+      moonDisk.addEventListener('touchstart', (e) => {
+        longPressTimer = setTimeout(() => {
+          controls.classList.add('show');
+        }, 500);
+      });
+
+      moonDisk.addEventListener('touchend', () => {
+        clearTimeout(longPressTimer);
+      });
+
+      moonDisk.addEventListener('touchmove', () => {
+        clearTimeout(longPressTimer);
+      });
+
+      // Close controls when tapping outside
+      document.addEventListener('touchstart', (e) => {
+        if (!controls.contains(e.target) && !moonDisk.contains(e.target)) {
+          controls.classList.remove('show');
+        }
+      });
+    } else {
+      // Desktop click handlers
+      moonDisk.addEventListener('click', togglePlay);
+
+      moonDisk.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        nextSong();
+      });
+
+      // Desktop hover logic
+      let controlTimeout;
+      moonDisk.addEventListener('mouseenter', () => {
+        clearTimeout(controlTimeout);
+        controls.classList.add('show');
+      });
+
+      moonDisk.addEventListener('mouseleave', () => {
+        controlTimeout = setTimeout(() => {
+          if (!controls.matches(':hover')) {
+            controls.classList.remove('show');
+          }
+        }, 300);
+      });
+
+      controls.addEventListener('mouseenter', () => {
+        clearTimeout(controlTimeout);
+      });
+
+      controls.addEventListener('mouseleave', () => {
+        controls.classList.remove('show');
+      });
+    }
     audio.addEventListener('ended', () => {
       currentSong = (currentSong + 1) % songs.length;
       loadSong(currentSong);
@@ -754,14 +881,7 @@
       audio.volume = e.target.value;
     });
 
-    playBtn.addEventListener('click', () => {
-      if (audio.paused) {
-        if (!audio.src) loadSong(currentSong);
-        playSong();
-      } else {
-        pauseSong();
-      }
-    });
+    playBtn.addEventListener('click', togglePlay);
 
     prevBtn.addEventListener('click', () => {
       currentSong = (currentSong - 1 + songs.length) % songs.length;
@@ -769,34 +889,7 @@
       playSong();
     });
 
-    nextBtn.addEventListener('click', () => {
-      currentSong = (currentSong + 1) % songs.length;
-      loadSong(currentSong);
-      playSong();
-    });
-
-    // Control box hover logic
-    let controlTimeout;
-    moonDisk.addEventListener('mouseenter', () => {
-      clearTimeout(controlTimeout);
-      controls.classList.add('show');
-    });
-
-    moonDisk.addEventListener('mouseleave', () => {
-      controlTimeout = setTimeout(() => {
-        if (!controls.matches(':hover')) {
-          controls.classList.remove('show');
-        }
-      }, 300);
-    });
-
-    controls.addEventListener('mouseenter', () => {
-      clearTimeout(controlTimeout);
-    });
-
-    controls.addEventListener('mouseleave', () => {
-      controls.classList.remove('show');
-    });
+    nextBtn.addEventListener('click', nextSong);
   </script>
 </body>
 </html>
