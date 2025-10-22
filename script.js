@@ -206,6 +206,10 @@ const hsrContent = document.getElementById('hsrContent');
 // Default UID - auto-loads on page load
 const defaultUID = '832796099';
 
+// Warp history data
+let warpHistoryData = null;
+let isWarpHistoryVisible = false;
+
 // Multiple CORS proxies for rotation
 const corsProxies = [
   {
@@ -230,7 +234,7 @@ const corsProxies = [
 
 let currentProxyIndex = 0;
 let retryCount = 0;
-const maxRetries = corsProxies.length * 2; // Try each proxy twice
+const maxRetries = corsProxies.length * 2;
 
 async function fetchHSRProfile(uid, autoRetry = true) {
   try {
@@ -259,12 +263,10 @@ async function fetchHSRProfile(uid, autoRetry = true) {
 
     const data = await proxy.parseResponse(response);
     
-    // Verify we got valid HSR data
     if (!data.uid && !data.detailInfo) {
       throw new Error('Invalid HSR data structure received');
     }
     
-    // Reset retry counter on success
     retryCount = 0;
     currentProxyIndex = 0;
     
@@ -274,11 +276,7 @@ async function fetchHSRProfile(uid, autoRetry = true) {
     
     if (autoRetry && retryCount < maxRetries) {
       retryCount++;
-      
-      // Rotate to next proxy
       currentProxyIndex = (currentProxyIndex + 1) % corsProxies.length;
-      
-      // Wait before retrying (shorter delays)
       const delay = 1000;
       
       hsrContent.innerHTML = `
@@ -293,7 +291,6 @@ async function fetchHSRProfile(uid, autoRetry = true) {
       
       setTimeout(() => fetchHSRProfile(uid, true), delay);
     } else {
-      // Max retries reached, show retry button
       retryCount = 0;
       currentProxyIndex = 0;
       
@@ -328,7 +325,6 @@ function displayProfile(data, uid) {
   const player = data.detailInfo;
   const characters = data.detailInfo.avatarDetailList || [];
 
-  // Sort characters by level and rarity
   const sortedChars = characters
     .slice(0, 8)
     .sort((a, b) => b.level - a.level);
@@ -386,6 +382,18 @@ function displayProfile(data, uid) {
         </div>
       ` : ''}
 
+      <div class="warp-history-section">
+        <button class="toggle-warp-btn" onclick="toggleWarpHistory('${uid}')">
+          <span id="warpToggleIcon">▼</span> Show Warp History
+        </button>
+        <div id="warpHistoryContent" style="display: none;">
+          <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading warp history...</p>
+          </div>
+        </div>
+      </div>
+
       <div class="uid-input-container">
       </div>
     </div>
@@ -393,90 +401,29 @@ function displayProfile(data, uid) {
 }
 
 function getCharacterName(avatarId) {
-  // Complete character ID to name mapping
   const names = {
-    '1001': 'March 7th',
-    '1002': 'Dan Heng',
-    '1003': 'Himeko',
-    '1004': 'Welt',
-    '1005': 'Kafka',
-    '1006': 'Silver Wolf',
-    '1008': 'Arlan',
-    '1009': 'Asta',
-    '1013': 'Herta',
-    '1014': 'Aglaea',
-    '1015': 'Mydei',
-    '1101': 'Bronya',
-    '1102': 'Seele',
-    '1103': 'Serval',
-    '1104': 'Gepard',
-    '1105': 'Natasha',
-    '1106': 'Pela',
-    '1107': 'Clara',
-    '1108': 'Sampo',
-    '1109': 'Hook',
-    '1110': 'Lynx',
-    '1111': 'Luka',
-    '1112': 'Topaz',
-    '1201': 'Qingque',
-    '1202': 'Tingyun',
-    '1203': 'Luocha',
-    '1204': 'Jing Yuan',
-    '1205': 'Blade',
-    '1206': 'Sushang',
-    '1207': 'Yukong',
-    '1208': 'Fu Xuan',
-    '1209': 'Yanqing',
-    '1210': 'Guinaifen',
-    '1211': 'Bailu',
-    '1212': 'Jingliu',
-    '1213': 'Dan Heng IL',
-    '1214': 'Xueyi',
-    '1215': 'Hanya',
-    '1217': 'Huohuo',
-    '1218': 'Jiaoqiu',
-    '1220': 'Feixiao',
-    '1221': 'Yunli',
-    '1222': 'Lingsha',
-    '1223': 'Moze',
-    '1224': 'March 7th',
-    '1225': 'Fugue',
-    '1301': 'Gallagher',
-    '1302': 'Argenti',
-    '1303': 'Ruan Mei',
-    '1304': 'Aventurine',
-    '1305': 'Dr. Ratio',
-    '1306': 'Sparkle',
-    '1307': 'Black Swan',
-    '1308': 'Acheron',
-    '1309': 'Robin',
-    '1310': 'Firefly',
-    '1312': 'Misha',
-    '1313': 'Sunday',
-    '1314': 'Jade',
-    '1315': 'Boothill',
-    '1317': 'Rappa',
-    '1401': 'The Herta',
-    '1402': 'Aglaea',
-    '1403': 'Tribbie',
-    '1404': 'Mydei',
-    '1405': 'Anaxa',
-    '1406': 'Cipher',
-    '1407': 'Castorice',
-    '1408': 'Phainon',
-    '1409': 'Hyacine',
-    '1410': 'Hysilens',
-    '1412': 'Cerydra',
-    '1413': 'Evernight',
-    '1414': 'Seraph',
-    '8001': 'Trailblazer',
-    '8002': 'Trailblazer',
-    '8003': 'Trailblazer',
-    '8004': 'Trailblazer',
-    '8005': 'Trailblazer',
-    '8006': 'Trailblazer',
-    '8007': 'Trailblazer',
-    '8008': 'Trailblazer'
+    '1001': 'March 7th', '1002': 'Dan Heng', '1003': 'Himeko', '1004': 'Welt',
+    '1005': 'Kafka', '1006': 'Silver Wolf', '1008': 'Arlan', '1009': 'Asta',
+    '1013': 'Herta', '1014': 'Aglaea', '1015': 'Mydei', '1101': 'Bronya',
+    '1102': 'Seele', '1103': 'Serval', '1104': 'Gepard', '1105': 'Natasha',
+    '1106': 'Pela', '1107': 'Clara', '1108': 'Sampo', '1109': 'Hook',
+    '1110': 'Lynx', '1111': 'Luka', '1112': 'Topaz', '1201': 'Qingque',
+    '1202': 'Tingyun', '1203': 'Luocha', '1204': 'Jing Yuan', '1205': 'Blade',
+    '1206': 'Sushang', '1207': 'Yukong', '1208': 'Fu Xuan', '1209': 'Yanqing',
+    '1210': 'Guinaifen', '1211': 'Bailu', '1212': 'Jingliu', '1213': 'Dan Heng IL',
+    '1214': 'Xueyi', '1215': 'Hanya', '1217': 'Huohuo', '1218': 'Jiaoqiu',
+    '1220': 'Feixiao', '1221': 'Yunli', '1222': 'Lingsha', '1223': 'Moze',
+    '1224': 'March 7th', '1225': 'Fugue', '1301': 'Gallagher', '1302': 'Argenti',
+    '1303': 'Ruan Mei', '1304': 'Aventurine', '1305': 'Dr. Ratio', '1306': 'Sparkle',
+    '1307': 'Black Swan', '1308': 'Acheron', '1309': 'Robin', '1310': 'Firefly',
+    '1312': 'Misha', '1313': 'Sunday', '1314': 'Jade', '1315': 'Boothill',
+    '1317': 'Rappa', '1401': 'The Herta', '1402': 'Aglaea', '1403': 'Tribbie',
+    '1404': 'Mydei', '1405': 'Anaxa', '1406': 'Cipher', '1407': 'Castorice',
+    '1408': 'Phainon', '1409': 'Hyacine', '1410': 'Hysilens', '1412': 'Cerydra',
+    '1413': 'Evernight', '1414': 'Seraph',
+    '8001': 'Trailblazer', '8002': 'Trailblazer', '8003': 'Trailblazer',
+    '8004': 'Trailblazer', '8005': 'Trailblazer', '8006': 'Trailblazer',
+    '8007': 'Trailblazer', '8008': 'Trailblazer'
   };
   return names[avatarId] || 'Unknown';
 }
@@ -485,3 +432,248 @@ function getCharacterName(avatarId) {
 window.addEventListener('load', () => {
   fetchHSRProfile(defaultUID);
 });
+
+// Toggle Warp History
+async function toggleWarpHistory(uid) {
+  const warpContent = document.getElementById('warpHistoryContent');
+  const toggleBtn = document.querySelector('.toggle-warp-btn');
+  
+  if (isWarpHistoryVisible) {
+    warpContent.style.display = 'none';
+    toggleBtn.innerHTML = '<span id="warpToggleIcon">▼</span> Show Warp History';
+    isWarpHistoryVisible = false;
+  } else {
+    warpContent.style.display = 'block';
+    toggleBtn.innerHTML = '<span id="warpToggleIcon">▲</span> Hide Warp History';
+    isWarpHistoryVisible = true;
+    
+    if (!warpHistoryData) {
+      await fetchWarpHistory(uid);
+    }
+  }
+}
+
+// Fetch Warp History from StarDB
+async function fetchWarpHistory(uid) {
+  const warpContent = document.getElementById('warpHistoryContent');
+  
+  try {
+    warpContent.innerHTML = `
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading warp history...</p>
+      </div>
+    `;
+    
+    const response = await fetch(`https://stardb.gg/api/warps/${uid}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    warpHistoryData = data;
+    
+    displayWarpHistory(data);
+  } catch (error) {
+    console.error('Error fetching warp history:', error);
+    warpContent.innerHTML = `
+      <div class="error-message" style="padding: 20px;">
+        <p>Unable to load warp history</p>
+        <p style="font-size: 0.9rem; color: #9b9baf; margin-top: 10px;">
+          The warp data might not be available or the API is temporarily down.
+        </p>
+      </div>
+    `;
+  }
+}
+
+// Display Warp History with Tabs
+function displayWarpHistory(data) {
+  const warpContent = document.getElementById('warpHistoryContent');
+  
+  console.log('Warp API Response:', data);
+  
+  // Process each banner type separately
+  const characterBanner = data.character || [];
+  const lightConeBanner = data.light_cone || []; // Fixed: use light_cone with underscore
+  const standardBanner = data.standard || [];
+  
+  // Filter and calculate pity for Character Event Banner (5-star characters only)
+  const characterEventPulls = processWarps(characterBanner, 'character');
+  
+  // Filter and calculate pity for Light Cone Event Banner (5-star light cones only)
+  const lightConeEventPulls = processWarps(lightConeBanner, 'light_cone');
+  
+  // Filter and calculate pity for Standard Banner (both characters and light cones)
+  const standardPulls = processWarps(standardBanner, 'both');
+  
+  warpContent.innerHTML = `
+    <div class="warp-history-list">
+      <div class="warp-tabs">
+        <button class="warp-tab active" data-tab="character">
+          Character Event (${characterEventPulls.length})
+        </button>
+        <button class="warp-tab" data-tab="lightcone">
+          Light Cone Event (${lightConeEventPulls.length})
+        </button>
+        <button class="warp-tab" data-tab="standard">
+          Standard (${standardPulls.length})
+        </button>
+      </div>
+      
+      <div class="warp-tab-content active" data-content="character">
+        ${renderWarpList(characterEventPulls, 'Character Event Banner')}
+      </div>
+      
+      <div class="warp-tab-content" data-content="lightcone">
+        ${renderWarpList(lightConeEventPulls, 'Light Cone Event Banner')}
+      </div>
+      
+      <div class="warp-tab-content" data-content="standard">
+        ${renderWarpList(standardPulls, 'Standard Banner')}
+      </div>
+    </div>
+  `;
+  
+  // Add tab switching functionality
+  const tabs = warpContent.querySelectorAll('.warp-tab');
+  const contents = warpContent.querySelectorAll('.warp-tab-content');
+  
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetTab = tab.dataset.tab;
+      
+      // Remove active class from all tabs and contents
+      tabs.forEach(t => t.classList.remove('active'));
+      contents.forEach(c => c.classList.remove('active'));
+      
+      // Add active class to clicked tab and corresponding content
+      tab.classList.add('active');
+      warpContent.querySelector(`[data-content="${targetTab}"]`).classList.add('active');
+    });
+  });
+}
+
+// Process warps and calculate pity
+function processWarps(warps, filterType) {
+  if (!warps || warps.length === 0) return [];
+  
+  // Filter based on type
+  let filtered;
+  if (filterType === 'character') {
+    filtered = warps.filter(w => w.rarity === 5 && w.type === 'character');
+  } else if (filterType === 'light_cone') {
+    filtered = warps.filter(w => w.rarity === 5 && w.type === 'light_cone');
+  } else { // both for standard
+    filtered = warps.filter(w => w.rarity === 5);
+  }
+  
+  // Sort by newest first
+  filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  
+  // Calculate pity for each pull
+  return filtered.map(pull => {
+    const pullIndex = warps.findIndex(w => w.id === pull.id);
+    let pityCount = 1;
+    
+    // Count backwards until we find the previous 5-star of the same type
+    for (let i = pullIndex - 1; i >= 0; i--) {
+      if (warps[i].rarity === 5 && 
+          (filterType === 'both' || warps[i].type === pull.type)) {
+        break;
+      }
+      pityCount++;
+    }
+    
+    return {
+      ...pull,
+      pity: pityCount
+    };
+  });
+}
+
+// Render warp list HTML
+function renderWarpList(warps, bannerName) {
+  if (warps.length === 0) {
+    return `
+      <div class="error-message" style="padding: 20px;">
+        <p>No 5-star pulls found in this banner</p>
+      </div>
+    `;
+  }
+  
+  return `
+    <h4 style="color: #c084fc; font-family: 'Cinzel', serif; text-align: center; margin-bottom: 15px; margin-top: 15px;">
+      5⭐ ${bannerName} (${warps.length} total)
+    </h4>
+    <div class="warp-items">
+      ${warps.map(warp => {
+        // Check if it's a light cone - light cones have item_id starting with 2 (20xxx or 21xxx or 23xxx)
+        const isLightCone = warp.type === 'light_cone' || String(warp.item_id).startsWith('2');
+        const imageUrl = isLightCone 
+          ? `https://stardb.gg/api/static/StarRailResWebp/icon/light_cone/${warp.item_id}.webp`
+          : `https://stardb.gg/api/static/StarRailResWebp/icon/character/${warp.item_id}.webp`;
+        
+        // Determine pity color based on pull count
+        let pityClass = 'pity-green';
+        let borderColor = 'rgba(34, 197, 94, 0.3)';
+        if (warp.pity >= 70) {
+          pityClass = 'pity-red';
+          borderColor = 'rgba(239, 68, 68, 0.3)';
+        } else if (warp.pity >= 30) {
+          pityClass = 'pity-yellow';
+          borderColor = 'rgba(251, 191, 36, 0.3)';
+        }
+        
+        return `
+          <div class="warp-item ${pityClass}" style="border-color: ${borderColor};">
+            <div class="warp-item-header">
+              <img src="${imageUrl}" 
+                   alt="${warp.name}" 
+                   class="warp-character-icon ${isLightCone ? 'lightcone-icon' : ''}"
+                   onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22%3E%3Ccircle cx=%2230%22 cy=%2230%22 r=%2230%22 fill=%22%23fbbf24%22/%3E%3Ctext x=%2230%22 y=%2230%22 font-size=%2216%22 fill=%22white%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22%3E5â˜…%3C/text%3E%3C/svg%3E'">
+              <div class="warp-item-info">
+                <div class="warp-character-name">${warp.name}</div>
+                <div class="warp-pulls">Pulled in ${warp.pity} warps</div>
+                <div class="warp-date">${new Date(warp.timestamp).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'short', 
+                  day: 'numeric' 
+                })}</div>
+                <div class="warp-banner-type">${isLightCone ? '🔷 Light Cone' : '⭐ Character'}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+// Helper function to determine which banner the warp came from
+function getBannerTypeFromData(warp, allData) {
+  if (allData.character && allData.character.some(w => w.id === warp.id)) {
+    return 'Character Event Banner';
+  }
+  if (allData.standard && allData.standard.some(w => w.id === warp.id)) {
+    return 'Standard Banner';
+  }
+  if (allData.departure && allData.departure.some(w => w.id === warp.id)) {
+    return 'Departure Banner';
+  }
+  if (allData.collab && allData.collab.some(w => w.id === warp.id)) {
+    return 'Collaboration Banner';
+  }
+  return 'Unknown Banner';
+}
+// Get banner name
+function getBannerName(bannerCode) {
+  const banners = {
+    '1': 'Standard Banner',
+    '2': 'Character Event',
+    '11': 'Light Cone Event',
+    '12': 'Character Event'
+  };
+  return banners[bannerCode] || 'Unknown Banner';
+}
