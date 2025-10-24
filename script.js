@@ -113,10 +113,8 @@ if (isMobile) {
     clearTimeout(tapTimeout);
     
     if (tapLength < 500 && tapLength > 0) {
-      // Double tap detected
       nextSong();
     } else {
-      // Single tap - wait to see if double tap coming
       tapTimeout = setTimeout(() => {
         togglePlay();
       }, 300);
@@ -125,7 +123,6 @@ if (isMobile) {
     lastTap = currentTime;
   }, { passive: false });
 
-  // Show controls on long press
   let longPressTimer;
   moonDisk.addEventListener('touchstart', (e) => {
     longPressTimer = setTimeout(() => {
@@ -141,14 +138,12 @@ if (isMobile) {
     clearTimeout(longPressTimer);
   });
 
-  // Close controls when tapping outside
   document.addEventListener('touchstart', (e) => {
     if (!controls.contains(e.target) && !moonDisk.contains(e.target)) {
       controls.classList.remove('show');
     }
   });
 } else {
-  // Desktop click handlers
   moonDisk.addEventListener('click', togglePlay);
 
   moonDisk.addEventListener('dblclick', (e) => {
@@ -156,7 +151,6 @@ if (isMobile) {
     nextSong();
   });
 
-  // Desktop hover logic
   let controlTimeout;
   moonDisk.addEventListener('mouseenter', () => {
     clearTimeout(controlTimeout);
@@ -202,15 +196,10 @@ nextBtn.addEventListener('click', nextSong);
 
 // Honkai Star Rail Profile System
 const hsrContent = document.getElementById('hsrContent');
-
-// Default UID - auto-loads on page load
-const defaultUID = '832796099';
-
-// Warp history data
+const defaultHSRUID = '832796099';
 let warpHistoryData = null;
 let isWarpHistoryVisible = false;
 
-// Multiple CORS proxies for rotation
 const corsProxies = [
   {
     name: 'AllOrigins',
@@ -270,7 +259,7 @@ async function fetchHSRProfile(uid, autoRetry = true) {
     retryCount = 0;
     currentProxyIndex = 0;
     
-    displayProfile(data, uid);
+    displayHSRProfile(data, uid);
   } catch (error) {
     console.error(`Error fetching HSR profile (${corsProxies[currentProxyIndex].name}, Attempt ${retryCount + 1}):`, error);
     
@@ -298,30 +287,15 @@ async function fetchHSRProfile(uid, autoRetry = true) {
         <div class="error-message">
           <p>🌙 Unable to connect to the stars...</p>
           <p style="font-size: 0.9rem; color: #9b9baf; margin-top: 10px;">
-            All connection routes failed. This could be due to:
+            All connection routes failed.
           </p>
-          <ul style="text-align: left; max-width: 400px; margin: 15px auto; color: #9b9baf; font-size: 0.85rem;">
-            <li>Enka Network API is down or under maintenance</li>
-            <li>Profile not set to public in-game</li>
-            <li>Invalid UID (${uid})</li>
-            <li>Proxy services temporarily blocked</li>
-          </ul>
-          <div class="uid-input-container" style="margin-top: 20px;">
-            <button class="load-btn" onclick="retryFetch('${uid}')">🔄 Retry Connection</button>
-          </div>
         </div>
       `;
     }
   }
 }
 
-function retryFetch(uid) {
-  retryCount = 0;
-  currentProxyIndex = 0;
-  fetchHSRProfile(uid, true);
-}
-
-function displayProfile(data, uid) {
+function displayHSRProfile(data, uid) {
   const player = data.detailInfo;
   const characters = data.detailInfo.avatarDetailList || [];
 
@@ -371,10 +345,10 @@ function displayProfile(data, uid) {
             ${sortedChars.map(char => `
               <a href="https://enka.network/hsr/${uid}/" target="_blank" class="character-card">
                 <img src="https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/${char.avatarId}.png" 
-                     alt="${getCharacterName(char.avatarId)}" 
+                     alt="${getHSRCharacterName(char.avatarId)}" 
                      class="character-icon"
-                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2240%22 fill=%22%23764ba2%22/%3E%3Ctext x=%2240%22 y=%4240%22 font-size=%2220%22 fill=%22white%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22%3E%3F%3C/text%3E%3C/svg%3E'">
-                <div class="character-name">${getCharacterName(char.avatarId)}</div>
+                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2240%22 fill=%22%23764ba2%22/%3E%3Ctext x=%2240%22 y=%2240%22 font-size=%2220%22 fill=%22white%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22%3E%3F%3C/text%3E%3C/svg%3E'">
+                <div class="character-name">${getHSRCharacterName(char.avatarId)}</div>
                 <div class="character-level">Lv. ${char.level}</div>
               </a>
             `).join('')}
@@ -393,14 +367,11 @@ function displayProfile(data, uid) {
           </div>
         </div>
       </div>
-
-      <div class="uid-input-container">
-      </div>
     </div>
   `;
 }
 
-function getCharacterName(avatarId) {
+function getHSRCharacterName(avatarId) {
   const names = {
     '1001': 'March 7th', '1002': 'Dan Heng', '1003': 'Himeko', '1004': 'Welt',
     '1005': 'Kafka', '1006': 'Silver Wolf', '1008': 'Arlan', '1009': 'Asta',
@@ -428,12 +399,11 @@ function getCharacterName(avatarId) {
   return names[avatarId] || 'Unknown';
 }
 
-// Auto-fetch profile on page load
 window.addEventListener('load', () => {
-  fetchHSRProfile(defaultUID);
+  fetchHSRProfile(defaultHSRUID);
+  fetchZZZProfile(defaultZZZUID);
 });
 
-// Toggle Warp History
 async function toggleWarpHistory(uid) {
   const warpContent = document.getElementById('warpHistoryContent');
   const toggleBtn = document.querySelector('.toggle-warp-btn');
@@ -453,7 +423,6 @@ async function toggleWarpHistory(uid) {
   }
 }
 
-// Fetch Warp History from StarDB
 async function fetchWarpHistory(uid) {
   const warpContent = document.getElementById('warpHistoryContent');
   
@@ -480,32 +449,20 @@ async function fetchWarpHistory(uid) {
     warpContent.innerHTML = `
       <div class="error-message" style="padding: 20px;">
         <p>Unable to load warp history</p>
-        <p style="font-size: 0.9rem; color: #9b9baf; margin-top: 10px;">
-          The warp data might not be available or the API is temporarily down.
-        </p>
       </div>
     `;
   }
 }
 
-// Display Warp History with Tabs
 function displayWarpHistory(data) {
   const warpContent = document.getElementById('warpHistoryContent');
   
-  console.log('Warp API Response:', data);
-  
-  // Process each banner type separately
   const characterBanner = data.character || [];
-  const lightConeBanner = data.light_cone || []; // Fixed: use light_cone with underscore
+  const lightConeBanner = data.light_cone || [];
   const standardBanner = data.standard || [];
   
-  // Filter and calculate pity for Character Event Banner (5-star characters only)
   const characterEventPulls = processWarps(characterBanner, 'character');
-  
-  // Filter and calculate pity for Light Cone Event Banner (5-star light cones only)
   const lightConeEventPulls = processWarps(lightConeBanner, 'light_cone');
-  
-  // Filter and calculate pity for Standard Banner (both characters and light cones)
   const standardPulls = processWarps(standardBanner, 'both');
   
   warpContent.innerHTML = `
@@ -536,48 +493,38 @@ function displayWarpHistory(data) {
     </div>
   `;
   
-  // Add tab switching functionality
   const tabs = warpContent.querySelectorAll('.warp-tab');
   const contents = warpContent.querySelectorAll('.warp-tab-content');
   
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       const targetTab = tab.dataset.tab;
-      
-      // Remove active class from all tabs and contents
       tabs.forEach(t => t.classList.remove('active'));
       contents.forEach(c => c.classList.remove('active'));
-      
-      // Add active class to clicked tab and corresponding content
       tab.classList.add('active');
       warpContent.querySelector(`[data-content="${targetTab}"]`).classList.add('active');
     });
   });
 }
 
-// Process warps and calculate pity
 function processWarps(warps, filterType) {
   if (!warps || warps.length === 0) return [];
   
-  // Filter based on type
   let filtered;
   if (filterType === 'character') {
     filtered = warps.filter(w => w.rarity === 5 && w.type === 'character');
   } else if (filterType === 'light_cone') {
     filtered = warps.filter(w => w.rarity === 5 && w.type === 'light_cone');
-  } else { // both for standard
+  } else {
     filtered = warps.filter(w => w.rarity === 5);
   }
   
-  // Sort by newest first
   filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
   
-  // Calculate pity for each pull
   return filtered.map(pull => {
     const pullIndex = warps.findIndex(w => w.id === pull.id);
     let pityCount = 1;
     
-    // Count backwards until we find the previous 5-star of the same type
     for (let i = pullIndex - 1; i >= 0; i--) {
       if (warps[i].rarity === 5 && 
           (filterType === 'both' || warps[i].type === pull.type)) {
@@ -593,7 +540,6 @@ function processWarps(warps, filterType) {
   });
 }
 
-// Render warp list HTML
 function renderWarpList(warps, bannerName) {
   if (warps.length === 0) {
     return `
@@ -609,13 +555,11 @@ function renderWarpList(warps, bannerName) {
     </h4>
     <div class="warp-items">
       ${warps.map(warp => {
-        // Check if it's a light cone - light cones have item_id starting with 2 (20xxx or 21xxx or 23xxx)
         const isLightCone = warp.type === 'light_cone' || String(warp.item_id).startsWith('2');
         const imageUrl = isLightCone 
           ? `https://stardb.gg/api/static/StarRailResWebp/icon/light_cone/${warp.item_id}.webp`
           : `https://stardb.gg/api/static/StarRailResWebp/icon/character/${warp.item_id}.webp`;
         
-        // Determine pity color based on pull count
         let pityClass = 'pity-green';
         let borderColor = 'rgba(34, 197, 94, 0.3)';
         if (warp.pity >= 70) {
@@ -632,7 +576,7 @@ function renderWarpList(warps, bannerName) {
               <img src="${imageUrl}" 
                    alt="${warp.name}" 
                    class="warp-character-icon ${isLightCone ? 'lightcone-icon' : ''}"
-                   onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22%3E%3Ccircle cx=%2230%22 cy=%2230%22 r=%2230%22 fill=%22%23fbbf24%22/%3E%3Ctext x=%2230%22 y=%2230%22 font-size=%2216%22 fill=%22white%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22%3E5â˜…%3C/text%3E%3C/svg%3E'">
+                   onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22%3E%3Ccircle cx=%2230%22 cy=%2230%22 r=%2230%22 fill=%22%23fbbf24%22/%3E%3Ctext x=%2230%22 y=%2230%22 font-size=%2216%22 fill=%22white%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22%3E5★%3C/text%3E%3C/svg%3E'">
               <div class="warp-item-info">
                 <div class="warp-character-name">${warp.name}</div>
                 <div class="warp-pulls">Pulled in ${warp.pity} warps</div>
@@ -651,29 +595,196 @@ function renderWarpList(warps, bannerName) {
   `;
 }
 
-// Helper function to determine which banner the warp came from
-function getBannerTypeFromData(warp, allData) {
-  if (allData.character && allData.character.some(w => w.id === warp.id)) {
-    return 'Character Event Banner';
+// ZZZ Profile System
+const zzzContent = document.getElementById('zzzContent');
+const defaultZZZUID = '1302036813';
+
+const zzzCharacterNames = {
+  '1011': { name: 'Anby', icon: 1 },
+  '1021': { name: 'Nekomata', icon: 11 },
+  '1031': { name: 'Nicole', icon: 12 },
+  '1041': { name: 'Soldier 11', icon: 5 },
+  '1051': { name: 'Yidhari', icon: 52 },
+  '1061': { name: 'Corin', icon: 9 },
+  '1071': { name: 'Caesar', icon: 25 },
+  '1081': { name: 'Billy', icon: 10 },
+  '1091': { name: 'Miyabi', icon: 13 },
+  '1101': { name: 'Koleda', icon: 14 },
+  '1111': { name: 'Anton', icon: 15 },
+  '1121': { name: 'Ben', icon: 16 },
+  '1131': { name: 'Soukaku', icon: 17 },
+  '1141': { name: 'Lycaon', icon: 18 },
+  '1151': { name: 'Lucy', icon: 27 },
+  '1161': { name: 'Lighter', icon: 26 },
+  '1171': { name: 'Burnice', icon: 32 },
+  '1181': { name: 'Grace', icon: 20 },
+  '1191': { name: 'Ellen', icon: 21 },
+  '1201': { name: 'Harumasa', icon: 35 },
+  '1211': { name: 'Rina', icon: 22 },
+  '1221': { name: 'Yanagi', icon: 31 },
+  '1241': { name: 'Zhu Yuan', icon: 23 },
+  '1251': { name: 'Qingyi', icon: 29 },
+  '1261': { name: 'Jane Doe', icon: 24 },
+  '1271': { name: 'Seth', icon: 30 },
+  '1281': { name: 'Piper', icon: 28 },
+  '1291': { name: 'Hugo', icon: 42 },
+  '1301': { name: 'Magus', icon: 49 },
+  '1311': { name: 'Astra Yao', icon: 36 },
+  '1321': { name: 'Evelyn', icon: 37 },
+  '1331': { name: 'Vivian', icon: 41 },
+  '1351': { name: 'Pulchra', icon: 38 },
+  '1361': { name: 'Trigger', icon: 39 },
+  '1371': { name: 'Yi Xuan', icon: 44 },
+  '1381': { name: 'Soldier 0', icon: 40 },
+  '1391': { name: 'Jufufu', icon: 43 },
+  '1401': { name: 'Alice', icon: 46 },
+  '1411': { name: 'Yuzuha', icon: 47 },
+  '1421': { name: 'Pan Yinhu', icon: 45 },
+  '1441': { name: 'Norano', icon: 51 },
+  '1451': { name: 'Lucia', icon: 50 },
+  '1461': { name: 'Seed', icon: 48 }
+};
+
+let zzzRetryCount = 0;
+let zzzProxyIndex = 0;
+
+async function fetchZZZProfile(uid, autoRetry = true) {
+  try {
+    zzzContent.innerHTML = `
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading Proxy data...</p>
+        ${zzzRetryCount > 0 ? `<p style="font-size: 0.85rem; color: #9b9baf; margin-top: 10px;">Trying proxy ${zzzProxyIndex + 1}/${corsProxies.length} - Attempt ${zzzRetryCount + 1}/${maxRetries}</p>` : ''}
+      </div>
+    `;
+
+    const apiUrl = `https://enka.network/api/zzz/uid/${uid}`;
+    const proxy = corsProxies[zzzProxyIndex];
+    const proxyUrl = proxy.url(apiUrl);
+    
+    const response = await fetch(proxyUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${proxy.name} failed`);
+    }
+
+    const data = await proxy.parseResponse(response);
+    
+    if (!data.PlayerInfo) {
+      throw new Error('Invalid ZZZ data structure received');
+    }
+    
+    zzzRetryCount = 0;
+    zzzProxyIndex = 0;
+    
+    displayZZZProfile(data, uid);
+  } catch (error) {
+    console.error(`Error fetching ZZZ profile (${corsProxies[zzzProxyIndex].name}, Attempt ${zzzRetryCount + 1}):`, error);
+    
+    if (autoRetry && zzzRetryCount < maxRetries) {
+      zzzRetryCount++;
+      zzzProxyIndex = (zzzProxyIndex + 1) % corsProxies.length;
+      const delay = 1000;
+      
+      zzzContent.innerHTML = `
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+          <p>Connection issue, trying another route...</p>
+          <p style="font-size: 0.85rem; color: #9b9baf; margin-top: 10px;">
+            Using ${corsProxies[zzzProxyIndex].name} proxy (${zzzRetryCount}/${maxRetries})
+          </p>
+        </div>
+      `;
+      
+      setTimeout(() => fetchZZZProfile(uid, true), delay);
+    } else {
+      zzzRetryCount = 0;
+      zzzProxyIndex = 0;
+      
+      zzzContent.innerHTML = `
+        <div class="error-message">
+          <p>🌙 Unable to connect to New Eridu...</p>
+          <p style="font-size: 0.9rem; color: #9b9baf; margin-top: 10px;">
+            All connection routes failed.
+          </p>
+        </div>
+      `;
+    }
   }
-  if (allData.standard && allData.standard.some(w => w.id === warp.id)) {
-    return 'Standard Banner';
-  }
-  if (allData.departure && allData.departure.some(w => w.id === warp.id)) {
-    return 'Departure Banner';
-  }
-  if (allData.collab && allData.collab.some(w => w.id === warp.id)) {
-    return 'Collaboration Banner';
-  }
-  return 'Unknown Banner';
 }
-// Get banner name
-function getBannerName(bannerCode) {
-  const banners = {
-    '1': 'Standard Banner',
-    '2': 'Character Event',
-    '11': 'Light Cone Event',
-    '12': 'Character Event'
-  };
-  return banners[bannerCode] || 'Unknown Banner';
+
+function displayZZZProfile(data, uid) {
+  const player = data.PlayerInfo.SocialDetail.ProfileDetail;
+  const agents = data.PlayerInfo.ShowcaseDetail.AvatarList || [];
+  const medals = data.PlayerInfo.SocialDetail.MedalList || [];
+  
+  // Find Shiyu Defense medal (MedalIcon: 6001)
+  const shiyuMedal = medals.find(m => m.MedalIcon === 6001);
+  const shiyuStars = shiyuMedal ? shiyuMedal.Value : 0;
+
+  const sortedAgents = agents
+    .slice(0, 6)
+    .sort((a, b) => b.Level - a.Level);
+
+  zzzContent.innerHTML = `
+    <div class="zzz-profile">
+      <div class="profile-header">
+        <img src="https://enka.network/ui/zzz/IconInterKnot2009.png" 
+             alt="Profile Avatar" 
+             class="profile-avatar"
+             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23f093fb%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%22 y=%2250%22 font-size=%2224%22 fill=%22white%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22%3EZZZ%3C/text%3E%3C/svg%3E'">
+        <div class="profile-info">
+          <h3>${player.Nickname || 'Proxy'}</h3>
+          <p style="color: #9b9baf;">UID: ${player.Uid}</p>
+          <p style="color: #f093fb; margin-top: 5px;">${data.PlayerInfo.SocialDetail.Desc || 'Welcome to New Eridu.'}</p>
+        </div>
+      </div>
+
+      <div class="profile-stats">
+        <div class="stat-box">
+          <div class="stat-label">Inter-Knot Level</div>
+          <div class="stat-value">${player.Level || 0}</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Withered Domains</div>
+          <div class="stat-value" style="font-size: 1rem;">License Lv.90</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Full S Shiyu Defense Clears</div>
+          <div class="stat-value">${shiyuStars}</div>
+        </div>
+      </div>
+
+      ${sortedAgents.length > 0 ? `
+        <div class="characters-showcase">
+          <h3 style="color: #f093fb; font-family: 'Cinzel', serif; margin-bottom: 10px; text-align: center;">
+            Featured Agents
+          </h3>
+          <div class="characters-grid">
+            ${sortedAgents.map(agent => {
+              const charData = zzzCharacterNames[agent.Id];
+              const charName = charData ? charData.name : 'Unknown';
+              const iconNumber = charData ? charData.icon : '01';
+              
+              return `
+                <a href="https://enka.network/zzz/${uid}/" target="_blank" class="character-card">
+                  <img src="https://enka.network/ui/zzz/IconRoleCircle${iconNumber}.png" 
+                       alt="${charName}" 
+                       class="character-icon"
+                       onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22%3E%3Ccircle cx=%2240%22 cy=%2240%22 r=%2240%22 fill=%22%23f093fb%22/%3E%3Ctext x=%2240%22 y=%2240%22 font-size=%2220%22 fill=%22white%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22%3E%3F%3C/text%3E%3C/svg%3E'">
+                  <div class="character-name">${charName}</div>
+                  <div class="character-level">Lv. ${agent.Level}</div>
+                </a>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      ` : ''}
+    </div>
+  `;
 }
