@@ -507,7 +507,8 @@
       overflow: hidden;
     }
 
-    .volume-control:hover {
+    .volume-control:hover,
+    .volume-control.expanded {
       width: 150px;
       background: rgba(255, 255, 255, 0.05);
       border-color: rgba(138, 116, 249, 0.3);
@@ -536,7 +537,8 @@
       transition: opacity 0.3s;
     }
 
-    .volume-control:hover .volume-slider {
+    .volume-control:hover .volume-slider,
+    .volume-control.expanded .volume-slider {
       opacity: 1;
     }
 
@@ -624,9 +626,9 @@
         </div>
       </div>
       <div class="player-controls">
-        <button class="control-btn" id="prevBtn">⮜</button>
+        <button class="control-btn" id="prevBtn">⏮</button>
         <button class="control-btn" id="playBtn">▶</button>
-        <button class="control-btn" id="nextBtn">⮞</button>
+        <button class="control-btn" id="nextBtn">⏭</button>
         <div class="progress-container">
           <span class="progress-time" id="currentTime">0:00</span>
           <div class="progress-bar" id="progressBar">
@@ -751,7 +753,7 @@
     });
 
     const songs = [
-      { name: "Time To Love", src: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Time%20To%20Love.mp3" },
+      { name: "From The Start", src: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Laufey%20-%20From%20The%20Start.mp3" },
       { name: "Had I Not Seen the Sun", src: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Had%20I%20Not%20Seen%20the%20Sun.mp3" },
       { name: "If I Can Stop One Heart From Breaking", src: "https://raw.githubusercontent.com/bunsass/busn/main/asset/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3" }
     ];
@@ -801,12 +803,13 @@
     prevBtn.addEventListener('click', prevSong);
     
     const volumeIcon = document.getElementById('volumeIcon');
-    volumeSlider.addEventListener('input', (e) => {
-      audio.volume = e.target.value;
-      updateVolumeIcon(e.target.value);
-    });
+    const volumeControl = document.querySelector('.volume-control');
     
-    volumeIcon.addEventListener('click', () => {
+    // Handle volume control expansion on mobile
+    let volumeExpandTimeout;
+    
+    volumeIcon.addEventListener('click', (e) => {
+      e.stopPropagation();
       if (audio.volume > 0) {
         audio.dataset.previousVolume = audio.volume;
         audio.volume = 0;
@@ -818,6 +821,29 @@
         volumeSlider.value = prevVol;
         updateVolumeIcon(prevVol);
       }
+    });
+    
+    // Toggle expansion on touch for mobile
+    volumeControl.addEventListener('touchstart', (e) => {
+      if (e.target !== volumeIcon) {
+        volumeControl.classList.add('expanded');
+        clearTimeout(volumeExpandTimeout);
+        volumeExpandTimeout = setTimeout(() => {
+          volumeControl.classList.remove('expanded');
+        }, 3000);
+      }
+    });
+    
+    // Close on touch outside
+    document.addEventListener('touchstart', (e) => {
+      if (!volumeControl.contains(e.target)) {
+        volumeControl.classList.remove('expanded');
+      }
+    });
+    
+    volumeSlider.addEventListener('input', (e) => {
+      audio.volume = e.target.value;
+      updateVolumeIcon(e.target.value);
     });
     
     function updateVolumeIcon(volume) {
@@ -1031,8 +1057,8 @@
             <span class="game-stat-value">${player.Level || 0}</span>
           </div>
           <div class="game-stat">
-            <span class="game-stat-label">shiyu defense clears</span>
-            <span class="game-stat-value">${shiyuMedal ? shiyuMedal.Value : 0} times</span>
+            <span class="game-stat-label">shiyu defense</span>
+            <span class="game-stat-value">${shiyuMedal ? shiyuMedal.Value : 0} stars</span>
           </div>
         `;
         
