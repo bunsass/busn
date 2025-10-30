@@ -446,16 +446,24 @@
       border: none;
       color: #999;
       cursor: pointer;
-      padding: 6px;
+      padding: 8px;
       transition: all 0.3s;
-      font-size: 16px;
       border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .control-btn:hover {
       color: #8a74f9;
       transform: scale(1.1);
       background: rgba(138, 116, 249, 0.1);
+    }
+
+    .control-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
     }
 
     .progress-container {
@@ -626,9 +634,21 @@
         </div>
       </div>
       <div class="player-controls">
-        <button class="control-btn" id="prevBtn">⏮</button>
-        <button class="control-btn" id="playBtn">▶</button>
-        <button class="control-btn" id="nextBtn">⏭</button>
+        <button class="control-btn" id="prevBtn">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+          </svg>
+        </button>
+        <button class="control-btn" id="playBtn">
+          <svg viewBox="0 0 24 24" id="playIcon">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+        </button>
+        <button class="control-btn" id="nextBtn">
+          <svg viewBox="0 0 24 24">
+            <path d="M16 18h2V6h-2zm-11.5-6L13 18V6z"/>
+          </svg>
+        </button>
         <div class="progress-container">
           <span class="progress-time" id="currentTime">0:00</span>
           <div class="progress-bar" id="progressBar">
@@ -761,6 +781,7 @@
     let currentSong = 0;
     const audio = document.getElementById('bgMusic');
     const playBtn = document.getElementById('playBtn');
+    const playIcon = document.getElementById('playIcon');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const volumeSlider = document.getElementById('volumeSlider');
@@ -777,10 +798,10 @@
       if (audio.paused) {
         if (!audio.src) loadSong(currentSong);
         audio.play();
-        playBtn.textContent = '⏸';
+        playIcon.innerHTML = '<path d="M6 4h4v16H6zm8 0h4v16h-4z"/>';
       } else {
         audio.pause();
-        playBtn.textContent = '▶';
+        playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
       }
     }
 
@@ -788,14 +809,14 @@
       currentSong = (currentSong + 1) % songs.length;
       loadSong(currentSong);
       audio.play();
-      playBtn.textContent = '⏸';
+      playIcon.innerHTML = '<path d="M6 4h4v16H6zm8 0h4v16h-4z"/>';
     }
 
     function prevSong() {
       currentSong = (currentSong - 1 + songs.length) % songs.length;
       loadSong(currentSong);
       audio.play();
-      playBtn.textContent = '⏸';
+      playIcon.innerHTML = '<path d="M6 4h4v16H6zm8 0h4v16h-4z"/>';
     }
 
     playBtn.addEventListener('click', togglePlay);
@@ -805,7 +826,6 @@
     const volumeIcon = document.getElementById('volumeIcon');
     const volumeControl = document.querySelector('.volume-control');
     
-    // Handle volume control expansion on mobile
     let volumeExpandTimeout;
     
     volumeIcon.addEventListener('click', (e) => {
@@ -823,7 +843,6 @@
       }
     });
     
-    // Toggle expansion on touch for mobile
     volumeControl.addEventListener('touchstart', (e) => {
       if (e.target !== volumeIcon) {
         volumeControl.classList.add('expanded');
@@ -834,7 +853,6 @@
       }
     });
     
-    // Close on touch outside
     document.addEventListener('touchstart', (e) => {
       if (!volumeControl.contains(e.target)) {
         volumeControl.classList.remove('expanded');
@@ -886,6 +904,65 @@
     audio.addEventListener('ended', nextSong);
 
     loadSong(0);
+
+    // Proxy rotation system for API requests
+    const proxies = [
+      {
+        name: 'AllOrigins',
+        url: (apiUrl) => `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`,
+        parseResponse: async (response) => {
+          const data = await response.json();
+          return data.contents ? JSON.parse(data.contents) : data;
+        }
+      },
+      {
+        name: 'CORSProxy',
+        url: (apiUrl) => `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`,
+        parseResponse: async (response) => await response.json()
+      },
+      {
+        name: 'CodeTabs',
+        url: (apiUrl) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(apiUrl)}`,
+        parseResponse: async (response) => await response.json()
+      }
+    ];
+
+    async function fetchWithProxyRotation(apiUrl, maxRetries = 3) {
+      for (let i = 0; i < proxies.length; i++) {
+        const proxy = proxies[i];
+        
+        for (let attempt = 0; attempt < maxRetries; attempt++) {
+          try {
+            console.log(`Trying ${proxy.name} (attempt ${attempt + 1})...`);
+            
+            const proxyUrl = proxy.url(apiUrl);
+            const response = await fetch(proxyUrl, {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json'
+              }
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}`);
+            }
+
+            const data = await proxy.parseResponse(response);
+            console.log(`✅ ${proxy.name} succeeded!`);
+            return data;
+
+          } catch (error) {
+            console.warn(`❌ ${proxy.name} failed (attempt ${attempt + 1}): ${error.message}`);
+            
+            if (attempt < maxRetries - 1) {
+              await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+            }
+          }
+        }
+      }
+
+      throw new Error('All proxies failed after retries');
+    }
 
     const DISCORD_ID = '1003100550700748871';
     
@@ -1008,11 +1085,7 @@
       const uid = '832796099';
       try {
         const apiUrl = `https://enka.network/api/hsr/uid/${uid}`;
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
-        
-        const response = await fetch(proxyUrl);
-        const proxyData = await response.json();
-        const data = JSON.parse(proxyData.contents);
+        const data = await fetchWithProxyRotation(apiUrl);
         
         const player = data.detailInfo;
         document.getElementById('hsrStats').innerHTML = `
@@ -1029,8 +1102,6 @@
             <span class="game-stat-value">${player.recordInfo?.achievementCount || 0}</span>
           </div>
         `;
-        
-        // No longer setting onclick on the entire card
       } catch (error) {
         console.error('Error fetching HSR:', error);
         document.getElementById('hsrStats').innerHTML = '<div class="loading">unable to load</div>';
@@ -1041,11 +1112,7 @@
       const uid = '1302036813';
       try {
         const apiUrl = `https://enka.network/api/zzz/uid/${uid}`;
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
-        
-        const response = await fetch(proxyUrl);
-        const proxyData = await response.json();
-        const data = JSON.parse(proxyData.contents);
+        const data = await fetchWithProxyRotation(apiUrl);
         
         const player = data.PlayerInfo.SocialDetail.ProfileDetail;
         const medals = data.PlayerInfo.SocialDetail.MedalList || [];
@@ -1061,8 +1128,6 @@
             <span class="game-stat-value">${shiyuMedal ? shiyuMedal.Value : 0} stars</span>
           </div>
         `;
-        
-        // No longer setting onclick on the entire card
       } catch (error) {
         console.error('Error fetching ZZZ:', error);
         document.getElementById('zzzStats').innerHTML = '<div class="loading">unable to load</div>';
