@@ -6,11 +6,28 @@
   <title>About Me</title>
   <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/bunsass/busn/refs/heads/main/asset/Sticker_PPG_24_Evernight_02.ico">
   <link rel="stylesheet" href="styles.css">
+<style>
+  .discord-name {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .discord-name::after {
+    content: '|';
+    color: #8a74f9;
+    animation: blink 0.7s infinite;
+    margin-left: 2px;
+  }
+  
+  @keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+</style>
 </head>
 <body>
   <div id="landingScreen" class="landing-screen">
     <div class="landing-content">
-      <h1 class="typewriter" id="typewriterText"></h1>
       <p class="click-continue" id="clickContinue">click anywhere to continue</p>
     </div>
   </div>
