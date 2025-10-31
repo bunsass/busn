@@ -267,11 +267,11 @@ async function fetchWithProxyRotation(apiUrl, maxRetries = 3) {
         }
 
         const data = await proxy.parseResponse(response);
-        console.log(`✅ ${proxy.name} succeeded!`);
+        console.log(`âœ… ${proxy.name} succeeded!`);
         return data;
 
       } catch (error) {
-        console.warn(`❌ ${proxy.name} failed (attempt ${attempt + 1}): ${error.message}`);
+        console.warn(`âŒ ${proxy.name} failed (attempt ${attempt + 1}): ${error.message}`);
         
         if (attempt < maxRetries - 1) {
           await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
@@ -376,7 +376,7 @@ function displayDiscordPresence(data, profileData) {
     `;
   }
 
-  // Profile badges from dcdn.dstn.to
+  // Profile badges 
   let badgesHTML = '';
   if (profileData && profileData.badges && profileData.badges.length > 0) {
     const badgeElements = profileData.badges.map(badge => `
@@ -398,7 +398,7 @@ function displayDiscordPresence(data, profileData) {
       </div>
       <div class="discord-info">
         <div class="discord-name-row">
-          <div class="discord-name">${discord_user.username}</div>
+          <div class="discord-name" id="discordUsername" data-username="${discord_user.username}"></div>
           ${clanTagHTML}
           ${badgesHTML}
         </div>
@@ -430,6 +430,53 @@ function displayDiscordPresence(data, profileData) {
   `;
 
   discordCard.innerHTML = html;
+  
+  // Start typewriter effect for username
+  const usernameElement = document.getElementById('discordUsername');
+  if (usernameElement) {
+    startTypewriter(usernameElement, discord_user.username);
+  }
+}
+
+// Typewriter effect for Discord username
+function startTypewriter(element, fullText) {
+  let charIndex = 0;
+  let isDeleting = false;
+  let isPaused = false;
+  let deleteTarget = 0; 
+  
+  function type() {
+    if (isPaused) {
+      setTimeout(type, isDeleting ? 800 : 2000);
+      isPaused = false;
+      return;
+    }
+    
+    if (!isDeleting && charIndex <= fullText.length) {
+      element.textContent = fullText.substring(0, charIndex);
+      charIndex++;
+      setTimeout(type, 80 + Math.random() * 40); 
+    } else if (!isDeleting && charIndex > fullText.length) {
+      isPaused = true;
+      isDeleting = true;
+      
+      const minDelete = Math.floor(fullText.length * 0.3);
+      const maxDelete = Math.floor(fullText.length * 0.9);
+      deleteTarget = Math.floor(Math.random() * (maxDelete - minDelete + 1)) + minDelete;
+      deleteTarget = fullText.length - deleteTarget; 
+      setTimeout(type, 2000);
+    } else if (isDeleting && charIndex > deleteTarget) {
+      charIndex--;
+      element.textContent = fullText.substring(0, charIndex);
+      setTimeout(type, 40 + Math.random() * 30);
+    } else if (isDeleting && charIndex === deleteTarget) {
+      isPaused = true;
+      isDeleting = false;
+      setTimeout(type, 400 + Math.random() * 300); 
+    }
+  }
+  
+  type();
 }
 
 async function fetchHSR() {
@@ -445,7 +492,7 @@ async function fetchHSR() {
       <img class="game-icon" src="https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/1409.png" alt="HSR">
       <div>
         <div class="game-title">${player.nickname}</div>
-        <div class="game-uid">UID: 832796099 â€¢ Honkai: Star Rail</div>
+        <div class="game-uid">UID: 832796099 Ã¢â‚¬Â¢ Honkai: Star Rail</div>
       </div>
     `;
     
@@ -485,7 +532,7 @@ async function fetchZZZ() {
       <img class="game-icon" src="https://enka.network/ui/zzz/IconInterKnot2009.png" alt="ZZZ">
       <div>
         <div class="game-title">${player.Nickname}</div>
-        <div class="game-uid">UID: 1302036813 â€¢ Zenless Zone Zero</div>
+        <div class="game-uid">UID: 1302036813 Ã¢â‚¬Â¢ Zenless Zone Zero</div>
       </div>
     `;
     
