@@ -3,7 +3,7 @@ const landingScreen = document.getElementById('landingScreen');
 const typewriterText = document.getElementById('typewriterText');
 const clickContinue = document.getElementById('clickContinue');
 
-const text = "Welcome To My Profile...";
+const text = "welcome to the shadows...";
 let charIndex = 0;
 
 function typeWriter() {
@@ -23,11 +23,24 @@ setTimeout(typeWriter, 500);
 // Click anywhere to continue
 landingScreen.addEventListener('click', () => {
   landingScreen.classList.add('fade-out');
+  
+  // Auto-play music when user clicks (user interaction allows autoplay)
+  const audio = document.getElementById('bgMusic');
+  if (audio && !audio.src) {
+    loadSong(0); // Load first song
+  }
+  audio.play().then(() => {
+    const playIcon = document.getElementById('playIcon');
+    playIcon.innerHTML = '<path d="M6 4h4v16H6zm8 0h4v16h-4z"/>';
+    console.log('Music auto-playing!');
+  }).catch(err => {
+    console.log('Auto-play prevented:', err);
+  });
+  
   setTimeout(() => {
     landingScreen.style.display = 'none';
   }, 800);
 });
-
 
 // Particle Animation
 const canvas = document.getElementById('particleCanvas');
@@ -272,11 +285,11 @@ async function fetchWithProxyRotation(apiUrl, maxRetries = 3) {
         }
 
         const data = await proxy.parseResponse(response);
-        console.log(`âœ… ${proxy.name} succeeded!`);
+        console.log(`✅ ${proxy.name} succeeded!`);
         return data;
 
       } catch (error) {
-        console.warn(`âŒ ${proxy.name} failed (attempt ${attempt + 1}): ${error.message}`);
+        console.warn(`❌ ${proxy.name} failed (attempt ${attempt + 1}): ${error.message}`);
         
         if (attempt < maxRetries - 1) {
           await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
