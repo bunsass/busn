@@ -1,33 +1,14 @@
-// Landing Screen with Typewriter Effect
+// Landing Screen - Simple click to continue
 const landingScreen = document.getElementById('landingScreen');
-const typewriterText = document.getElementById('typewriterText');
-const clickContinue = document.getElementById('clickContinue');
 
-const text = "welcome to the shadows...";
-let charIndex = 0;
-
-function typeWriter() {
-  if (charIndex < text.length) {
-    typewriterText.textContent += text.charAt(charIndex);
-    charIndex++;
-    setTimeout(typeWriter, 100);
-  } else {
-    // Animation complete, show click to continue
-    clickContinue.style.animationDelay = '0s';
-  }
-}
-
-// Start typewriter effect after a short delay
-setTimeout(typeWriter, 500);
-
-// Click anywhere to continue
+// landing screen
 landingScreen.addEventListener('click', () => {
   landingScreen.classList.add('fade-out');
   
-  // Auto-play music when user clicks (user interaction allows autoplay)
+  // Auto-play music when user clicks
   const audio = document.getElementById('bgMusic');
   if (audio && !audio.src) {
-    loadSong(0); // Load first song
+    loadSong(0); 
   }
   audio.play().then(() => {
     const playIcon = document.getElementById('playIcon');
@@ -105,11 +86,12 @@ window.addEventListener('resize', () => {
   canvas.height = window.innerHeight;
 });
 
-// Music Player
+// songs
 const songs = [
   { name: "From The Start", src: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Laufey%20-%20From%20The%20Start.mp3" },
   { name: "Had I Not Seen the Sun", src: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Had%20I%20Not%20Seen%20the%20Sun.mp3" },
-  { name: "If I Can Stop One Heart From Breaking", src: "https://raw.githubusercontent.com/bunsass/busn/main/asset/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3" }
+  { name: "If I Can Stop One Heart From Breaking", src: "https://raw.githubusercontent.com/bunsass/busn/main/asset/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3" },
+  { name: "1' phut", src: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Text%2007%20WN%20ft%20267.mp3" }
 ];
 
 let currentSong = 0;
