@@ -374,8 +374,8 @@ function displayDiscordPresence(data, profileData) {
         <div class="discord-name-row">
           <div class="discord-name">${discord_user.username}</div>
           ${clanTagHTML}
+          ${badgesHTML}
         </div>
-        ${badgesHTML}
         ${activityHTML}
         <div class="discord-socials">
           <a href="https://discord.com/users/1003100550700748871" class="discord-social-link" target="_blank" title="Discord">
