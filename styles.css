@@ -764,32 +764,17 @@ body {
   padding: 20px;
 }
 
-.typewriter {
-  color: #8a74f9;
-  font-size: 32px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  margin-bottom: 40px;
-  border-right: 3px solid #8a74f9;
-  white-space: nowrap;
-  overflow: hidden;
-  display: inline-block;
-  animation: blink-caret 0.75s step-end infinite;
-}
-
 @keyframes blink-caret {
   from, to { border-color: transparent; }
   50% { border-color: #8a74f9; }
 }
 
 .click-continue {
-  color: #666;
-  font-size: 14px;
+  color: #ffffff;
+  font-size: 18px;
   letter-spacing: 1px;
   text-transform: uppercase;
-  opacity: 0;
   animation: fadeInOut 2s ease-in-out infinite;
-  animation-delay: 2s;
 }
 
 @keyframes fadeInOut {
