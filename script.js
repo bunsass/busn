@@ -26,21 +26,16 @@ landingScreen.addEventListener('click', () => {
   
   // Auto-play music when user clicks (user interaction allows autoplay)
   const audio = document.getElementById('bgMusic');
-  if (!audio.src) {
+  if (audio && !audio.src) {
     loadSong(0); // Load first song
-    // Wait for audio to load before playing
-    audio.addEventListener('canplaythrough', () => {
-      audio.play().then(() => {
-        const playIcon = document.getElementById('playIcon');
-        playIcon.innerHTML = '<path d="M6 4h4v16H6zm8 0h4v16h-4z"/>';
-        console.log('Music auto-playing!');
-      }).catch(err => {
-        console.log('Auto-play prevented:', err);
-      });
-    }, { once: true });
-  } else {
-    audio.play().catch(err => console.log('Auto-play prevented:', err));
   }
+  audio.play().then(() => {
+    const playIcon = document.getElementById('playIcon');
+    playIcon.innerHTML = '<path d="M6 4h4v16H6zm8 0h4v16h-4z"/>';
+    console.log('Music auto-playing!');
+  }).catch(err => {
+    console.log('Auto-play prevented:', err);
+  });
   
   setTimeout(() => {
     landingScreen.style.display = 'none';
