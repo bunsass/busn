@@ -574,78 +574,46 @@ function displayDiscordPresence(data, profileData) {
   }
 }
 
-// Discord Username Scramble Effect
+// Discord Username Typewriter Effect - Clean & Smooth
 function startTypewriter(element, fullText) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*';
+  let charIndex = 0;
+  let isDeleting = false;
+  let deleteToIndex = 0;
   
-  let currentIndex = 0;
-  let scrambleFrames = 0;
-  const scrambleDuration = 6;
-  const delayBetweenChars = 150;
-  let isErasing = false;
-  let deleteTarget = 0;
-
-  function getRandomChar() {
-    return chars[Math.floor(Math.random() * chars.length)];
-  }
-
-  function scrambleText() {
-    // Writing phase
-    if (!isErasing && currentIndex < fullText.length) {
-      let displayText = '';
-      
-      // Show completed characters
-      for (let i = 0; i < currentIndex; i++) {
-        displayText += fullText[i];
-      }
-      
-      // Scramble current character
-      if (scrambleFrames < scrambleDuration) {
-        displayText += getRandomChar();
-        scrambleFrames++;
-      } else {
-        displayText += fullText[currentIndex];
-        currentIndex++;
-        scrambleFrames = 0;
-      }
-      
-      // Scramble remaining characters
-      for (let i = currentIndex + 1; i < fullText.length; i++) {
-        displayText += getRandomChar();
-      }
-
-      element.textContent = displayText;
-      setTimeout(scrambleText, delayBetweenChars);
-    }
-    // Complete - pause before deleting
-    else if (!isErasing && currentIndex >= fullText.length) {
+  function type() {
+    // Typing phase
+    if (!isDeleting && charIndex <= fullText.length) {
+      element.textContent = fullText.substring(0, charIndex);
+      charIndex++;
+      setTimeout(type, 80 + Math.random() * 40); // Smooth typing speed
+    } 
+    // Pause when complete
+    else if (!isDeleting && charIndex > fullText.length) {
       element.textContent = fullText;
-      isErasing = true;
-      
-      // Random delete target
-      const minDelete = Math.floor(fullText.length * 0.3);
-      const maxDelete = Math.floor(fullText.length * 0.9);
-      deleteTarget = fullText.length - (Math.floor(Math.random() * (maxDelete - minDelete + 1)) + minDelete);
-      
-      setTimeout(scrambleText, 2000);
+      setTimeout(() => {
+        isDeleting = true;
+        // Randomly delete between 40-80% of the text
+        const minDelete = Math.floor(fullText.length * 0.4);
+        const maxDelete = Math.floor(fullText.length * 0.8);
+        deleteToIndex = fullText.length - (Math.floor(Math.random() * (maxDelete - minDelete + 1)) + minDelete);
+        type();
+      }, 2500 + Math.random() * 1000); // Pause before deleting
     }
     // Deleting phase
-    else if (isErasing && currentIndex > deleteTarget) {
-      currentIndex--;
-      element.textContent = fullText.substring(0, currentIndex);
-      setTimeout(scrambleText, 40 + Math.random() * 30);
+    else if (isDeleting && charIndex > deleteToIndex) {
+      charIndex--;
+      element.textContent = fullText.substring(0, charIndex);
+      setTimeout(type, 40 + Math.random() * 20); // Fast deletion
     }
-    // Deleted to target - pause before retyping
-    else if (isErasing && currentIndex === deleteTarget) {
-      isErasing = false;
-      scrambleFrames = 0;
-      setTimeout(scrambleText, 400 + Math.random() * 300);
+    // Pause before retyping
+    else if (isDeleting && charIndex === deleteToIndex) {
+      isDeleting = false;
+      setTimeout(type, 400 + Math.random() * 200);
     }
   }
   
-  scrambleText();
+  type();
 }
-
 
 
 function startTabTitleTypewriter() {
