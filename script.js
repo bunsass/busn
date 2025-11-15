@@ -707,52 +707,9 @@ async function fetchHSR() {
   }
 }
 
-async function fetchZZZ() {
-  const uid = '1302036813';
-  try {
-    const apiUrl = `https://enka.network/api/zzz/uid/${uid}`;
-    const data = await fetchWithProxyRotation(apiUrl);
-    
-    const player = data.PlayerInfo.SocialDetail.ProfileDetail;
-    const socialDetail = data.PlayerInfo.SocialDetail;
-    const medals = socialDetail.MedalList || [];
-    const shiyuMedal = medals.find(m => m.MedalIcon === 6001);
-    const deadlyAssaultMedal = medals.find(m => m.MedalIcon === 7001);
-    
-    const zzzHeader = document.querySelector('#zzzCard .game-header');
-    zzzHeader.innerHTML = `
-      <img class="game-icon" src="https://enka.network/ui/zzz/IconInterKnot2009.png" alt="ZZZ">
-      <div>
-        <div class="game-title">${player.Nickname}</div>
-        <div class="game-uid" onclick="copyToClipboard('1302036813', this)" title="Click to copy UID">UID: 1302036813 • Zenless Zone Zero</div>
-      </div>
-    `;
-    
-    document.getElementById('zzzStats').innerHTML = `
-      <div class="game-stat">
-        <span class="game-stat-label">level</span>
-        <span class="game-stat-value">${player.Level || 0}</span>
-      </div>
-      <div class="game-stat">
-        <span class="game-stat-label">total shiyu clears</span>
-        <span class="game-stat-value">${shiyuMedal ? shiyuMedal.Value : 0} times</span>
-      </div>
-      <div class="game-stat">
-        <span class="game-stat-label">total assault clears</span>
-        <span class="game-stat-value">${deadlyAssaultMedal ? deadlyAssaultMedal.Value : 0} times</span>
-      </div>
-    `;
-  } catch (error) {
-    console.error('Error fetching ZZZ:', error);
-    document.getElementById('zzzStats').innerHTML = `
-      <div class="skeleton skeleton-stat"></div>
-      <div class="skeleton skeleton-stat"></div>
-    `;
-  }
-}
+
 
 fetchHSR();
-fetchZZZ();
 fetchDiscordPresence();
 setInterval(fetchDiscordPresence, 30000);
 
