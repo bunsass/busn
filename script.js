@@ -1,3 +1,88 @@
+// Landing Screen - Simple click to continue
+const landingScreen = document.getElementById('landingScreen');
+let hasInteracted = false;
+let shouldStartTypewriter = false;
+
+// landing screen
+landingScreen.addEventListener('click', (e) => {
+  e.preventDefault();
+  if (hasInteracted) return;
+  hasInteracted = true;
+  
+  landingScreen.classList.add('fade-out');
+  shouldStartTypewriter = true;
+  
+  // Auto-play music when user clicks
+  const audio = document.getElementById('bgMusic');
+  if (audio && !audio.src) {
+    loadSong(0); 
+  }
+  audio.play().then(() => {
+    const playIcon = document.getElementById('playIcon');
+    playIcon.innerHTML = '<path d="M6 4h4v16H6zm8 0h4v16h-4z"/>';
+    console.log('Music auto-playing!');
+  }).catch(err => {
+    console.log('Auto-play prevented:', err);
+  });
+  
+  setTimeout(() => {
+    landingScreen.style.display = 'none';
+    
+    startTitleScramble();
+  }, 800);
+});
+
+
+function startTitleScramble() {
+  const titleElement = document.getElementById('pageTitle');
+  const titleText = 'evernight';
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*';
+  
+  let currentIndex = 0;
+  let scrambleFrames = 0;
+  const scrambleDuration = 6;
+  const delayBetweenChars = 50;
+
+  function getRandomChar() {
+    return chars[Math.floor(Math.random() * chars.length)];
+  }
+
+  function scrambleText() {
+    if (currentIndex >= titleText.length) {
+      
+      titleElement.textContent = titleText;
+      return;
+    }
+
+    let displayText = '';
+    
+    
+    for (let i = 0; i < currentIndex; i++) {
+      displayText += titleText[i];
+    }
+    
+    
+    if (scrambleFrames < scrambleDuration) {
+      displayText += getRandomChar();
+      scrambleFrames++;
+    } else {
+      displayText += titleText[currentIndex];
+      currentIndex++;
+      scrambleFrames = 0;
+    }
+    
+    
+    for (let i = currentIndex + 1; i < titleText.length; i++) {
+      displayText += getRandomChar();
+    }
+
+    titleElement.textContent = displayText;
+    setTimeout(scrambleText, delayBetweenChars);
+  }
+  
+  
+  setTimeout(scrambleText, 100);
+}
 // Particle Animation
 const canvas = document.getElementById('particleCanvas');
 const ctx = canvas.getContext('2d');
@@ -61,11 +146,12 @@ window.addEventListener('resize', () => {
   canvas.height = window.innerHeight;
 });
 
-// Music Player
+// songs
 const songs = [
   { name: "From The Start", src: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Laufey%20-%20From%20The%20Start.mp3" },
   { name: "Had I Not Seen the Sun", src: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Had%20I%20Not%20Seen%20the%20Sun.mp3" },
-  { name: "If I Can Stop One Heart From Breaking", src: "https://raw.githubusercontent.com/bunsass/busn/main/asset/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3" }
+  { name: "If I Can Stop One Heart From Breaking", src: "https://raw.githubusercontent.com/bunsass/busn/main/asset/If%20I%20Can%20Stop%20One%20Heart%20From%20Breaking.mp3" },
+  { name: "Text 07", src: "https://raw.githubusercontent.com/bunsass/busn/main/asset/Text%2007%20WN%20ft%20267.mp3" }
 ];
 
 let currentSong = 0;
@@ -241,11 +327,11 @@ async function fetchWithProxyRotation(apiUrl, maxRetries = 3) {
         }
 
         const data = await proxy.parseResponse(response);
-        console.log(`✅ ${proxy.name} succeeded!`);
+        console.log(`âœ… ${proxy.name} succeeded!`);
         return data;
 
       } catch (error) {
-        console.warn(`❌ ${proxy.name} failed (attempt ${attempt + 1}): ${error.message}`);
+        console.warn(`âŒ ${proxy.name} failed (attempt ${attempt + 1}): ${error.message}`);
         
         if (attempt < maxRetries - 1) {
           await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
@@ -280,6 +366,25 @@ async function fetchDiscordPresence() {
   }
 }
 
+
+
+function getElapsedTime(startTimestamp) {
+  if (!startTimestamp) return '';
+  
+  const now = Date.now();
+  const elapsed = now - startTimestamp;
+  
+  const hours = Math.floor(elapsed / (1000 * 60 * 60));
+  const minutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((elapsed % (1000 * 60)) / 1000);
+  
+  if (hours > 0) {
+    return `(${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')})`;
+  } else {
+    return `(${minutes}:${seconds.toString().padStart(2, '0')})`;
+  }
+}
+
 function displayDiscordPresence(data, profileData) {
   const { discord_user, discord_status, activities, spotify } = data;
   const discordCard = document.getElementById('discordCard');
@@ -302,14 +407,37 @@ function displayDiscordPresence(data, profileData) {
   let activityHTML = '';
   
   if (spotify) {
+    const spotifyActivity = activities.find(a => a.name === 'Spotify');
+    const elapsed = spotifyActivity ? getElapsedTime(spotifyActivity.timestamps?.start) : '';
+    
+   
+    let progressHTML = '';
+    if (spotifyActivity && spotifyActivity.timestamps) {
+      const now = Date.now();
+      const start = spotifyActivity.timestamps.start;
+      const end = spotifyActivity.timestamps.end;
+      const total = end - start;
+      const current = now - start;
+      const percentage = Math.min((current / total) * 100, 100);
+      
+      progressHTML = `
+        <div style="margin-top: 8px;">
+          <div style="width: 100%; height: 4px; background: rgba(29, 185, 84, 0.2); border-radius: 2px; overflow: hidden;">
+            <div style="height: 100%; background: #1DB954; width: ${percentage}%; transition: width 1s linear;"></div>
+          </div>
+        </div>
+      `;
+    }
+    
     activityHTML = `
       <div class="discord-activity">
         <div class="activity-header">
           <svg viewBox="0 0 24 24" fill="#1DB954"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
-          Listening to Spotify
+          Listening to Spotify ${elapsed}
         </div>
         <div class="activity-details">${spotify.song}</div>
         <div class="activity-state">by ${spotify.artist}</div>
+        ${progressHTML}
       </div>
     `;
   }
@@ -317,15 +445,39 @@ function displayDiscordPresence(data, profileData) {
   const gameActivities = activities.filter(a => a.type === 0);
   if (gameActivities.length > 0) {
     const activity = gameActivities[0];
+    const elapsed = getElapsedTime(activity.timestamps?.start);
+    
     activityHTML += `
       <div class="discord-activity">
         <div class="activity-header">
           <svg viewBox="0 0 24 24" fill="#8a74f9"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-          Playing a game
+          Playing a game ${elapsed}
         </div>
         <div class="activity-details">${activity.name}</div>
         ${activity.details ? `<div class="activity-state">${activity.details}</div>` : ''}
         ${activity.state ? `<div class="activity-state">${activity.state}</div>` : ''}
+      </div>
+    `;
+  }
+
+
+  const customStatus = activities.find(a => a.type === 4);
+  if (!spotify && gameActivities.length === 0 && customStatus) {
+    const emojiHTML = customStatus.emoji 
+      ? customStatus.emoji.id 
+        ? `<img src="https://cdn.discordapp.com/emojis/${customStatus.emoji.id}.${customStatus.emoji.animated ? 'gif' : 'png'}?size=20" alt="${customStatus.emoji.name}" style="width: 18px; height: 18px; vertical-align: middle; margin-right: 6px;">` 
+        : `<span style="margin-right: 6px; font-size: 16px;">${customStatus.emoji.name}</span>`
+      : '';
+    
+    activityHTML = `
+      <div class="discord-activity">
+        <div class="activity-header">
+          <svg viewBox="0 0 24 24" fill="#8a74f9"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+          Custom Status
+        </div>
+        <div class="activity-details" style="display: flex; align-items: center;">
+          ${emojiHTML}${customStatus.state || ''}
+        </div>
       </div>
     `;
   }
@@ -350,7 +502,7 @@ function displayDiscordPresence(data, profileData) {
     `;
   }
 
-  // Profile badges from dcdn.dstn.to
+  // Profile badges 
   let badgesHTML = '';
   if (profileData && profileData.badges && profileData.badges.length > 0) {
     const badgeElements = profileData.badges.map(badge => `
@@ -372,7 +524,7 @@ function displayDiscordPresence(data, profileData) {
       </div>
       <div class="discord-info">
         <div class="discord-name-row">
-          <div class="discord-name">${discord_user.username}</div>
+          <div class="discord-name" id="discordUsername" data-username="${discord_user.username}"></div>
           ${clanTagHTML}
           ${badgesHTML}
         </div>
@@ -404,6 +556,114 @@ function displayDiscordPresence(data, profileData) {
   `;
 
   discordCard.innerHTML = html;
+  
+  // Start typewriter effect for username only after interaction
+  const usernameElement = document.getElementById('discordUsername');
+  if (usernameElement) {
+    if (shouldStartTypewriter) {
+      startTypewriter(usernameElement, discord_user.username);
+    } else {
+      // Wait for interaction before starting typewriter
+      const checkInterval = setInterval(() => {
+        if (shouldStartTypewriter) {
+          startTypewriter(usernameElement, discord_user.username);
+          clearInterval(checkInterval);
+        }
+      }, 100);
+    }
+  }
+}
+
+// Discord Username Typewriter Effect - Clean & Smooth
+function startTypewriter(element, fullText) {
+  let charIndex = 0;
+  let isDeleting = false;
+  let deleteToIndex = 0;
+  
+  function type() {
+    // Typing phase
+    if (!isDeleting && charIndex <= fullText.length) {
+      element.textContent = fullText.substring(0, charIndex);
+      charIndex++;
+      setTimeout(type, 80 + Math.random() * 40); // Smooth typing speed
+    } 
+    // Pause when complete
+    else if (!isDeleting && charIndex > fullText.length) {
+      element.textContent = fullText;
+      setTimeout(() => {
+        isDeleting = true;
+        // Randomly delete between 40-80% of the text
+        const minDelete = Math.floor(fullText.length * 0.4);
+        const maxDelete = Math.floor(fullText.length * 0.8);
+        deleteToIndex = fullText.length - (Math.floor(Math.random() * (maxDelete - minDelete + 1)) + minDelete);
+        type();
+      }, 2500 + Math.random() * 1000); // Pause before deleting
+    }
+    // Deleting phase
+    else if (isDeleting && charIndex > deleteToIndex) {
+      charIndex--;
+      element.textContent = fullText.substring(0, charIndex);
+      setTimeout(type, 40 + Math.random() * 20); // Fast deletion
+    }
+    // Pause before retyping
+    else if (isDeleting && charIndex === deleteToIndex) {
+      isDeleting = false;
+      setTimeout(type, 400 + Math.random() * 200);
+    }
+  }
+  
+  type();
+}
+
+
+function startTabTitleTypewriter() {
+  const fullTitle = 'Bunsass';
+  let charIndex = 0;
+  let isDeleting = false;
+  let isPaused = false;
+  
+  function typeTab() {
+    if (isPaused) {
+      setTimeout(typeTab, 2000);
+      isPaused = false;
+      return;
+    }
+    
+    if (!isDeleting && charIndex <= fullTitle.length) {
+      document.title = fullTitle.substring(0, charIndex);
+      charIndex++;
+      setTimeout(typeTab, 150 + Math.random() * 100);
+    } else if (!isDeleting && charIndex > fullTitle.length) {
+      isPaused = true;
+      isDeleting = true;
+      setTimeout(typeTab, 3000);
+    } else if (isDeleting && charIndex > 0) {
+      charIndex--;
+      document.title = fullTitle.substring(0, charIndex);
+      setTimeout(typeTab, 80 + Math.random() * 50);
+    } else if (isDeleting && charIndex === 0) {
+      isPaused = true;
+      isDeleting = false;
+      setTimeout(typeTab, 500);
+    }
+  }
+  
+  typeTab();
+}
+
+
+startTabTitleTypewriter();
+
+
+function copyToClipboard(text, element) {
+  navigator.clipboard.writeText(text).then(() => {
+    element.classList.add('copied');
+    setTimeout(() => {
+      element.classList.remove('copied');
+    }, 2000);
+  }).catch(err => {
+    console.error('Failed to copy:', err);
+  });
 }
 
 async function fetchHSR() {
@@ -419,7 +679,7 @@ async function fetchHSR() {
       <img class="game-icon" src="https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/1409.png" alt="HSR">
       <div>
         <div class="game-title">${player.nickname}</div>
-        <div class="game-uid">UID: 832796099 • Honkai: Star Rail</div>
+        <div class="game-uid" onclick="copyToClipboard('832796099', this)" title="Click to copy UID">UID: 832796099 • Honkai: Star Rail</div>
       </div>
     `;
     
@@ -439,47 +699,37 @@ async function fetchHSR() {
     `;
   } catch (error) {
     console.error('Error fetching HSR:', error);
-    document.getElementById('hsrStats').innerHTML = '<div class="loading">unable to load</div>';
+    document.getElementById('hsrStats').innerHTML = `
+      <div class="skeleton skeleton-stat"></div>
+      <div class="skeleton skeleton-stat"></div>
+      <div class="skeleton skeleton-stat"></div>
+    `;
   }
 }
 
-async function fetchZZZ() {
-  const uid = '1302036813';
-  try {
-    const apiUrl = `https://enka.network/api/zzz/uid/${uid}`;
-    const data = await fetchWithProxyRotation(apiUrl);
-    
-    const player = data.PlayerInfo.SocialDetail.ProfileDetail;
-    const socialDetail = data.PlayerInfo.SocialDetail;
-    const medals = socialDetail.MedalList || [];
-    const shiyuMedal = medals.find(m => m.MedalIcon === 6001);
-    
-    const zzzHeader = document.querySelector('#zzzCard .game-header');
-    zzzHeader.innerHTML = `
-      <img class="game-icon" src="https://enka.network/ui/zzz/IconInterKnot2009.png" alt="ZZZ">
-      <div>
-        <div class="game-title">${player.Nickname}</div>
-        <div class="game-uid">UID: 1302036813 • Zenless Zone Zero</div>
-      </div>
-    `;
-    
-    document.getElementById('zzzStats').innerHTML = `
-      <div class="game-stat">
-        <span class="game-stat-label">level</span>
-        <span class="game-stat-value">${player.Level || 0}</span>
-      </div>
-      <div class="game-stat">
-        <span class="game-stat-label">total shiyu defense clears</span>
-        <span class="game-stat-value">${shiyuMedal ? shiyuMedal.Value : 0} times</span>
-      </div>
-    `;
-  } catch (error) {
-    console.error('Error fetching ZZZ:', error);
-    document.getElementById('zzzStats').innerHTML = '<div class="loading">unable to load</div>';
-  }
-}
+
 
 fetchHSR();
-fetchZZZ();
 fetchDiscordPresence();
 setInterval(fetchDiscordPresence, 30000);
+
+// Update elapsed time every second
+setInterval(() => {
+  const activityHeaders = document.querySelectorAll('.activity-header');
+  activityHeaders.forEach(header => {
+    const timeMatch = header.textContent.match(/\((\d+):(\d+)\)/);
+    if (timeMatch) {
+      let minutes = parseInt(timeMatch[1]);
+      let seconds = parseInt(timeMatch[2]);
+      
+      seconds++;
+      if (seconds >= 60) {
+        seconds = 0;
+        minutes++;
+      }
+      
+      const formattedTime = `(${minutes}:${seconds.toString().padStart(2, '0')})`;
+      header.innerHTML = header.innerHTML.replace(/\(\d+:\d+\)/, formattedTime);
+    }
+  });
+}, 1000);
