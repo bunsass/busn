@@ -3,158 +3,151 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About Me</title>
   <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/bunsass/busn/refs/heads/main/asset/Sticker_PPG_24_Evernight_02.ico">
+  <title>buns.lol</title>
   <link rel="stylesheet" href="styles.css">
-<style>
-  .discord-name {
-    position: relative;
-    display: inline-block;
-  }
-  
-  .discord-name::after {
-    content: '|';
-    color: #8a74f9;
-    animation: blink 0.7s infinite;
-    margin-left: 2px;
-  }
-  
-  @keyframes blink {
-    0%, 49% { opacity: 1; }
-    50%, 100% { opacity: 0; }
-  }
-</style>
 </head>
 <body>
-  <div id="landingScreen" class="landing-screen">
+  <!-- Landing Screen -->
+  <div id="landingScreen">
     <div class="landing-content">
-      <p class="click-continue" id="clickContinue">click anywhere to continue</p>
+      <p class="landing-subtitle">click anywhere to continue</p>
     </div>
   </div>
 
-  <video id="videoBackground" autoplay muted loop playsinline>
-    <source src="https://motionbgs.com/media/8662/evernight-honkai-star-rail.960x540.mp4" type="video/mp4">
-  </video>
+  <div class="background"></div>
 
-  <canvas id="particleCanvas"></canvas>
+  <audio id="bgMusic"></audio>
 
-  <div class="volume-control">
-    <div class="volume-icon" id="volumeIcon">
-      <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
-        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-      </svg>
-    </div>
-    <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.01" value="0.7">
+  <!-- Volume Control -->
+  <div class="volume-section">
+    <span class="volume-icon">🔊</span>
+    <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.01" value="0.7">
   </div>
 
   <div class="container">
-    <div class="profile-section">
-      <div class="avatar-wrapper">
-        <img class="avatar" id="profileAvatar" src="https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/1409.png" alt="Avatar">
-        <div class="status-indicator" id="statusIndicator"></div>
-      </div>
-      <h1>evernight</h1>
-      <p class="bio">seeker of knowledge, dwelling in the realm between dusk and dawn. exploring the mysteries of code and the endless possibilities within the shadows of technology.</p>
-    </div>
+    <aside class="sidebar">
+      <div class="profile-card">
+        <div class="profile-header">
+          <div class="avatar-container">
+            <img id="user-avatar" class="avatar" src="data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23667eea'/%3E%3C/svg%3E" alt="Avatar">
+            <div id="status-badge" class="status-badge">
+              <span id="status-emoji">✓</span>
+            </div>
+          </div>
+          <h1 id="display-name" class="profile-name">Loading...</h1>
+          <p id="username" class="profile-username">@username</p>
+        </div>
 
-    <div class="two-column-layout">
-      <div class="card">
-        <div class="info-grid">
-          <div class="info-item">
-            <div class="info-label">Name</div>
-            <div class="info-value info-icon">
-              <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-              Buns
-            </div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">Location</div>
-            <div class="info-value info-icon">
-              <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-              Vietnam
-            </div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">Languages</div>
-            <div class="info-value info-icon">
-              <svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>
-              Vietnamese, English
-            </div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">MBTI</div>
-            <div class="info-value info-icon">
-              <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zm0 13c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-10c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z"/></svg>
-              ISTP
-            </div>
-          </div>
+        <p class="profile-bio">just a developer who loves gaming, coding, and creating cool stuff. currently vibing and working on some projects.</p>
+
+        <div class="divider"></div>
+
+        <div id="badges-container" class="badges">
+          <div class="badge-skeleton"></div>
+          <div class="badge-skeleton"></div>
+          <div class="badge-skeleton"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="social-links">
+          <a href="https://discord.com/users/1003100550700748871" class="social-link" title="Discord">
+            <svg viewBox="0 0 24 24">
+              <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
+            </svg>
+          </a>
+          <a href="https://github.com/bunsass" class="social-link" title="GitHub">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+          </a>
+          <a href="https://www.facebook.com/bunsass/" class="social-link" title="Facebook">
+            <svg viewBox="0 0 24 24">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+          </a>
+          <a href="https://open.spotify.com/user/31mrnj3etmhix6k34ipnzpr74ruu" class="social-link" title="Spotify">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+            </svg>
+          </a>
         </div>
       </div>
 
-      <div class="music-player">
-        <div class="player-header">
-          <div class="album-art">🎵</div>
-          <div class="track-info">
-            <h3 id="currentSong">From The Start</h3>
-            <div class="track-artist">Evernight Collection</div>
-          </div>
+      <div id="discord-activity" class="discord-activity">
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Loading activity...</p>
         </div>
-        <div class="player-controls">
-          <button class="control-btn" id="prevBtn">
-            <svg viewBox="0 0 24 24">
-              <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
-            </svg>
-          </button>
-          <button class="control-btn" id="playBtn">
-            <svg viewBox="0 0 24 24" id="playIcon">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-          </button>
-          <button class="control-btn" id="nextBtn">
-            <svg viewBox="0 0 24 24">
-              <path d="M16 18h2V6h-2zm-2.5-6L5 6v12z"/>
-            </svg>
-          </button>
-          <div class="progress-container">
-            <span class="progress-time" id="currentTime">0:00</span>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <nav class="nav-tabs">
+        <button class="nav-tab active" data-tab="about">About</button>
+        <button class="nav-tab" data-tab="games">Games</button>
+      </nav>
+
+      <section id="about-section" class="content-section active">
+        <div class="about-content">
+          <h2>hey, i'm buns 👋</h2>
+          <p>Just a gamer and music enthusiast who loves vibing on the internet. Whether it's grinding in games, discovering new music, or just chilling with friends online, I'm always enjoying the moment.</p>
+          <p>Currently just living life, playing games, and finding new tracks to vibe to. Feel free to connect and hang out!</p>
+        </div>
+
+        <!-- Music Player Below About -->
+        <div class="music-player-card">
+          <div class="music-header">Now Playing</div>
+          <div class="current-track" id="currentTrack">Loading...</div>
+
+          <div class="player-controls">
+            <button class="control-btn" id="prevBtn">⮜</button>
+            <button class="control-btn play" id="playBtn">▶</button>
+            <button class="control-btn" id="nextBtn">⮞</button>
+          </div>
+
+          <div class="progress-section">
             <div class="progress-bar" id="progressBar">
-              <div class="progress-bar-fill" id="progressBarFill"></div>
+              <div class="progress-fill" id="progressFill"></div>
             </div>
-            <span class="progress-time" id="totalTime">0:00</span>
+            <div class="time-info">
+              <span id="currentTime">0:00</span>
+              <span id="totalTime">0:00</span>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-    <audio id="bgMusic"></audio>
+      </section>
 
-    <div class="card" id="discordCard">
-      <div class="loading">loading presence...</div>
-    </div>
-
-    <div class="game-grid">
-      <div class="game-card" id="hsrCard">
-        <div class="game-header">
-          <img class="game-icon" src="https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/1409.png" alt="HSR">
-          <div>
-            <div class="game-title">honkai: star rail</div>
-            <div class="game-uid">UID: 832796099</div>
+      <section id="games-section" class="content-section">
+        <div class="game-card" id="hsrCard">
+          <div class="game-header">
+            <img class="game-icon" src="https://enka.network/ui/hsr/SpriteOutput/AvatarRoundIcon/Series/202017.png" alt="HSR">
+            <div>
+              <div class="game-title">Honkai: Star Rail</div>
+              <div class="game-uid" id="hsrUid" onclick="copyUID()">UID: 832796099</div>
+            </div>
+          </div>
+          <div class="game-stats" id="hsrStats">
+            <div class="loading">
+              <div class="spinner"></div>
+              <p>Loading stats...</p>
+            </div>
+          </div>
+          <div class="game-links">
+            <a href="https://enka.network/hsr/832796099/" class="game-link-btn" target="_blank">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              Profile
+            </a>
+            <a href="https://stardb.gg/warp-tracker/832796099" class="game-link-btn" target="_blank">
+              <svg viewBox="0 0 24 24"><path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>
+              Warp Tracker
+            </a>
           </div>
         </div>
-        <div class="game-stats" id="hsrStats">
-          <div class="loading">loading...</div>
-        </div>
-        <div class="game-links">
-          <a href="https://enka.network/hsr/832796099/" class="game-link-btn" target="_blank">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-            Profile
-          </a>
-          <a href="https://stardb.gg/warp-tracker/832796099" class="game-link-btn" target="_blank">
-            <svg viewBox="0 0 24 24"><path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>
-            Warp Tracker
-          </a>
-        </div>
-      </div>
-    </div>
+      </section>
+    </main>
+  </div>
 
   <script src="script.js"></script>
 </body>
